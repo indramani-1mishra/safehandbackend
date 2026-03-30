@@ -8,9 +8,12 @@ router.post(
     serviceController.uploadImages,
     serviceController.createServiceController
 );
-
+router.get(
+    "/findservice",
+    serviceController.getonlyservicenameandimagecontroller
+);
 // Route to update an existing service (handles multipart/form-data for new images if any)
-router.put(
+router.patch(
     "/update/:id",
     serviceController.uploadImages,
     serviceController.updateServiceController

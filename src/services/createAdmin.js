@@ -1,5 +1,6 @@
 const adminRepository = require("../repository/adminrepository");
-
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../config/serverConfig");
 const createAdminService = async (data) => {
     if (!data.email) throw new Error("Email is required");
     if (!data.password) throw new Error("Password is required");
@@ -25,13 +26,24 @@ const createAdminService = async (data) => {
         throw new Error("Admin already exists");
     }
 
-    return await adminRepository.createAdmin(data);
+    const admin = await adminRepository.createAdmin(data);
+    if (admin) {
+        const token = jwt.sign({ id: admin._id, role: admin.role }, JWT_SECRET, { expiresIn: "1d" });
+        return {
+            admin,
+            token
+        }
+    }
 };
 
 const updateAdminService = async (id, data) => {
     const admin = await adminRepository.getAdminById(id);
     if (!admin) {
         throw new Error("Admin not found");
+    }
+
+    if (data.password) {
+        delete data.password; // Prevent password update via generic update API to avoid storing plain text
     }
 
     return await adminRepository.updateAdmin(id, data);
@@ -41,7 +53,7 @@ const getAllAdminsService = async (query) => {
     return await adminRepository.getAllAdmins(query);
 };
 
-const makeAdmin = async (id) => {
+const makeAdminService = async (id) => {
     const admin = await adminRepository.getAdminById(id);
     if (!admin) {
         throw new Error("Admin not found");
@@ -57,5 +69,5 @@ module.exports = {
     deleteAdminService: adminRepository.deleteAdmin,
     getAllAdminsService,
     getAdminByIdService: adminRepository.getAdminById,
-    makeAdmin
+    makeAdminService
 };

@@ -13,7 +13,7 @@ const updateAdmin = async (id, data) => {
     return await Admin.findByIdAndUpdate(
         id,
         { $set: data },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 };
 

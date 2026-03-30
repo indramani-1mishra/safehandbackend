@@ -13,7 +13,7 @@ const updateWorker = async (id, data) => {
     return await Worker.findByIdAndUpdate(
         id,
         { $set: data },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 };
 

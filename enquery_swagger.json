@@ -1,0 +1,222 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Enquiry API",
+    "version": "1.0.0",
+    "description": "API documentation for the Enquiry service endpoints"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/api/enqueries",
+      "description": "Local server"
+    }
+  ],
+  "paths": {
+    "/": {
+      "post": {
+        "summary": "Create an Enquiry",
+        "tags": ["Enquiries"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": { "type": "string", "example": "1234567890" },
+                  "email": { "type": "string", "example": "test@example.com" },
+                  "enquiryType": { "type": "string", "example": "urgentEnquery" },
+                  "patientName": { "type": "string" },
+                  "address": { "type": "string" },
+                  "startDate": { "type": "string", "format": "date-time" },
+                  "service": { "type": "string" },
+                  "serviceDuration": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Enquiry created successfully" },
+          "400": { "description": "Validation error" }
+        }
+      },
+      "get": {
+        "summary": "Get all Enquiries",
+        "tags": ["Enquiries"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "schema": { "type": "string" },
+            "description": "Filter by type"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": { "type": "string" },
+            "description": "Filter by status"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful response" }
+        }
+      }
+    },
+    "/{id}": {
+      "get": {
+        "summary": "Get Enquiry by ID",
+        "tags": ["Enquiries"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful response" },
+          "404": { "description": "Enquiry not found" }
+        }
+      },
+      "put": {
+        "summary": "Update an Enquiry",
+        "tags": ["Enquiries"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": { "type": "string" },
+                  "email": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Enquiry updated successfully" },
+          "400": { "description": "Validation error" }
+        }
+      },
+      "delete": {
+        "summary": "Delete an Enquiry",
+        "tags": ["Enquiries"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Enquiry deleted successfully" },
+          "400": { "description": "Error deleting enquiry" }
+        }
+      }
+    },
+    "/{id}/status": {
+      "patch": {
+        "summary": "Update Enquiry Status",
+        "tags": ["Enquiries"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["pending", "approved", "rejected"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Status updated successfully" },
+          "400": { "description": "Invalid status or error" }
+        }
+      }
+    },
+    "/status/{status}": {
+      "get": {
+        "summary": "Get Enquiries by Status",
+        "tags": ["Enquiries"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "status",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful response" }
+        }
+      }
+    },
+    "/type/{type}": {
+      "get": {
+        "summary": "Get Enquiries by Type",
+        "tags": ["Enquiries"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "type",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful response" }
+        }
+      }
+    },
+    "/type/{type}/status/{status}": {
+      "get": {
+        "summary": "Get Enquiries by Type and Status",
+        "tags": ["Enquiries"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "type",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "in": "path",
+            "name": "status",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful response" }
+        }
+      }
+    }
+  }
+}

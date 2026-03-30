@@ -9,6 +9,12 @@ const adminSchema = new mongoose.Schema({
         trim: true
     },
 
+    phone: {
+        type: String,
+        required: true,
+        trim: true
+    },
+
     email: {
         type: String,
         required: true,
@@ -41,7 +47,8 @@ const adminSchema = new mongoose.Schema({
     },
 
     lastLogin: {
-        type: Date
+        type: Date,
+
     },
 
     loginAttempts: {
@@ -56,12 +63,11 @@ const adminSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-adminSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next();
+adminSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
 
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
 });
 
 

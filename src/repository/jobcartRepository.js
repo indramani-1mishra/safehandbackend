@@ -9,7 +9,7 @@ const updateJobCard = async (id, data) => {
     return await JobCard.findByIdAndUpdate(
         id,
         { $set: data },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 };
 

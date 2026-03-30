@@ -9,7 +9,7 @@ const updateService = async (id, data) => {
     return await Service.findByIdAndUpdate(
         id,
         { $set: data },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 };
 
@@ -31,10 +31,15 @@ const getServiceById = async (id) => {
     return service;
 };
 
+const getonlyservicenameandimage = async () => {
+    return await Service.find().select("_id name image description");
+}
+
 module.exports = {
     createService,
     updateService,
     deleteService,
     getAllServices,
-    getServiceById
+    getServiceById,
+    getonlyservicenameandimage
 };

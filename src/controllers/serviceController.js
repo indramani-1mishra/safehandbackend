@@ -1,4 +1,5 @@
 const upload = require("../middleware/multer");
+const { getonlyservicenameandimage } = require("../repository/serviceRepository");
 const serviceService = require("../services/serviceService");
 
 // Multer middleware explicitly handling file uploads for Service fields
@@ -32,7 +33,7 @@ const createServiceController = async (req, res) => {
         if (req.files) {
             if (req.files.image) {
                 // req.files.image[0].location corresponds to AWS S3 URL created by multer-s3
-                serviceData.image = req.files.image[0].location; 
+                serviceData.image = req.files.image[0].location;
             }
             if (req.files.basicImage) {
                 serviceData.basicImage = req.files.basicImage[0].location;
@@ -60,23 +61,37 @@ const createServiceController = async (req, res) => {
 const updateServiceController = async (req, res) => {
     try {
         const { id } = req.params;
-        const serviceData = { ...req.body };
+        let serviceData = {};
 
-        // Parse inputs similarly if sent via form-data
-        if (serviceData.pricingByCity && typeof serviceData.pricingByCity === 'string') {
-            serviceData.pricingByCity = JSON.parse(serviceData.pricingByCity);
-        }
-        if (serviceData.basicFeatures && typeof serviceData.basicFeatures === 'string') {
-            serviceData.basicFeatures = JSON.parse(serviceData.basicFeatures);
-        }
-        if (serviceData.advanceFeatures && typeof serviceData.advanceFeatures === 'string') {
-            serviceData.advanceFeatures = JSON.parse(serviceData.advanceFeatures);
-        }
-        if (serviceData.addons && typeof serviceData.addons === 'string') {
-            serviceData.addons = JSON.parse(serviceData.addons);
+        // ✅ Basic fields
+        if (req.body.name) serviceData.name = req.body.name;
+        if (req.body.description) serviceData.description = req.body.description;
+
+        // ✅ JSON fields parse
+        const parseField = (field) => {
+            if (!req.body[field]) return;
+            return typeof req.body[field] === "string"
+                ? JSON.parse(req.body[field])
+                : req.body[field];
+        };
+
+        if (req.body.pricingByCity) {
+            serviceData.pricingByCity = parseField("pricingByCity");
         }
 
-        // Apply any new image URLs over existing
+        if (req.body.basicFeatures) {
+            serviceData.basicFeatures = parseField("basicFeatures");
+        }
+
+        if (req.body.advanceFeatures) {
+            serviceData.advanceFeatures = parseField("advanceFeatures");
+        }
+
+        if (req.body.addons) {
+            serviceData.addons = parseField("addons");
+        }
+
+        // ✅ Image handling (only update if new file uploaded)
         if (req.files) {
             if (req.files.image) {
                 serviceData.image = req.files.image[0].location;
@@ -89,6 +104,14 @@ const updateServiceController = async (req, res) => {
             }
         }
 
+        // ❗ Check if anything to update
+        if (Object.keys(serviceData).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No data provided for update"
+            });
+        }
+
         const updatedService = await serviceService.updateServiceService(id, serviceData);
 
         return res.status(200).json({
@@ -96,6 +119,7 @@ const updateServiceController = async (req, res) => {
             message: "Service updated successfully",
             data: updatedService
         });
+
     } catch (error) {
         return res.status(400).json({
             success: false,
@@ -151,11 +175,26 @@ const deleteServiceController = async (req, res) => {
     }
 };
 
+const getonlyservicenameandimagecontroller = async (req, res) => {
+    try {
+        const services = await getonlyservicenameandimage();
+        return res.status(200).json({
+            success: true,
+            data: services
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
 module.exports = {
     uploadImages,
     createServiceController,
     updateServiceController,
     getAllServicesController,
     getServiceByIdController,
-    deleteServiceController
+    deleteServiceController,
+    getonlyservicenameandimagecontroller
 };

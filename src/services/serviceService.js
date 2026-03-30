@@ -11,11 +11,29 @@ const createServiceService = async (data) => {
 
 const updateServiceService = async (id, data) => {
     const service = await serviceRepository.getServiceById(id);
+
     if (!service) {
         throw new Error("Service not found");
     }
-    
-    return await serviceRepository.updateService(id, data);
+
+    //  Clean unwanted values
+    const cleanedData = {};
+
+    Object.keys(data).forEach((key) => {
+        if (
+            data[key] !== undefined &&
+            data[key] !== null &&
+            data[key] !== ""
+        ) {
+            cleanedData[key] = data[key];
+        }
+    });
+
+    if (Object.keys(cleanedData).length === 0) {
+        throw new Error("No valid fields provided for update");
+    }
+
+    return await serviceRepository.updateService(id, cleanedData);
 };
 
 const getAllServicesService = async (query = {}) => {

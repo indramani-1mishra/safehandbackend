@@ -13,7 +13,7 @@ const updateEnquiry = async (id, data) => {
     return await Enquiry.findByIdAndUpdate(
         id,
         { $set: data },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 };
 
@@ -39,7 +39,7 @@ const updateEnquiryStatus = async (id, status) => {
     return await Enquiry.findByIdAndUpdate(
         id,
         { $set: { status } },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 
 }
