@@ -51,24 +51,39 @@ const jobCardSchema = new mongoose.Schema({
         }
     ],
 
-    totalPrice: {
-        type: Number,
-        default: 0
+    priceforCoustomer: {
+        type: String
     },
-    worker: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Worker"
+    priceforWorker: {
+        type: String
+    },
+
+    workers: {
+        interested: {
+            type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Worker" }],
+            default: []
+        },
+        assigned: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Worker",
+            default: null
+        }
     },
 
 
     status: {
         type: String,
-        enum: ["pending", "assigned", "in-progress", "completed", "cancelled"],
+        enum: ["pending", "assigned", "completed"],
         default: "pending"
     },
 
+    totalCalculatedPrice: Number,
     assignedAt: Date,
-    completedAt: Date
+    completedAt: Date,
+    isAssigned: {
+        type: Boolean,
+        default: false
+    }
 
 }, { timestamps: true });
 

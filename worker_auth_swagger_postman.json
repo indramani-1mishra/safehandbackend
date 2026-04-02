@@ -1,0 +1,121 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SafeHand - Worker Auth APIs",
+    "version": "1.0.0",
+    "description": "Swagger Collection for testing Worker OTP Login, Verification, Refresh and Logout."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "workerAccessToken"
+      }
+    }
+  },
+  "paths": {
+    "/api/worker-auth/send-otp": {
+      "post": {
+        "summary": "Send OTP to Worker Phone",
+        "tags": ["Worker Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": { "type": "string", "example": "+918888888888" }
+                },
+                "required": ["phone"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OTP Sent successfully" },
+          "500": { "description": "Worker not found or Twilio Error" }
+        }
+      }
+    },
+    "/api/worker-auth/verify-otp": {
+      "post": {
+        "summary": "Verify OTP and Login",
+        "tags": ["Worker Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": { "type": "string", "example": "+918888888888" },
+                  "otp": { "type": "string", "example": "123456" }
+                },
+                "required": ["phone", "otp"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Worker logged in successfully. Sets workerAccessToken and workerRefreshToken cookies." },
+          "500": { "description": "Invalid OTP or Error" }
+        }
+      }
+    },
+    "/api/worker-auth/resend-otp": {
+      "post": {
+        "summary": "Resend OTP",
+        "tags": ["Worker Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": { "type": "string", "example": "+918888888888" }
+                },
+                "required": ["phone"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OTP Resent successfully" },
+          "500": { "description": "Error" }
+        }
+      }
+    },
+    "/api/worker-auth/refresh-token": {
+      "post": {
+        "summary": "Refresh Access Token",
+        "tags": ["Worker Auth"],
+        "description": "Reads workerRefreshToken from cookies, validates it, and sets new cookies.",
+        "responses": {
+          "200": { "description": "Access token refreshed successfully" },
+          "401": { "description": "No refresh token provided" },
+          "500": { "description": "Error" }
+        }
+      }
+    },
+    "/api/worker-auth/logout": {
+      "post": {
+        "summary": "Logout Worker",
+        "tags": ["Worker Auth"],
+        "description": "Reads refreshToken, removes it from DB, and clears cookies.",
+        "responses": {
+          "200": { "description": "Worker logged out successfully" },
+          "500": { "description": "Error" }
+        }
+      }
+    }
+  }
+}

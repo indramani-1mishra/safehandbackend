@@ -10,6 +10,13 @@ const AWS_REGION = process.env.AWS_REGION;
 const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME;
 const JWT_SECRET = process.env.JWT_SECRET_KEY || process.env.JWT_SECRET;
 const NODE_ENV = process.env.NODE_ENV;
+const DEFAULT_ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL;
+const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD;
+const DEFAULT_ADMIN_PHONE = process.env.DEFAULT_ADMIN_PHONE;
+const REFRESH_SECRET = process.env.REFRESH_SECRET;
+const TWILIO_SID = process.env.TWILIO_SID;
+const TWILIO_AUTHTOKEN = process.env.TWILIO_AUTHTOKEN;
+const TWILIO_SIRVICEID = process.env.TWILIO_SIRVICEID;
 
 module.exports = {
     PORT,
@@ -20,5 +27,12 @@ module.exports = {
     AWS_REGION,
     AWS_BUCKET_NAME,
     JWT_SECRET,
-    NODE_ENV
+    NODE_ENV,
+    DEFAULT_ADMIN_EMAIL,
+    DEFAULT_ADMIN_PASSWORD,
+    DEFAULT_ADMIN_PHONE,
+    REFRESH_SECRET,
+    TWILIO_SID,
+    TWILIO_AUTHTOKEN,
+    TWILIO_SIRVICEID
 }

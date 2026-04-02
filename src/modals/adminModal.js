@@ -58,6 +58,10 @@ const adminSchema = new mongoose.Schema({
 
     lockUntil: {
         type: Date
+    },
+
+    refreshToken: {
+        type: String
     }
 
 }, { timestamps: true });

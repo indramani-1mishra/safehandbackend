@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeHand Socket Test</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .notification { background: #e7f3ff; border-left: 5px solid #007bff; padding: 15px; margin: 10px 0; display: none; }
+        .success-notification { background: #d4edda; border-left: 5px solid #28a745; padding: 15px; margin: 10px 0; display: none; color: #155724; }
+        .reject-notification { background: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; margin: 10px 0; display: none; color: #856404; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .btn-red { background: #dc3545; margin-left: 10px; }
+        input { padding: 10px; width: 250px; border-radius: 5px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h1>SafeHand Worker Socket Test</h1>
+    
+    <div class="card">
+        <h3>1. Connect as Worker</h3>
+        <input type="text" id="workerId" placeholder="Enter Worker MongoID">
+        <button onclick="connectSocket()">Connect & Join Room</button>
+        <p id="status">Status: Disconnected</p>
+    </div>
+
+    <div id="notificationArea" class="card" style="display: none;">
+        <h3>🔔 Notifications Hub</h3>
+        
+        <!-- Matching Alert -->
+        <div id="jobAlert" class="notification">
+            <p id="alertMsg"></p>
+            <button onclick="showInterest(true)">I am Interested</button>
+            <button class="btn-red" onclick="showInterest(false)">Not Interested</button>
+        </div>
+
+        <!-- Assignment Final Alert -->
+        <div id="assignedAlert" class="success-notification">
+            <h3>🎉 JOB ASSIGNED!</h3>
+            <p id="assignedMsg"></p>
+        </div>
+
+        <!-- Rejection Alert -->
+        <div id="rejectedAlert" class="reject-notification">
+            <h3>✉️ Update on Interest</h3>
+            <p id="rejectedMsg"></p>
+        </div>
+    </div>
+
+    <!-- Alarm sound -->
+    <audio id="alertSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
+    <script>
+        let socket;
+        let currentJobId;
+        let currentWorkerId;
+        const alertSound = document.getElementById('alertSound');
+
+        function playAlert() {
+            alertSound.play().catch(e => console.log("User interaction needed for audio"));
+        }
+
+        function connectSocket() {
+            const workerId = document.getElementById('workerId').value;
+            if (!workerId) return alert("Please enter a Worker ID");
+            
+            currentWorkerId = workerId;
+            socket = io('http://localhost:3000');
+
+            socket.on('connect', () => {
+                document.getElementById('status').innerText = "Status: Connected (ID: " + socket.id + ")";
+                socket.emit('join_worker', workerId);
+                document.getElementById('notificationArea').style.display = 'block';
+            });
+
+            // 1. Listen for matching job
+            socket.on('new_job_alert', (data) => {
+                playAlert();
+                currentJobId = data.jobId;
+                const alertDiv = document.getElementById('jobAlert');
+                alertDiv.style.display = 'block';
+                document.getElementById('alertMsg').innerHTML = `
+                    <strong>${data.message}</strong><br>
+                    Service: ${data.serviceName}<br>
+                    Patient: ${data.patientName}<br>
+                    City: ${data.city}
+                `;
+            });
+
+            // 2. Listen for final assignment
+            socket.on('job_assigned', (data) => {
+                playAlert();
+                document.getElementById('jobAlert').style.display = 'none';
+                document.getElementById('assignedAlert').style.display = 'block';
+                document.getElementById('assignedMsg').innerHTML = data.message;
+            });
+
+            // 3. Listen for rejection (Sweet Rejection Message)
+            socket.on('job_rejected', (data) => {
+                playAlert();
+                document.getElementById('jobAlert').style.display = 'none';
+                document.getElementById('rejectedAlert').style.display = 'block';
+                document.getElementById('rejectedMsg').innerHTML = data.message;
+            });
+        }
+
+        async function showInterest(interested) {
+            if (!currentJobId || !currentWorkerId) return;
+            const endpoint = interested ? 'interested' : 'not-interested';
+            try {
+                const response = await fetch(`http://localhost:3000/api/jobcards/${currentJobId}/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ workerId: currentWorkerId })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert(interested ? "Interest sent! Waiting for Admin final choice." : "Rejection sent.");
+                    document.getElementById('jobAlert').style.display = 'none';
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Failed to send response.");
+            }
+        }
+    </script>
+</body>
+</html>

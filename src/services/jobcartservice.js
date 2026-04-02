@@ -1,0 +1,284 @@
+const jobcartRepository = require("../repository/jobcartRepository");
+const serviceRepository = require("../repository/serviceRepository");
+const matchUsers = require("../utils/matchUsers");
+const workerRepository = require("../repository/workerRepository");
+const enquiryRepository = require("../repository/enqueryRepository");
+const { default: mongoose } = require("mongoose");
+const socketUtils = require("../utils/socket");
+
+const createJobCardService = async (data) => {
+    try {
+        // Extract fields according to the nested payload format
+        const serviceId = data?.serviceDetails?.service;
+        const enquiryId = data?.inquiryId;
+        const city = data?.patientDetails?.city;
+
+        if (!serviceId) throw new Error("Service ID is missing in serviceDetails");
+        if (!enquiryId) throw new Error("Inquiry ID is missing");
+
+        const service = await serviceRepository.getServiceById(serviceId);
+        if (!service) {
+            throw new Error("Service not found in DB");
+        }
+        const enquiry = await enquiryRepository.getEnquiryById(enquiryId);
+        if (!enquiry) {
+            throw new Error("Enquiry not found in DB");
+        }
+        const matchedWorkers = await matchUsers(serviceId, city);
+        if (matchedWorkers.length === 0) {
+            throw new Error(`No workers found for service: ${service.name || serviceId} in city: ${city}`);
+        }
+
+        const { plan = 'basic', duration = 1, timing = '12hr' } = data?.serviceDetails || {};
+
+        //  Price Calculation Logic
+        const cityPricing = service.pricingByCity.find(p => p.city.toLowerCase() === city.toLowerCase());
+        if (!cityPricing) {
+            throw new Error(`Pricing for city: ${city} not found in service: ${service.name}`);
+        }
+
+        const planKey = plan === 'advance' ? 'advance' : 'basic';
+        const timingKey = timing === '24hr' ? 'hr24' : 'hr12';
+
+        const pricePerDay = cityPricing[planKey][timingKey];
+        if (!pricePerDay) {
+            throw new Error(`Price not defined for ${plan} plan and ${timing} timing in ${city}`);
+        }
+
+        const baseTotal = pricePerDay * duration;
+
+        // Addons total
+        const addonsTotal = (data.addons || []).reduce((sum, addon) => sum + (Number(addon.price) || 0), 0);
+
+        const finalCustomerPrice = baseTotal + addonsTotal;
+
+        // Update data object
+        data.priceforCoustomer = finalCustomerPrice.toString();
+        data.totalCalculatedPrice = finalCustomerPrice;
+
+        // Placeholder for worker price (you can change this logic later)
+        // For example: 70% of customer price
+        data.priceforWorker = (finalCustomerPrice * 0.7).toFixed(0).toString();
+
+        const jobCard = await jobcartRepository.createJobCard(data);
+
+        // 🚀 Socket Notification to matched workers
+        const io = socketUtils.getIo();
+        matchedWorkers.forEach(worker => {
+            io.to(worker._id.toString()).emit("new_job_alert", {
+                message: "New Job Match Found!",
+                jobId: jobCard._id,
+                serviceName: service.name,
+                patientName: data.patientDetails.name,
+                city: city
+            });
+        });
+
+        return {
+            jobCard,
+            matchedWorkers
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
+const updateJobCardService = async (id, data) => {
+    try {
+        const jobCard = await jobcartRepository.getJobCardById(id);
+        if (!jobCard) {
+            throw new Error("Job card not found");
+        }
+        const updatedJobCard = await jobcartRepository.updateJobCard(id, data);
+        return updatedJobCard;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const addWorkerToJobCardService = async (jobCardId, workerId,) => {
+    try {
+
+        const jobCard = await jobcartRepository.getJobCardById(jobCardId);
+        const worker = await workerRepository.getWorkerById(workerId);
+        if (!jobCard) {
+            throw new Error("Job card not found");
+        }
+        if (!worker) {
+            throw new Error("Worker not found");
+        }
+        const updatedJobCard = await jobcartRepository.addWorkerToJobCard(jobCardId, workerId);
+
+        // 👑 Socket Notification to Admin
+        const io = socketUtils.getIo();
+        io.to("admin_room").emit("worker_interested", {
+            message: `Worker ${worker.name} is interested in Job Card #${jobCardId}`,
+            jobCardId: jobCardId,
+            workerId: workerId,
+            workerName: worker.name
+        });
+
+        return updatedJobCard;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const removeWorkerFromJobCardService = async (jobCardId, workerId) => {
+    try {
+        const jobCard = await jobcartRepository.getJobCardById(jobCardId);
+        if (!jobCard) {
+            throw new Error("Job card not found");
+        }
+        const updatedJobCard = await jobcartRepository.removeWorkerFromJobCard(jobCardId, workerId);
+
+        // 👑 Socket Notification to Admin
+        const io = socketUtils.getIo();
+        io.to("admin_room").emit("worker_not_interested", {
+            message: `Worker ID ${workerId} is no longer interested in Job Card #${jobCardId}`,
+            jobCardId: jobCardId,
+            workerId: workerId
+        });
+
+        return updatedJobCard;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const assignWorkerToJobCardService = async (jobCardId, workerId) => {
+    try {
+        const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
+        const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;
+        const jobCard = await jobcartRepository.getJobCardById(safeJobCardId);
+
+        if (!jobCard) {
+            throw new Error("Job card not found");
+        }
+
+        if (jobCard.isAssigned) {
+            throw new Error("Job card is already assigned");
+        }
+        const updatedJobCard = await jobcartRepository.assignWorkerToJobCard(safeJobCardId, new mongoose.Types.ObjectId(safeWorkerId));
+        // Changed isBusy to isFree: false since isBusy doesn't exist by default in your model!
+        await workerRepository.updateWorker(safeWorkerId, { isBusy: true });
+        await jobcartRepository.updateJobCard(safeJobCardId, { isAssigned: true });
+
+        const io = socketUtils.getIo();
+
+        // 🏆 Notify Assigned Worker
+        io.to(safeWorkerId).emit("job_assigned", {
+            message: `🎉 Great news! You have been assigned to Job Card #${safeJobCardId}`,
+            jobDetails: updatedJobCard.patientDetails,
+            serviceDetails: updatedJobCard.serviceDetails,
+            city: updatedJobCard.patientDetails.city,
+        });
+
+        // 🧁 Automatic Rejection Logic for Other Workers
+        const otherWorkers = jobCard.workers.interested.filter(id => id.toString() !== safeWorkerId);
+
+        otherWorkers.forEach(otherWorkerId => {
+            io.to(otherWorkerId.toString()).emit("job_rejected", {
+                message: "Thank you for showing interest! Unfortunately, this job has been assigned to another nurse. We will notify you whenever we find another match for you. Good luck!",
+                jobCardId: safeJobCardId
+            });
+        });
+
+        return updatedJobCard;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const deleteJobCardService = async (id) => {
+    try {
+        const jobCard = await jobcartRepository.deleteJobCard(id);
+        return jobCard;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getAllJobCardsService = async (query) => {
+    try {
+        const jobCards = await jobcartRepository.getAllJobCards(query);
+        return jobCards;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getJobCardByIdService = async (id) => {
+    try {
+        const jobCard = await jobcartRepository.getJobCardById(id);
+        return jobCard;
+    } catch (error) {
+        throw error;;
+    }
+}
+
+const getJobCardsByWorkerIdService = async (workerId) => {
+    try {
+        const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;
+        const jobCards = await jobcartRepository.getJobCardsByWorkerId(safeWorkerId);
+        return jobCards;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getJobCardsByStatusService = async (status) => {
+    try {
+        const safeStatus = typeof status === 'string' ? status.trim() : status;
+        const jobCards = await jobcartRepository.getJobCardsByStatus(safeStatus);
+        return jobCards;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getJobCardsByStatusAndWorkerIdService = async (status, workerId) => {
+    try {
+        const safeStatus = typeof status === 'string' ? status.trim() : status;
+        const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;
+        const jobCards = await jobcartRepository.getJobCardsByStatusAndWorkerId(safeStatus, safeWorkerId);
+        return jobCards;
+    } catch (error) {
+        throw error;
+    }
+}
+const completeJobCardService = async (jobCardId) => {
+    try {
+        const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
+        const jobCard = await jobcartRepository.getJobCardById(safeJobCardId);
+        if (!jobCard) {
+            throw new Error("Job card not found");
+        }
+        const updatedJobCard = await jobcartRepository.completeJobCard(safeJobCardId);
+        const workerId = jobCard.workers.assigned;
+        const worker = await workerRepository.getWorkerById(workerId);
+        if (!worker) {
+            throw new Error("Worker not found");
+        }
+        await workerRepository.updateWorker(workerId, { isBusy: false });
+        return updatedJobCard;
+    } catch (error) {
+        throw error;
+    }
+}
+
+
+module.exports = {
+    createJobCardService,
+    updateJobCardService,
+    deleteJobCardService,
+    getAllJobCardsService,
+    getJobCardByIdService,
+    addWorkerToJobCardService,
+    removeWorkerFromJobCardService,
+    assignWorkerToJobCardService,
+    getJobCardsByWorkerIdService,
+    getJobCardsByStatusService,
+    getJobCardsByStatusAndWorkerIdService,
+    completeJobCardService
+}

@@ -1,10 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const serviceController = require("../controllers/serviceController");
+const { authMiddleware, isAdmin } = require("../middleware/authmiddleware");
 
 // Route to create a new service (handles multipart/form-data for images)
 router.post(
     "/create",
+    authMiddleware,
+    isAdmin,
     serviceController.uploadImages,
     serviceController.createServiceController
 );
@@ -15,6 +18,8 @@ router.get(
 // Route to update an existing service (handles multipart/form-data for new images if any)
 router.patch(
     "/update/:id",
+    authMiddleware,
+    isAdmin,
     serviceController.uploadImages,
     serviceController.updateServiceController
 );
@@ -34,6 +39,8 @@ router.get(
 // Route to delete a service by ID
 router.delete(
     "/delete/:id",
+    authMiddleware,
+    isAdmin,
     serviceController.deleteServiceController
 );
 

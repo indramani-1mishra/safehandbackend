@@ -6,7 +6,7 @@ const createAdmin = async (data) => {
 };
 
 const findAdminByEmail = async (email) => {
-    return await Admin.findOne({ email });
+    return await Admin.findOne({ email }).select("+password");
 };
 
 const updateAdmin = async (id, data) => {
@@ -36,11 +36,26 @@ const getAdminById = async (id) => {
     return admin;
 };
 
+const saveRefreshToken = async (id, refreshToken) => {
+    return await Admin.findByIdAndUpdate(id, { refreshToken });
+};
+
+const removeRefreshToken = async (id) => {
+    return await Admin.findByIdAndUpdate(id, { $unset: { refreshToken: "" } });
+};
+
+const findAdminByRefreshToken = async (refreshToken) => {
+    return await Admin.findOne({ refreshToken });
+};
+
 module.exports = {
     createAdmin,
     findAdminByEmail,
     updateAdmin,
     deleteAdmin,
     getAllAdmins,
-    getAdminById
+    getAdminById,
+    saveRefreshToken,
+    removeRefreshToken,
+    findAdminByRefreshToken
 };

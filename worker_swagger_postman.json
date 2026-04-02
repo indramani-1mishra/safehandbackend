@@ -1,0 +1,311 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SafeHand - Worker APIs",
+    "version": "1.0.0",
+    "description": "Swagger Collection for testing the Worker creation, update, and retrieval endpoints with Cookie based Auth."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "adminToken"
+      }
+    }
+  },
+  "security": [
+    {
+      "cookieAuth": []
+    }
+  ],
+  "paths": {
+    "/api/workers/create": {
+      "post": {
+        "summary": "Create a new Worker",
+        "tags": [
+          "Workers"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "age": {
+                    "type": "integer"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": [
+                      "male",
+                      "female",
+                      "other"
+                    ]
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "services": {
+                    "type": "string",
+                    "description": "JSON string"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "documents": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "phone"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Worker created successfully"
+          },
+          "400": {
+            "description": "Validation error or App Error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/workers/update/{id}": {
+      "put": {
+        "summary": "Update an existing Worker",
+        "tags": [
+          "Workers"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Worker ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "age": {
+                    "type": "integer"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": [
+                      "male",
+                      "female",
+                      "other"
+                    ]
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  },
+                  "isOnline": {
+                    "type": "boolean"
+                  },
+                  "isBusy": {
+                    "type": "boolean"
+                  },
+                  "services": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "documents": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Worker updated successfully"
+          },
+          "404": {
+            "description": "Worker not found"
+          }
+        }
+      }
+    },
+    "/api/workers/getall": {
+      "get": {
+        "summary": "Get all Workers",
+        "tags": [
+          "Workers"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of workers retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/workers/get/{id}": {
+      "get": {
+        "summary": "Get Worker by ID",
+        "tags": [
+          "Workers"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Worker details"
+          },
+          "404": {
+            "description": "Worker not found"
+          }
+        }
+      }
+    },
+    "/api/workers/getbyphone/{phone}": {
+      "get": {
+        "summary": "Get Worker by Phone",
+        "tags": [
+          "Workers"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "phone",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Worker details by Phone"
+          },
+          "404": {
+            "description": "Worker not found"
+          }
+        }
+      }
+    },
+    "/api/workers/getbyemail/{email}": {
+      "get": {
+        "summary": "Get Worker by Email",
+        "tags": [
+          "Workers"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Worker details by Email"
+          },
+          "404": {
+            "description": "Worker not found"
+          }
+        }
+      }
+    },
+    "/api/workers/delete/{id}": {
+      "delete": {
+        "summary": "Delete a Worker",
+        "tags": [
+          "Workers"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Worker deleted successfully"
+          },
+          "404": {
+            "description": "Worker not found"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,448 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SafeHand JobCards API",
+    "description": "API documentation for the SafeHand JobCards endpoints, designed to be imported directly into Postman.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "adminToken"
+      }
+    }
+  },
+  "paths": {
+    "/api/jobcards": {
+      "get": {
+        "summary": "Get All Job Cards",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new Job Card",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "inquiryId": {
+                    "type": "string",
+                    "example": "65b9dbf8a7c23a... "
+                  },
+                  "patientDetails": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                      },
+                      "age": {
+                        "type": "number",
+                        "example": 45
+                      },
+                      "gender": {
+                        "type": "string",
+                        "example": "male"
+                      },
+                      "address": {
+                        "type": "string",
+                        "example": "123 Main St"
+                      },
+                      "city": {
+                        "type": "string",
+                        "example": "Mumbai"
+                      },
+                      "phone": {
+                        "type": "string",
+                        "example": "9876543210"
+                      }
+                    }
+                  },
+                  "serviceDetails": {
+                    "type": "object",
+                    "properties": {
+                      "service": {
+                        "type": "string",
+                        "example": "65b9... "
+                      },
+                      "plan": {
+                        "type": "string",
+                        "example": "basic"
+                      },
+                      "duration": {
+                        "type": "number",
+                        "example": 3
+                      },
+                      "timing": {
+                        "type": "string",
+                        "example": "12hr"
+                      }
+                    }
+                  },
+                  "addons": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "example": "Physiotherapy"
+                        },
+                        "price": {
+                          "type": "number",
+                          "example": 500
+                        }
+                      }
+                    }
+                  },
+                  "totalPrice": {
+                    "type": "number",
+                    "example": 3500
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Job Card Created"
+          }
+        }
+      }
+    },
+    "/api/jobcards/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Job Card by ID",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a Job Card",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "example": "in-progress"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a Job Card",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful option"
+          }
+        }
+      }
+    },
+    "/api/jobcards/{id}/assign": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Assign Final Worker to Job",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workerId": {
+                    "type": "string",
+                    "example": "65b9..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Worker Assigned"
+          }
+        }
+      }
+    },
+    "/api/jobcards/{id}/interested": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Worker Marks as Interested",
+        "tags": [
+          "JobCards (Worker)"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workerId": {
+                    "type": "string",
+                    "example": "65b9..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/jobcards/{id}/not-interested": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Worker Marks as Not Interested",
+        "tags": [
+          "JobCards (Worker)"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workerId": {
+                    "type": "string",
+                    "example": "65b9..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/jobcards/status/{status}": {
+      "parameters": [
+        {
+          "name": "status",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Job Cards by Status",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful option"
+          }
+        }
+      }
+    },
+    "/api/jobcards/worker/{workerId}": {
+      "parameters": [
+        {
+          "name": "workerId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Job Cards by Worker ID",
+        "tags": [
+          "JobCards (Worker)"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful option"
+          }
+        }
+      }
+    },
+    "/api/jobcards/status/{status}/worker/{workerId}": {
+      "parameters": [
+        {
+          "name": "status",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "workerId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Job Cards by Status and Worker ID",
+        "tags": [
+          "JobCards (Worker)"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful option"
+          }
+        }
+      }
+    },
+    "/api/jobcards/{id}/complete": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "summary": "Complete a Job Card",
+        "tags": [
+          "JobCards (Worker)"
+        ],
+        "responses": {
+          "200": {
+            "description": "Job Card completed"
+          }
+        }
+      }
+    }
+  }
+}

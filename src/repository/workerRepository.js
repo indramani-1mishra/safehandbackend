@@ -9,6 +9,14 @@ const findWorkerByEmail = async (email) => {
     return await Worker.findOne({ email });
 };
 
+const findWorkerByPhone = async (phone) => {
+    return await Worker.findOne({ phone });
+};
+
+const findWorkerById = async (id) => {
+    return await Worker.findById(id);
+};
+
 const updateWorker = async (id, data) => {
     return await Worker.findByIdAndUpdate(
         id,
@@ -16,6 +24,7 @@ const updateWorker = async (id, data) => {
         { returnDocument: 'after', runValidators: true }
     );
 };
+
 
 const deleteWorker = async (id) => {
     return await Worker.findByIdAndDelete(id);
@@ -35,11 +44,25 @@ const getWorkerById = async (id) => {
     return worker;
 };
 
+const saveRefreshToken = async (id, refreshToken) => {
+    return await Worker.findByIdAndUpdate(id, { refreshToken });
+}
+const removeRefreshToken = async (id) => {
+    return await Worker.findByIdAndUpdate(id, { $unset: { refreshToken: "" } });
+}
+const findWorkerByRefreshToken = async (refreshToken) => {
+    return await Worker.findOne({ refreshToken });
+}
 module.exports = {
     createWorker,
     findWorkerByEmail,
     updateWorker,
     deleteWorker,
     getAllWorkers,
-    getWorkerById
+    getWorkerById,
+    findWorkerById,
+    findWorkerByPhone,
+    saveRefreshToken,
+    removeRefreshToken,
+    findWorkerByRefreshToken
 };
