@@ -82,7 +82,7 @@ const completeJobCard = async (jobCardId) => {
     const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
     return await JobCard.findByIdAndUpdate(
         safeJobCardId,
-        { $set: { status: "completed", completedAt: new Date() } },
+        { $set: { status: "completed", completedAt: new Date(), isAssigned: "false" }, },
         { returnDocument: 'after', runValidators: true }
     ).populate("workers.assigned");
 }

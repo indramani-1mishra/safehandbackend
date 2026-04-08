@@ -1,0 +1,49 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SafeHand Master API Collection",
+    "description": "Unified API documentation for all SafeHand services including Admin, Workers, Attendance, JobCards, and Payments.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "tags": [
+    { "name": "Admin Auth", "description": "Admin authentication and OTP" },
+    { "name": "Worker Auth", "description": "Worker authentication and profile" },
+    { "name": "Services", "description": "Service categories and pricing" },
+    { "name": "Enquiries", "description": "User service requests" },
+    { "name": "JobCards", "description": "Job assignment and tracking" },
+    { "name": "Attendance", "description": "Worker attendance verification" },
+    { "name": "Client Payments", "description": "Revenue and coverage tracking" },
+    { "name": "Worker Payouts", "description": "Attendance-based worker earnings" },
+    { "name": "Dashboard", "description": "Admin financial summary" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "adminToken"
+      }
+    }
+  },
+  "paths": {
+    "/api/auth/login": { "post": { "summary": "Admin Login", "tags": ["Admin Auth"], "responses": { "200": { "description": "Success" } } } },
+    "/api/admins/getall": { "get": { "summary": "Get all Admins", "tags": ["Admin User Management"], "responses": { "200": { "description": "Success" } } } },
+    "/api/services/getall": { "get": { "summary": "Get all Services", "tags": ["Services"], "responses": { "200": { "description": "Success" } } } },
+    "/api/enqueries/": { "post": { "summary": "Create Enquiry", "tags": ["Enquiries"], "responses": { "201": { "description": "Success" } } }, "get": { "summary": "Get all Enquiries", "tags": ["Enquiries"], "responses": { "200": { "description": "Success" } } } },
+    "/api/jobcards": { "get": { "summary": "Get All JobCards", "tags": ["JobCards"], "responses": { "200": { "description": "Success" } } }, "post": { "summary": "Create JobCard", "tags": ["JobCards"], "responses": { "201": { "description": "Success" } } } },
+    "/api/jobcards/{id}/assign": { "post": { "summary": "Assign Worker to Job", "tags": ["JobCards"], "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}], "responses": { "200": { "description": "Success" } } } },
+    "/api/attendance/request-otp": { "post": { "summary": "Request Attendance OTP", "tags": ["Attendance"], "responses": { "200": { "description": "Success" } } } },
+    "/api/attendance/verify-otp": { "post": { "summary": "Verify OTP and Mark Present", "tags": ["Attendance"], "responses": { "201": { "description": "Success" } } } },
+    "/api/payments": { "post": { "summary": "Record Client Payment", "tags": ["Client Payments"], "responses": { "201": { "description": "Success" } } }, "get": { "summary": "Get All Payments", "tags": ["Client Payments"], "responses": { "200": { "description": "Success" } } } },
+    "/api/payments/due/today": { "get": { "summary": "Clients Due Today", "tags": ["Client Payments"], "responses": { "200": { "description": "Success" } } } },
+    "/api/worker-payouts/due": { "get": { "summary": "Get Worker Due Balance", "tags": ["Worker Payouts"], "parameters": [{"name": "workerId", "in": "query", "required": true, "schema": {"type": "string"}}, {"name": "jobCardId", "in": "query", "required": true, "schema": {"type": "string"}}], "responses": { "200": { "description": "Success" } } } },
+    "/api/worker-payouts": { "post": { "summary": "Record Worker Payout", "tags": ["Worker Payouts"], "responses": { "201": { "description": "Success" } } } },
+    "/api/dashboard/summary": { "get": { "summary": "Admin Financial Dashboard", "tags": ["Dashboard"], "responses": { "200": { "description": "Success" } } } }
+  }
+}

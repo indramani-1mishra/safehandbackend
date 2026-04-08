@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const jobCardSchema = new mongoose.Schema({
 
-    // 🔹 Linked Enquiry / Inquiry
+    // 🔹 Inquiry Link
     inquiryId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Enquiry",
@@ -11,21 +11,15 @@ const jobCardSchema = new mongoose.Schema({
 
     // 🔹 Patient Details
     patientDetails: {
-        name: {
-            type: String,
-            required: true,
-            trim: true
-        },
+        name: { type: String, required: true, trim: true },
         age: Number,
-        gender: {
-            type: String,
-            enum: ["male", "female", "other"]
-        },
+        gender: { type: String, enum: ["male", "female", "other"] },
         address: String,
         city: String,
         phone: String
     },
 
+    // 🔹 Service Details
     serviceDetails: {
         service: {
             type: mongoose.Schema.Types.ObjectId,
@@ -37,32 +31,47 @@ const jobCardSchema = new mongoose.Schema({
             enum: ["basic", "advance"],
             default: "basic"
         },
-        duration: Number, // in hours/days
-        timing: String    // e.g. "12hr", "24hr"
+        timing: String // 12hr / 24hr
     },
 
-    addons: [
-        {
-            name: String,
-            price: {
-                type: Number,
-                default: 0
-            }
-        }
-    ],
-
-    priceforCoustomer: {
-        type: String
+    // 🔥 NEW (CORE LOGIC)
+    serviceStart: {
+        type: Date,
+        required: true
     },
-    priceforWorker: {
-        type: String
+    serviceEnd: {
+        type: Date,
+        required: true
     },
 
+    totalDays: Number,
+
+    // 💰 CUSTOMER SIDE
+    totalDealAmount: {
+        type: Number,
+        required: true
+    },
+
+    perDayCustomerCost: Number,
+
+    customerPaymentCycleDays: Number, // 7 / 15 / 30
+
+    // 👨‍⚕️ NURSE SIDE
+    totalNurseSalary: {
+        type: Number,
+        required: true
+    },
+
+    perDayNurseCost: Number,
+
+    nursePaymentCycleDays: Number,
+
+    // 🔹 Workers
     workers: {
-        interested: {
-            type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Worker" }],
-            default: []
-        },
+        interested: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Worker"
+        }],
         assigned: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Worker",
@@ -70,20 +79,21 @@ const jobCardSchema = new mongoose.Schema({
         }
     },
 
-
+    // 🔹 Status
     status: {
         type: String,
-        enum: ["pending", "assigned", "completed"],
+        enum: ["pending", "assigned", "ongoing", "completed"],
         default: "pending"
     },
 
-    totalCalculatedPrice: Number,
-    assignedAt: Date,
-    completedAt: Date,
+    // 🔹 Tracking
     isAssigned: {
         type: Boolean,
         default: false
-    }
+    },
+
+    assignedAt: Date,
+    completedAt: Date
 
 }, { timestamps: true });
 

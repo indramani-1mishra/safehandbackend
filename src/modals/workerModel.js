@@ -64,12 +64,12 @@ const workerSchema = new mongoose.Schema({
 
     isOnline: {
         type: Boolean,
-        default: false
+        default: true
     },
 
     isBusy: {
         type: Boolean,
-        default: false
+        default: false,
     },
 
     refreshToken: {

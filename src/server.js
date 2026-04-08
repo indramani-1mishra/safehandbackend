@@ -8,6 +8,7 @@ const connectToDatabase = require('./config/dbConfig');
 const { createDefaultAdmin } = require('./controllers/createAdminController');
 const authRoutes = require('./routes/adminAuthRoutes');
 const socketUtils = require('./utils/socket');
+const attendanceRoutes = require('./routes/AttendenceRoutes');
 
 const app = express();
 
@@ -24,6 +25,9 @@ const workerRoutes = require('./routes/workerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const workerAuthRoutes = require('./routes/workerAuthRoutes');
 const jobCartRoutes = require('./routes/jobCartRoutes');
+const clientPaymentRoutes = require('./routes/clientPaymentRoutes');
+const workerPayoutRoutes = require('./routes/workerPayoutRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 // API Routing setup
 app.use('/api/services', serviceRoutes);
@@ -33,6 +37,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/workers', workerRoutes);
 app.use('/api/worker-auth', workerAuthRoutes);
 app.use('/api/jobcards', jobCartRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/payments', clientPaymentRoutes);
+app.use('/api/worker-payouts', workerPayoutRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Test Route for Socket.io
 app.get("/test", (req, res) => {
@@ -50,7 +58,12 @@ socketUtils.init(server);
 
 createDefaultAdmin();
 
+const { startPaymentReminderCron } = require('./services/paymentReminderService');
+
 server.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
     await connectToDatabase();
+    
+    // Start background background job for payment reminders
+    startPaymentReminderCron();
 });

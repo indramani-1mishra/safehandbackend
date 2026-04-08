@@ -1,0 +1,268 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SafeHand Attendance API",
+    "description": "API documentation for the SafeHand Attendance tracking system. Includes OTP verification for workers and admin management.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Attendance (Worker)",
+      "description": "Daily attendance verification."
+    },
+    {
+      "name": "Attendance (Admin)",
+      "description": "Attendance management and reporting."
+    }
+  ],
+  "paths": {
+    "/api/attendance": {
+      "get": {
+        "summary": "Get All Workers Attendance",
+        "tags": [
+          "Attendance (Admin)"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval"
+          }
+        }
+      }
+    },
+    "/api/attendance/request-otp": {
+      "post": {
+        "summary": "Request Attendance OTP",
+        "tags": [
+          "Attendance (Worker)"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jobCardId",
+                  "workerId"
+                ],
+                "properties": {
+                  "jobCardId": {
+                    "type": "string",
+                    "example": "65b9dbf8a7c23a..."
+                  },
+                  "workerId": {
+                    "type": "string",
+                    "example": "65b9dbf8a7c21a..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP Sent Successfully"
+          }
+        }
+      }
+    },
+    "/api/attendance/verify-otp": {
+      "post": {
+        "summary": "Verify Attendance OTP",
+        "tags": [
+          "Attendance (Worker)"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jobCardId",
+                  "workerId",
+                  "otp"
+                ],
+                "properties": {
+                  "jobCardId": {
+                    "type": "string",
+                    "example": "65b9dbf8a7c23a..."
+                  },
+                  "workerId": {
+                    "type": "string",
+                    "example": "65b9dbf8a7c21a..."
+                  },
+                  "otp": {
+                    "type": "string",
+                    "example": "123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Attendance Verified and Created"
+          }
+        }
+      }
+    },
+    "/api/attendance/worker/{workerId}": {
+      "parameters": [
+        {
+          "name": "workerId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Attendance by Worker ID",
+        "tags": [
+          "Attendance (Worker)",
+          "Attendance (Admin)"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/attendance/date/{date}": {
+      "parameters": [
+        {
+          "name": "date",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Attendance by Date",
+        "tags": [
+          "Attendance (Admin)"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/attendance/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "summary": "Update Attendance Record",
+        "tags": [
+          "Attendance (Admin)"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "example": "absent"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Attendance Record",
+        "tags": [
+          "Attendance (Admin)"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  }
+}

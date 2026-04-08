@@ -5,6 +5,16 @@ const workerRepository = require("../repository/workerRepository");
 const enquiryRepository = require("../repository/enqueryRepository");
 const { default: mongoose } = require("mongoose");
 const socketUtils = require("../utils/socket");
+const { generatePdf } = require("../utils/pdfGenerator");
+const { uploadPdfToS3 } = require("../utils/s3Upload");
+const { sendWhatsappPdf } = require("../utils/sendWhatsappPdf");
+const { sendWhatsappTemplatePdf } = require("../utils/sendWhatsappTemplatePdf");
+const {
+    generateWorkerPdfTemplate,
+    generateClientPdfTemplate,
+    generateAdminPdfTemplate
+} = require("../utils/pdfTemplates");
+const { DEFAULT_ADMIN_PHONE } = require("../config/serverConfig");
 
 const createJobCardService = async (data) => {
     try {
@@ -160,19 +170,62 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
             throw new Error("Job card is already assigned");
         }
         const updatedJobCard = await jobcartRepository.assignWorkerToJobCard(safeJobCardId, new mongoose.Types.ObjectId(safeWorkerId));
+
+        // Populate service details for PDF generation
+        const fullJobCard = await jobcartRepository.getJobCardById(safeJobCardId);
+        await fullJobCard.populate("serviceDetails.service");
+        const assignedWorker = await workerRepository.getWorkerById(safeWorkerId);
+
         // Changed isBusy to isFree: false since isBusy doesn't exist by default in your model!
         await workerRepository.updateWorker(safeWorkerId, { isBusy: true });
-        await jobcartRepository.updateJobCard(safeJobCardId, { isAssigned: true });
+        await jobcartRepository.updateJobCard(safeJobCardId, { isAssigned: true, assignedAt: new Date() });
 
         const io = socketUtils.getIo();
 
-        // 🏆 Notify Assigned Worker
+        // 🏆 Notify Assigned Worker via Socket
         io.to(safeWorkerId).emit("job_assigned", {
             message: `🎉 Great news! You have been assigned to Job Card #${safeJobCardId}`,
             jobDetails: updatedJobCard.patientDetails,
             serviceDetails: updatedJobCard.serviceDetails,
             city: updatedJobCard.patientDetails.city,
         });
+
+        // 📄 PDF Generation & WhatsApp Notification Flow
+        try {
+            console.log("Generating PDFs for Worker, Client, and Admin...");
+
+            // 1. Worker PDF
+            const workerHtml = generateWorkerPdfTemplate(fullJobCard, assignedWorker);
+            const workerPdfBuffer = await generatePdf(workerHtml);
+
+            const workerPdfUrl = await uploadPdfToS3(workerPdfBuffer, `worker_jobcard_${safeJobCardId}.pdf`);
+            console.log(workerPdfUrl);
+            // Using template 'contract_message' for worker
+            await sendWhatsappTemplatePdf(`91${assignedWorker.phone}`, workerPdfUrl, "Job_Assignment_Worker.pdf", assignedWorker.name, "en", safeJobCardId);
+
+            // 2. Client PDF
+            const clientHtml = generateClientPdfTemplate(fullJobCard, assignedWorker);
+            const clientPdfBuffer = await generatePdf(clientHtml);
+            const clientPdfUrl = await uploadPdfToS3(clientPdfBuffer, `client_jobcard_${safeJobCardId}.pdf`);
+            // Using template 'contract_message' for client
+            await sendWhatsappTemplatePdf(`91${fullJobCard.patientDetails.phone}`, clientPdfUrl, "Job_Assignment_Client.pdf", fullJobCard.patientDetails.name, "en", safeJobCardId);
+            console.log(clientPdfUrl);
+            // 3. Admin PDF
+            const adminHtml = generateAdminPdfTemplate(fullJobCard, assignedWorker);
+            const adminPdfBuffer = await generatePdf(adminHtml);
+
+            const adminPdfUrl = await uploadPdfToS3(adminPdfBuffer, `admin_jobcard_${safeJobCardId}.pdf`);
+            console.log(adminPdfUrl);
+            if (DEFAULT_ADMIN_PHONE) {
+                // Using template 'contract_message' for admin
+                await sendWhatsappTemplatePdf(`91${DEFAULT_ADMIN_PHONE}`, adminPdfUrl, "Job_Assignment_Admin.pdf", "Admin", "en", safeJobCardId);
+            }
+
+            console.log("All assignment PDFs sent successfully.");
+        } catch (pdfError) {
+            console.error("Error in PDF/WhatsApp flow:", pdfError);
+            // We don't throw here to avoid failing the assignment if notification fails
+        }
 
         // 🧁 Automatic Rejection Logic for Other Workers
         const otherWorkers = jobCard.workers.interested.filter(id => id.toString() !== safeWorkerId);
@@ -256,7 +309,9 @@ const completeJobCardService = async (jobCardId) => {
         }
         const updatedJobCard = await jobcartRepository.completeJobCard(safeJobCardId);
         const workerId = jobCard.workers.assigned;
+
         const worker = await workerRepository.getWorkerById(workerId);
+
         if (!worker) {
             throw new Error("Worker not found");
         }
