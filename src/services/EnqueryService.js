@@ -1,5 +1,6 @@
 const enqueryRepository = require("../repository/enqueryRepository");
-
+const { sendMailOnAdmin } = require("../utils/sendmailonAdmin");
+const { sendGreetToCoustomer } = require("../utils/sendGreetToCoustomer");
 const createEnquiryService = async (data) => {
     // Validations
     if (data.phone && !/^\d{10}$/.test(data.phone)) {
@@ -21,8 +22,12 @@ const createEnquiryService = async (data) => {
         }
     }
 
+
     // Call the repository to save
-    return await enqueryRepository.createEnquiry(data);
+    const result = await enqueryRepository.createEnquiry(data);
+    await sendMailOnAdmin(data);
+    await sendGreetToCoustomer(data.phone, data.name);
+    return result;
 };
 
 const updateEnquiryService = async (id, data) => {
@@ -81,6 +86,15 @@ const getEnquiryByTypeAndStatusService = async (type, status) => {
     return await enqueryRepository.getEnquiries({ type, status });
 };
 
+const convertEnquiryStatusService = async (id, status) => {
+    const enquiry = await enqueryRepository.getEnquiryById(id);
+    if (!enquiry) {
+        throw new Error("Enquiry not found");
+    }
+    const updateStatus = await enqueryRepository.updateEnquiryStatus(id, status);
+    return updateStatus;
+}
+
 module.exports = {
     createEnquiryService,
     updateEnquiryService,
@@ -90,5 +104,6 @@ module.exports = {
     deleteEnquiryService,
     getEnquiriesByStatusService,
     getEnquiriesByTypeService,
-    getEnquiryByTypeAndStatusService
+    getEnquiryByTypeAndStatusService,
+    convertEnquiryStatusService
 };

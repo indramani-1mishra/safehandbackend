@@ -19,7 +19,8 @@ const TWILIO_AUTHTOKEN = process.env.TWILIO_AUTHTOKEN;
 const TWILIO_SIRVICEID = process.env.TWILIO_SIRVICEID;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
-
+const EMAIL_USER_ID = process.env.EMAIL_USER_ID;
+const EMAIL_PASSWORD_ID = process.env.EMAIL_PASSWORD_ID;
 module.exports = {
     PORT,
     MONGO_URL,
@@ -38,5 +39,8 @@ module.exports = {
     TWILIO_AUTHTOKEN,
     TWILIO_SIRVICEID,
     WHATSAPP_TOKEN,
-    PHONE_NUMBER_ID
+    PHONE_NUMBER_ID,
+    EMAIL_USER_ID,
+    EMAIL_PASSWORD_ID
+
 }

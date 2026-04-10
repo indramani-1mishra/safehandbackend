@@ -7,7 +7,8 @@ const {
     deleteEnquiryService,
     getEnquiriesByStatusService,
     getEnquiriesByTypeService,
-    getEnquiryByTypeAndStatusService
+    getEnquiryByTypeAndStatusService,
+    convertEnquiryStatusService
 } = require("../services/EnqueryService");
 
 const createEnquiry = async (req, res) => {
@@ -102,6 +103,17 @@ const getEnquiryByTypeAndStatus = async (req, res) => {
     }
 };
 
+const convertEnquiryStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const enquiry = await convertEnquiryStatusService(id, status);
+        res.status(200).json({ success: true, message: "Enquiry status updated successfully", data: enquiry });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     createEnquiry,
     updateEnquiry,
@@ -111,5 +123,6 @@ module.exports = {
     deleteEnquiry,
     getEnquiriesByStatus,
     getEnquiriesByType,
-    getEnquiryByTypeAndStatus
+    getEnquiryByTypeAndStatus,
+    convertEnquiryStatus
 };

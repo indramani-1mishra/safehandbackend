@@ -10,7 +10,8 @@ const {
     deleteEnquiry,
     getEnquiriesByStatus,
     getEnquiriesByType,
-    getEnquiryByTypeAndStatus
+    getEnquiryByTypeAndStatus,
+    convertEnquiryStatus
 } = require("../controllers/enqueryController");
 
 router.post("/", createEnquiry);
@@ -22,5 +23,6 @@ router.get("/:id", authMiddleware, isAdmin, getEnquiryById);
 router.put("/:id", authMiddleware, isAdmin, updateEnquiry);
 router.patch("/:id/status", authMiddleware, isAdmin, updateEnquiryStatus);
 router.delete("/:id", authMiddleware, isAdmin, deleteEnquiry);
+router.patch("/:id/convert", authMiddleware, isAdmin, convertEnquiryStatus);
 
 module.exports = router;
