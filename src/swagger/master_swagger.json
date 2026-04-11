@@ -1,0 +1,2054 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SafeHand Comprehensive API Documentation",
+    "version": "1.0.0",
+    "description": "Unified API documentation for SafeHand Backend."
+  },
+  "servers": [
+    {
+      "url": "https://api.safehandlifecare.com",
+      "description": "Production Server"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Admin",
+      "description": "Admin Operations"
+    },
+    {
+      "name": "Services",
+      "description": "Service Operations"
+    },
+    {
+      "name": "Enquiries",
+      "description": "Enquiry Operations"
+    },
+    {
+      "name": "Attendance (Worker)",
+      "description": "Daily attendance verification."
+    },
+    {
+      "name": "Attendance (Admin)",
+      "description": "Attendance management and reporting."
+    },
+    {
+      "name": "Client Payments",
+      "description": "Managing payments received from clients."
+    },
+    {
+      "name": "Worker Payouts",
+      "description": "Managing payments sent to workers based on attendance."
+    },
+    {
+      "name": "Auth",
+      "description": "Authentication for Admin and Workers"
+    },
+    {
+      "name": "Admins",
+      "description": "Admin user management"
+    },
+    {
+      "name": "JobCards",
+      "description": "Job assignment and status tracking"
+    },
+    {
+      "name": "Attendance",
+      "description": "Daily OTP-verified attendance"
+    },
+    {
+      "name": "Dashboard",
+      "description": "Business financial overview"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "adminToken"
+      }
+    },
+    "schemas": {
+      "ClientPayment": {
+        "type": "object",
+        "required": [
+          "jobCardId",
+          "amount"
+        ],
+        "properties": {
+          "jobCardId": {
+            "type": "string",
+            "example": "65b9db... "
+          },
+          "amount": {
+            "type": "number",
+            "example": 5000
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "card",
+              "upi"
+            ],
+            "default": "upi"
+          }
+        }
+      },
+      "WorkerPayout": {
+        "type": "object",
+        "required": [
+          "workerId",
+          "jobCardId",
+          "amount"
+        ],
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "example": "65b9..."
+          },
+          "jobCardId": {
+            "type": "string",
+            "example": "65b9..."
+          },
+          "amount": {
+            "type": "number",
+            "example": 2500
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/admins/create": {
+      "post": {
+        "summary": "Create an Admin",
+        "tags": [
+          "Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Admin created successfully"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/admins/update/{id}": {
+      "put": {
+        "summary": "Update an Admin",
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Admin updated successfully"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/admins/getall": {
+      "get": {
+        "summary": "Get all Admins",
+        "tags": [
+          "Admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/admins/get/{id}": {
+      "get": {
+        "summary": "Get Admin by ID",
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/admins/delete/{id}": {
+      "delete": {
+        "summary": "Delete an Admin",
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Admin deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/admins/makeadmin/{id}": {
+      "post": {
+        "summary": "Make a user Admin",
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role updated to admin"
+          }
+        }
+      }
+    },
+    "/api/services/create": {
+      "post": {
+        "summary": "Create a Service",
+        "tags": [
+          "Services"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "pricingByCity": {
+                    "type": "string",
+                    "description": "JSON string"
+                  },
+                  "basicFeatures": {
+                    "type": "string",
+                    "description": "JSON string arrays"
+                  },
+                  "advanceFeatures": {
+                    "type": "string",
+                    "description": "JSON string arrays"
+                  },
+                  "addons": {
+                    "type": "string",
+                    "description": "JSON string format"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "basicImage": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "advanceImage": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Service created successfully"
+          },
+          "400": {
+            "description": "Error creating service"
+          }
+        }
+      }
+    },
+    "/api/services/findservice": {
+      "get": {
+        "summary": "Find Service Names and Images",
+        "tags": [
+          "Services"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        }
+      }
+    },
+    "/api/services/update/{id}": {
+      "patch": {
+        "summary": "Update a Service",
+        "tags": [
+          "Services"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "pricingByCity": {
+                    "type": "string"
+                  },
+                  "basicFeatures": {
+                    "type": "string"
+                  },
+                  "advanceFeatures": {
+                    "type": "string"
+                  },
+                  "addons": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "basicImage": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "advanceImage": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Service updated successfully"
+          }
+        }
+      }
+    },
+    "/api/services/getall": {
+      "get": {
+        "summary": "Get all Services",
+        "tags": [
+          "Services"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        }
+      }
+    },
+    "/api/services/get/{id}": {
+      "get": {
+        "summary": "Get Service by ID",
+        "tags": [
+          "Services"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/services/delete/{id}": {
+      "delete": {
+        "summary": "Delete a Service",
+        "tags": [
+          "Services"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/enqueries/": {
+      "post": {
+        "summary": "Create an Enquiry",
+        "tags": [
+          "Enquiries"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "enquiryType": {
+                    "type": "string"
+                  },
+                  "patientName": {
+                    "type": "string"
+                  },
+                  "address": {
+                    "type": "string"
+                  },
+                  "startDate": {
+                    "type": "string"
+                  },
+                  "service": {
+                    "type": "string"
+                  },
+                  "serviceDuration": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enquiry created successfully"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all Enquiries",
+        "tags": [
+          "Enquiries"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/enqueries/{id}": {
+      "get": {
+        "summary": "Get Enquiry by ID",
+        "tags": [
+          "Enquiries"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Enquiry",
+        "tags": [
+          "Enquiries"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Enquiry updated successfully"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an Enquiry",
+        "tags": [
+          "Enquiries"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enquiry deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/enqueries/{id}/status": {
+      "patch": {
+        "summary": "Update Enquiry Status",
+        "tags": [
+          "Enquiries"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "approved",
+                      "rejected"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated successfully"
+          }
+        }
+      }
+    },
+    "/api/enqueries/status/{status}": {
+      "get": {
+        "summary": "Get Enquiries by Status",
+        "tags": [
+          "Enquiries"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "status",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/enqueries/type/{type}": {
+      "get": {
+        "summary": "Get Enquiries by Type",
+        "tags": [
+          "Enquiries"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "type",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/enqueries/type/{type}/status/{status}": {
+      "get": {
+        "summary": "Get Enquiries by Type and Status",
+        "tags": [
+          "Enquiries"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "type",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "status",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/attendance": {
+      "get": {
+        "summary": "Get All Workers Attendance",
+        "tags": [
+          "Attendance (Admin)"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval"
+          }
+        }
+      }
+    },
+    "/api/attendance/request-otp": {
+      "post": {
+        "summary": "Request OTP for Attendance",
+        "tags": [
+          "Attendance"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jobCardId": {
+                    "type": "string"
+                  },
+                  "workerId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP Sent"
+          }
+        }
+      }
+    },
+    "/api/attendance/verify-otp": {
+      "post": {
+        "summary": "Verify OTP and mark present",
+        "tags": [
+          "Attendance"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jobCardId": {
+                    "type": "string"
+                  },
+                  "workerId": {
+                    "type": "string"
+                  },
+                  "otp": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Marked Present"
+          }
+        }
+      }
+    },
+    "/api/attendance/worker/{workerId}": {
+      "parameters": [
+        {
+          "name": "workerId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Attendance by Worker ID",
+        "tags": [
+          "Attendance (Worker)",
+          "Attendance (Admin)"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/attendance/date/{date}": {
+      "parameters": [
+        {
+          "name": "date",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Attendance by Date",
+        "tags": [
+          "Attendance (Admin)"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/attendance/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "summary": "Update Attendance Record",
+        "tags": [
+          "Attendance (Admin)"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "example": "absent"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Attendance Record",
+        "tags": [
+          "Attendance (Admin)"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/jobcards": {
+      "get": {
+        "summary": "Get All Job Cards",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new Job Card",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "inquiryId": {
+                    "type": "string",
+                    "example": "65b9dbf8a7c23a... "
+                  },
+                  "patientDetails": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                      },
+                      "age": {
+                        "type": "number",
+                        "example": 45
+                      },
+                      "gender": {
+                        "type": "string",
+                        "example": "male"
+                      },
+                      "address": {
+                        "type": "string",
+                        "example": "123 Main St"
+                      },
+                      "city": {
+                        "type": "string",
+                        "example": "Mumbai"
+                      },
+                      "phone": {
+                        "type": "string",
+                        "example": "9876543210"
+                      }
+                    }
+                  },
+                  "serviceDetails": {
+                    "type": "object",
+                    "properties": {
+                      "service": {
+                        "type": "string",
+                        "example": "65b9... "
+                      },
+                      "plan": {
+                        "type": "string",
+                        "example": "basic"
+                      },
+                      "duration": {
+                        "type": "number",
+                        "example": 3
+                      },
+                      "timing": {
+                        "type": "string",
+                        "example": "12hr"
+                      }
+                    }
+                  },
+                  "addons": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "example": "Physiotherapy"
+                        },
+                        "price": {
+                          "type": "number",
+                          "example": 500
+                        }
+                      }
+                    }
+                  },
+                  "totalPrice": {
+                    "type": "number",
+                    "example": 3500
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Job Card Created"
+          }
+        }
+      }
+    },
+    "/api/jobcards/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Job Card by ID",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a Job Card",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "example": "in-progress"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a Job Card",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful option"
+          }
+        }
+      }
+    },
+    "/api/jobcards/{id}/assign": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Assign Final Worker to Job",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workerId": {
+                    "type": "string",
+                    "example": "65b9..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Worker Assigned"
+          }
+        }
+      }
+    },
+    "/api/jobcards/{id}/interested": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Worker Marks as Interested",
+        "tags": [
+          "JobCards (Worker)"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workerId": {
+                    "type": "string",
+                    "example": "65b9..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/jobcards/{id}/not-interested": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Worker Marks as Not Interested",
+        "tags": [
+          "JobCards (Worker)"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workerId": {
+                    "type": "string",
+                    "example": "65b9..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/jobcards/status/{status}": {
+      "parameters": [
+        {
+          "name": "status",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Job Cards by Status",
+        "tags": [
+          "JobCards (Admin)"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful option"
+          }
+        }
+      }
+    },
+    "/api/jobcards/worker/{workerId}": {
+      "parameters": [
+        {
+          "name": "workerId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Job Cards by Worker ID",
+        "tags": [
+          "JobCards (Worker)"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful option"
+          }
+        }
+      }
+    },
+    "/api/jobcards/status/{status}/worker/{workerId}": {
+      "parameters": [
+        {
+          "name": "status",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "workerId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Job Cards by Status and Worker ID",
+        "tags": [
+          "JobCards (Worker)"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful option"
+          }
+        }
+      }
+    },
+    "/api/jobcards/{id}/complete": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "summary": "Complete a Job Card",
+        "tags": [
+          "JobCards (Worker)"
+        ],
+        "responses": {
+          "200": {
+            "description": "Job Card completed"
+          }
+        }
+      }
+    },
+    "/api/payments": {
+      "post": {
+        "summary": "Record Client Payment",
+        "tags": [
+          "Client Payments"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientPayment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment Success"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get All Payments",
+        "tags": [
+          "Client Payments"
+        ],
+        "responses": {
+          "200": {
+            "description": "List fetched"
+          }
+        }
+      }
+    },
+    "/api/payments/due/today": {
+      "get": {
+        "summary": "Clients Due for Payment Today",
+        "tags": [
+          "Client Payments"
+        ],
+        "description": "Lists clients where (Service Days > Paid Days). Real-time check.",
+        "responses": {
+          "200": {
+            "description": "Due list fetched"
+          }
+        }
+      }
+    },
+    "/api/payments/jobcard/{jobCardId}": {
+      "get": {
+        "summary": "Get Payments by JobCard ID",
+        "tags": [
+          "Client Payments"
+        ],
+        "parameters": [
+          {
+            "name": "jobCardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/worker-payouts": {
+      "post": {
+        "summary": "Process Worker Payout",
+        "tags": [
+          "Worker Payouts"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerPayout"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payout recorded"
+          }
+        }
+      }
+    },
+    "/api/worker-payouts/due": {
+      "get": {
+        "summary": "Check Worker Due Balance",
+        "tags": [
+          "Worker Payouts"
+        ],
+        "parameters": [
+          {
+            "name": "workerId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jobCardId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/worker-payouts/history/{workerId}": {
+      "get": {
+        "summary": "Get Worker Payout History",
+        "tags": [
+          "Worker Payouts"
+        ],
+        "parameters": [
+          {
+            "name": "workerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/workers/create": {
+      "post": {
+        "summary": "Create a new Worker",
+        "tags": [
+          "Workers"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "age": {
+                    "type": "integer"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": [
+                      "male",
+                      "female",
+                      "other"
+                    ]
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "services": {
+                    "type": "string",
+                    "description": "JSON string"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "documents": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "phone"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Worker created successfully"
+          },
+          "400": {
+            "description": "Validation error or App Error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/workers/update/{id}": {
+      "put": {
+        "summary": "Update an existing Worker",
+        "tags": [
+          "Workers"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Worker ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "age": {
+                    "type": "integer"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": [
+                      "male",
+                      "female",
+                      "other"
+                    ]
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  },
+                  "isOnline": {
+                    "type": "boolean"
+                  },
+                  "isBusy": {
+                    "type": "boolean"
+                  },
+                  "services": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "documents": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Worker updated successfully"
+          },
+          "404": {
+            "description": "Worker not found"
+          }
+        }
+      }
+    },
+    "/api/workers/getall": {
+      "get": {
+        "summary": "Get all Workers",
+        "tags": [
+          "Workers"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of workers retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/workers/get/{id}": {
+      "get": {
+        "summary": "Get Worker by ID",
+        "tags": [
+          "Workers"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Worker details"
+          },
+          "404": {
+            "description": "Worker not found"
+          }
+        }
+      }
+    },
+    "/api/workers/getbyphone/{phone}": {
+      "get": {
+        "summary": "Get Worker by Phone",
+        "tags": [
+          "Workers"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "phone",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Worker details by Phone"
+          },
+          "404": {
+            "description": "Worker not found"
+          }
+        }
+      }
+    },
+    "/api/workers/getbyemail/{email}": {
+      "get": {
+        "summary": "Get Worker by Email",
+        "tags": [
+          "Workers"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Worker details by Email"
+          },
+          "404": {
+            "description": "Worker not found"
+          }
+        }
+      }
+    },
+    "/api/workers/delete/{id}": {
+      "delete": {
+        "summary": "Delete a Worker",
+        "tags": [
+          "Workers"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Worker deleted successfully"
+          },
+          "404": {
+            "description": "Worker not found"
+          }
+        }
+      }
+    },
+    "/api/worker-auth/send-otp": {
+      "post": {
+        "summary": "Send OTP to Worker Phone",
+        "tags": [
+          "Worker Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "example": "+918888888888"
+                  }
+                },
+                "required": [
+                  "phone"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP Sent successfully"
+          },
+          "500": {
+            "description": "Worker not found or Twilio Error"
+          }
+        }
+      }
+    },
+    "/api/worker-auth/verify-otp": {
+      "post": {
+        "summary": "Verify OTP and Login",
+        "tags": [
+          "Worker Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "example": "+918888888888"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "example": "123456"
+                  }
+                },
+                "required": [
+                  "phone",
+                  "otp"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Worker logged in successfully. Sets workerAccessToken and workerRefreshToken cookies."
+          },
+          "500": {
+            "description": "Invalid OTP or Error"
+          }
+        }
+      }
+    },
+    "/api/worker-auth/resend-otp": {
+      "post": {
+        "summary": "Resend OTP",
+        "tags": [
+          "Worker Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "example": "+918888888888"
+                  }
+                },
+                "required": [
+                  "phone"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP Resent successfully"
+          },
+          "500": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/api/worker-auth/refresh-token": {
+      "post": {
+        "summary": "Refresh Access Token",
+        "tags": [
+          "Worker Auth"
+        ],
+        "description": "Reads workerRefreshToken from cookies, validates it, and sets new cookies.",
+        "responses": {
+          "200": {
+            "description": "Access token refreshed successfully"
+          },
+          "401": {
+            "description": "No refresh token provided"
+          },
+          "500": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/api/worker-auth/logout": {
+      "post": {
+        "summary": "Logout Worker",
+        "tags": [
+          "Worker Auth"
+        ],
+        "description": "Reads refreshToken, removes it from DB, and clears cookies.",
+        "responses": {
+          "200": {
+            "description": "Worker logged out successfully"
+          },
+          "500": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Admin Login",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/dashboard/summary": {
+      "get": {
+        "summary": "Financial Dashboard Summary",
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Returns Revenue, Total Receivables, Total Payables, and Active Job stats.",
+        "responses": {
+          "200": {
+            "description": "Dashboard data fetched"
+          }
+        }
+      }
+    }
+  }
+}

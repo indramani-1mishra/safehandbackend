@@ -9,6 +9,8 @@ const { createDefaultAdmin } = require('./controllers/createAdminController');
 const authRoutes = require('./routes/adminAuthRoutes');
 const socketUtils = require('./utils/socket');
 const attendanceRoutes = require('./routes/AttendenceRoutes');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger/master_swagger.json');
 
 const app = express();
 
@@ -41,6 +43,9 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/payments', clientPaymentRoutes);
 app.use('/api/worker-payouts', workerPayoutRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Test Route for Socket.io
 app.get("/test", (req, res) => {
