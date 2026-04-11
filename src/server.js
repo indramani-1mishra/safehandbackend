@@ -15,7 +15,10 @@ const swaggerDocument = require('./swagger/master_swagger.json');
 const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+    origin: ['https://www.safehandlifecare.com', 'https://safehandlifecare.com', 'http://localhost:3000', 'http://localhost:3001'],
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -68,7 +71,7 @@ const { startPaymentReminderCron } = require('./services/paymentReminderService'
 server.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
     await connectToDatabase();
-    
+
     // Start background background job for payment reminders
     startPaymentReminderCron();
 });
