@@ -4,6 +4,7 @@ const generatePdf = async (htmlContent) => {
     try {
         const browser = await puppeteer.launch({
             headless: 'new', // Use the latest headless mode
+            executablePath: '/usr/bin/google-chrome', // Use system installed chrome
             args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
         });
         const page = await browser.newPage();
