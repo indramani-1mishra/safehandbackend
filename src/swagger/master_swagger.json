@@ -7,10 +7,6 @@
   },
   "servers": [
     {
-      "url": "https://api.safehandlifecare.com",
-      "description": "Production Server"
-    },
-    {
       "url": "http://localhost:3000",
       "description": "Local Development Server"
     }
@@ -1113,6 +1109,14 @@
                   "totalPrice": {
                     "type": "number",
                     "example": 3500
+                  },
+                  "isDirectAssignWorker": {
+                    "type": "boolean",
+                    "example": false
+                  },
+                  "assignedWorkerId": {
+                    "type": "string",
+                    "example": "65b9..."
                   }
                 }
               }
@@ -1854,6 +1858,19 @@
           },
           "404": {
             "description": "Worker not found"
+          }
+        }
+      }
+    },
+    "/api/workers/free": {
+      "get": {
+        "summary": "Get all Free (available) Workers",
+        "tags": [
+          "Workers"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of free workers retrieved successfully"
           }
         }
       }

@@ -41,4 +41,5 @@ router.get("/get/:id", workerController.getWorkerByIdController);
 // Delete Worker - Admin only
 router.delete("/delete/:id", authMiddleware, isAdmin, workerController.deleteWorkerController);
 
+router.get("/free", authMiddleware, isAdmin, workerController.getFreeWorkersController);
 module.exports = router;

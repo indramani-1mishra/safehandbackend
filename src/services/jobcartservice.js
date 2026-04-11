@@ -35,9 +35,21 @@ const createJobCardService = async (data) => {
             throw new Error("Enquiry not found in DB");
         }
         const matchedWorkers = await matchUsers(serviceId, city);
-        if (matchedWorkers.length === 0) {
-            throw new Error(`No workers found for service: ${service.name || serviceId} in city: ${city}`);
+        if (!data.isDirectAssignWorker) {
+            if (matchedWorkers.length === 0) {
+                throw new Error(`No workers found for service: ${service.name || serviceId} in city: ${city}`);
+            }
         }
+        if (data.isDirectAssignWorker && !data.assignedWorkerId) {
+            throw new Error("Worker ID is required for direct assignment");
+        }
+        if (data.isDirectAssignWorker && data.assignedWorkerId) {
+            const worker = await workerRepository.getWorkerById(data.assignedWorkerId);
+            if (!worker) {
+                throw new Error("Worker not found in DB");
+            }
+        }
+
 
         const { plan = 'basic', duration = 1, timing = '12hr' } = data?.serviceDetails || {};
 
@@ -72,7 +84,14 @@ const createJobCardService = async (data) => {
 
         const jobCard = await jobcartRepository.createJobCard(data);
 
-        // 🚀 Socket Notification to matched workers
+        // 🚀 Skip Matchmaking notifications if it's a Direct Assignment
+        if (data.isDirectAssignWorker && data.assignedWorkerId) {
+            console.log("Direct Assignment Job Card created. Skipping worker notifications.");
+            await assignWorkerToJobCardService(jobCard._id, data.assignedWorkerId);
+            return { jobCard, matchedWorkers: [] };
+        }
+
+        // 🚀 Socket Notification to matched workers (only for Matchmaking)
         const io = socketUtils.getIo();
         matchedWorkers.forEach(worker => {
             io.to(worker._id.toString()).emit("new_job_alert", {

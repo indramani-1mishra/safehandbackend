@@ -92,6 +92,11 @@ const jobCardSchema = new mongoose.Schema({
         default: false
     },
 
+    isDirectAssignWorker: {
+        type: Boolean,
+        default: false
+    },
+
     assignedAt: Date,
     completedAt: Date
 

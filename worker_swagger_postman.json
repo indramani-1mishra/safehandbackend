@@ -306,6 +306,19 @@
           }
         }
       }
+    },
+    "/api/workers/free": {
+      "get": {
+        "summary": "Get all Free (available) Workers",
+        "tags": [
+          "Workers"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of free workers retrieved successfully"
+          }
+        }
+      }
     }
   }
 }

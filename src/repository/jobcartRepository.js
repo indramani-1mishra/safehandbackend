@@ -69,9 +69,8 @@ const getJobCardById = async (id) => {
     return jobCard;
 };
 
-const getJobCardsByStatus = async (status) => {
-    return await JobCard.find({ status: status });
-}
+
+
 
 const getJobCardsByStatusAndWorkerId = async (status, workerId) => {
     const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;

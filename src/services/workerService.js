@@ -109,8 +109,7 @@ const findWorkerByPhone = async (phone) => {
 
 const findFreeWorkersService = async () => {
     try {
-        const workers = await workerRepository.getAllWorkers();
-        const freeWorkers = workers.filter(worker => !worker.isBusy);
+        const freeWorkers = await workerRepository.findFreeWorkers();
         return freeWorkers;
     } catch (error) {
         throw error;

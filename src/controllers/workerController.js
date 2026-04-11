@@ -187,6 +187,23 @@ const getWorkerByEmailController = async (req, res) => {
     }
 };
 
+const getFreeWorkersController = async (req, res) => {
+    try {
+        const workers = await workerService.findFreeWorkersService();
+
+        return res.status(200).json({
+            success: true,
+            data: workers
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     createWorkerController,
     updateWorkerController,
@@ -194,5 +211,6 @@ module.exports = {
     getWorkerByIdController,
     deleteWorkerController,
     getWorkerByPhoneController,
-    getWorkerByEmailController
+    getWorkerByEmailController,
+    getFreeWorkersController
 };

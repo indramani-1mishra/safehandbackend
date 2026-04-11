@@ -128,6 +128,14 @@
                   "totalPrice": {
                     "type": "number",
                     "example": 3500
+                  },
+                  "isDirectAssignWorker": {
+                    "type": "boolean",
+                    "example": false
+                  },
+                  "assignedWorkerId": {
+                    "type": "string",
+                    "example": "65b9..."
                   }
                 }
               }

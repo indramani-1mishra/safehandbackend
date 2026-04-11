@@ -44,6 +44,10 @@ const getWorkerById = async (id) => {
     return worker;
 };
 
+const findFreeWorkers = async () => {
+    return await Worker.find({ isBusy: false });
+}
+
 const saveRefreshToken = async (id, refreshToken) => {
     return await Worker.findByIdAndUpdate(id, { refreshToken });
 }
@@ -64,5 +68,6 @@ module.exports = {
     findWorkerByPhone,
     saveRefreshToken,
     removeRefreshToken,
-    findWorkerByRefreshToken
+    findWorkerByRefreshToken,
+    findFreeWorkers
 };
