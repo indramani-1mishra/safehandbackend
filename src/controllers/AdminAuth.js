@@ -9,7 +9,7 @@ const AdminLogin = async (req, res) => {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
@@ -17,7 +17,7 @@ const AdminLogin = async (req, res) => {
         res.cookie("adminToken", accessToken, {
             httpOnly: true,
             secure: NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
             path: "/",
             maxAge: 15 * 60 * 1000 // 15 minutes
         });
@@ -50,7 +50,7 @@ const AdminRefreshToken = async (req, res) => {
         res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
             secure: NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
@@ -58,7 +58,7 @@ const AdminRefreshToken = async (req, res) => {
         res.cookie("adminToken", accessToken, {
             httpOnly: true,
             secure: NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
             path: "/",
             maxAge: 15 * 60 * 1000 // 15 minutes
         });
@@ -98,14 +98,14 @@ const AdminLogout = async (req, res) => {
         res.clearCookie("refreshToken", {
             httpOnly: true,
             secure: NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
             path: "/"
         });
 
         res.clearCookie("adminToken", {
             httpOnly: true,
             secure: NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
             path: "/"
         });
 
