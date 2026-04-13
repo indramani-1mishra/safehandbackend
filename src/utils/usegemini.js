@@ -1,7 +1,7 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
 const { GEMINI_API_KEY } = require("../config/serverConfig");
 
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 async function genrateUniqueGKQuestion(retries = 3) {
     const prompt = `
@@ -36,13 +36,12 @@ Rules:
 
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
-            const model = genAI.getGenerativeModel({
-                model: "gemini-2.5-flash"
+            const response = await ai.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: prompt
             });
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            let text = response.text();
+            let text = response.text;
 
             // 🧠 Clean response (important)
             text = text.replace(/```json|```/g, "").trim();
