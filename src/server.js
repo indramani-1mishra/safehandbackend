@@ -11,8 +11,6 @@ const socketUtils = require('./utils/socket');
 const attendanceRoutes = require('./routes/AttendenceRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger/master_swagger.json');
-const { genrateUniqueGKQuestion } = require('./utils/usegemini');
-const { sendQuestionPdfToWhatsapp } = require('./utils/sendquestionTowhatsapp');
 
 const app = express();
 
@@ -61,19 +59,7 @@ app.get("/", (req, res) => {
     res.send(`<h1>Server is running..... ${PORT}</h1>`);
 });
 
-// On-demand GK Questions endpoint (saves free tier quota)
-app.get("/api/gk-questions", async (req, res) => {
-    try {
-        const data = await genrateUniqueGKQuestion();
-        if (data) {
-            res.json({ success: true, data });
-        } else {
-            res.status(500).json({ success: false, message: "Failed to generate questions. Quota may be exhausted." });
-        }
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
-});
+
 
 
 const server = http.createServer(app);
