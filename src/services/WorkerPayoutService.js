@@ -15,13 +15,16 @@ const getWorkerPayoutDue = async (workerId, jobCardId) => {
             status: "present"
         });
 
-
+        console.log(jobCard);
         const perDaySalary = jobCard.perDayNurseCost;
         const totalEarned = presentDays * perDaySalary;
+        console.log(totalEarned);
+        console.log(presentDays);
+        console.log(perDaySalary);
 
 
         const previousPayouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);
-        const totalPaidSoFar = previousPayouts.reduce((sum, p) => sum + p.amount, 0);
+        const totalPaidSoFar = previousPayouts.reduce((sum, p) => sum + Number(p.amount, 0));
 
 
         const remainingDue = totalEarned - totalPaidSoFar;
