@@ -22,13 +22,14 @@ const createEnquiryService = async (data) => {
         }
     }
 
-
-    // Call the repository to save
-    const result = await enqueryRepository.createEnquiry(data);
-    // await sendMailOnAdmin(data);
     if (!data.phone) {
         throw new Error("Missing required fields for service enquiry");
     }
+
+
+    // Call the repository to save
+    const result = await enqueryRepository.createEnquiry(data);
+    await sendMailOnAdmin(data);
     await sendGreetToCoustomer(data.phone, data.name);
 
     return result;
