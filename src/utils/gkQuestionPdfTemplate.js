@@ -60,13 +60,14 @@ const generateGKQuestionPdfTemplate = (data) => {
     <html lang="hi">
     <head>
         <meta charset="UTF-8">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <style>
             @page {
                 size: A4;
                 margin: 0;
             }
             body { 
-                font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                font-family: 'Noto Sans Devanagari', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
                 margin: 0; 
                 padding: 0;
                 width: 210mm;

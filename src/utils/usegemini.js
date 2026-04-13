@@ -1,9 +1,18 @@
 const { GoogleGenAI } = require("@google/genai");
 const { GEMINI_API_KEY } = require("../config/serverConfig");
 
-const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+if (!GEMINI_API_KEY) {
+    console.error("⚠️ WARNING: GEMINI_API_KEY is not set in .env file! GK Question generation will not work.");
+}
+
+const ai = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : null;
 
 async function genrateUniqueGKQuestion(retries = 3) {
+    if (!ai) {
+        console.error("❌ Gemini AI client not initialized. Set GEMINI_API_KEY in .env file.");
+        return null;
+    }
+
     const prompt = `
 Generate 5 GK questions from UP Police Constable, UP SI, and PCS exams.
 
