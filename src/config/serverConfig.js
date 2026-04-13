@@ -21,6 +21,7 @@ const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 const EMAIL_USER_ID = process.env.EMAIL_USER_ID;
 const EMAIL_PASSWORD_ID = process.env.EMAIL_PASSWORD_ID;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 module.exports = {
     PORT,
     MONGO_URL,
@@ -41,6 +42,7 @@ module.exports = {
     WHATSAPP_TOKEN,
     PHONE_NUMBER_ID,
     EMAIL_USER_ID,
-    EMAIL_PASSWORD_ID
+    EMAIL_PASSWORD_ID,
+    GEMINI_API_KEY
 
 }
