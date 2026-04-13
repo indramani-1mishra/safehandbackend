@@ -43,38 +43,51 @@ Rules:
 - DO NOT add any extra text outside JSON
 `;
 
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: prompt
-            });
+    // Fallback models — agar ek busy ho to doosra try karo
+    const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
 
-            let text = response.text;
+    for (const modelName of models) {
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                console.log(`🔄 Trying model: ${modelName} (attempt ${attempt}/${retries})`);
 
-            // 🧠 Clean response (important)
-            text = text.replace(/```json|```/g, "").trim();
+                const response = await ai.models.generateContent({
+                    model: modelName,
+                    contents: prompt
+                });
 
-            const data = JSON.parse(text);
+                let text = response.text;
 
-            console.log("✅ GK Questions generated successfully.");
-            console.log(data);
-            return data;
+                // 🧠 Clean response (important)
+                text = text.replace(/```json|```/g, "").trim();
 
-        } catch (err) {
-            if (err.status === 429 && attempt < retries) {
-                const waitSec = Math.pow(2, attempt) * 15; // 30s, 60s, 120s
-                console.warn(`⚠️ Gemini rate limit hit (attempt ${attempt}/${retries}). Retrying in ${waitSec}s...`);
-                await new Promise(resolve => setTimeout(resolve, waitSec * 1000));
-            } else if (err instanceof SyntaxError) {
-                console.error("❌ JSON Parse Error:", err.message);
-                return null;
-            } else {
-                console.error(`❌ Gemini API Error (attempt ${attempt}/${retries}):`, err.message || err);
-                if (attempt >= retries) return null;
+                const data = JSON.parse(text);
+
+                console.log(`✅ GK Questions generated successfully using ${modelName}.`);
+                console.log(data);
+                return data;
+
+            } catch (err) {
+                const errMsg = err.message || JSON.stringify(err);
+
+                // 429 (rate limit) or 503 (overloaded) — wait and retry
+                if ((err.status === 429 || err.status === 503 || errMsg.includes("503") || errMsg.includes("UNAVAILABLE")) && attempt < retries) {
+                    const waitSec = Math.pow(2, attempt) * 10; // 20s, 40s
+                    console.warn(`⚠️ ${modelName} unavailable (attempt ${attempt}/${retries}). Retrying in ${waitSec}s...`);
+                    await new Promise(resolve => setTimeout(resolve, waitSec * 1000));
+                } else if (err instanceof SyntaxError) {
+                    console.error("❌ JSON Parse Error:", err.message);
+                    break; // try next model
+                } else {
+                    console.error(`❌ ${modelName} Error (attempt ${attempt}/${retries}):`, errMsg);
+                    if (attempt >= retries) break; // try next model
+                }
             }
         }
+        console.log(`⏭️ Switching to next model...`);
     }
+
+    console.error("❌ All models failed. Could not generate GK questions.");
     return null;
 }
 
