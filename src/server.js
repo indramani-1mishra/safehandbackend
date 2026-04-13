@@ -75,23 +75,6 @@ app.get("/api/gk-questions", async (req, res) => {
     }
 });
 
-// Generate GK Questions PDF & Send via WhatsApp
-app.post("/api/gk-questions/send-whatsapp", async (req, res) => {
-    try {
-        const { phoneNumber, recipientName } = req.body;
-        if (!phoneNumber) {
-            return res.status(400).json({ success: false, message: "phoneNumber is required (with country code, e.g. 919876543210)" });
-        }
-        const result = await sendQuestionPdfToWhatsapp(phoneNumber, recipientName || "User");
-        if (result) {
-            res.json({ success: true, pdfUrl: result.pdfUrl, data: result.data });
-        } else {
-            res.status(500).json({ success: false, message: "Failed to generate/send GK PDF. Check server logs." });
-        }
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
-});
 
 const server = http.createServer(app);
 
@@ -101,7 +84,7 @@ socketUtils.init(server);
 createDefaultAdmin();
 
 const { startPaymentReminderCron } = require('./services/paymentReminderService');
-const { startGKQuestionCron } = require('./services/gkQuestionCronService');
+//const { startGKQuestionCron } = require('./services/gkQuestionCronService');
 
 server.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
@@ -111,5 +94,5 @@ server.listen(PORT, async () => {
     startPaymentReminderCron();
 
     // Start GK Question cron — ek baar turant + roz 6 AM & 6 PM IST
-    startGKQuestionCron();
+    // startGKQuestionCron();
 });
