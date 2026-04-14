@@ -7,7 +7,7 @@ const attendanceSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Worker",
         required: true,
-        index: true
+        //  index: true
     },
 
     // 🔹 Kaun sa Job chal raha hai?
@@ -15,7 +15,7 @@ const attendanceSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "JobCard",
         required: true,
-        index: true
+        //  index: true
     },
 
     // 🔹 Aaj ki Date (YYYY-MM-DD format mein, taaki search easy rahe)
@@ -52,6 +52,6 @@ const attendanceSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // 🔥 Unique Index: Ek worker, ek hi job ke liye, ek din mein 2 bar attendance na laga sake!
-attendanceSchema.index({ workerId: 1, jobCardId: 1, date: 1 }, { unique: true });
+//attendanceSchema.index({ workerId: 1, jobCardId: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model("Attendance", attendanceSchema);
