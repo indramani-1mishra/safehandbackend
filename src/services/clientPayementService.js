@@ -60,7 +60,7 @@ const createClientPayment = async (data) => {
             jobCardId,
             amount,
             remainingAmount: Math.max(0, totalAmount - newTotalPaid),
-            dayCovered: Math.floor(amount / perDayAmount),
+            dayCovered: Math.floor(amount / (perDayAmount || 1)),
             remainingDays: Math.max(0, totalDuration - totalDaysCovered),
             paidUntilDate,
             overLimit,
@@ -91,7 +91,7 @@ const getTodayDuePayments = async () => {
 
             // Days actual passed since start (Inclusive)
             const daysPassed = calculateDaysInclusive(job.serviceStart, new Date());
-            const shouldHavePaid = daysPassed * perDayAmount;
+            const shouldHavePaid = Math.min(daysPassed * perDayAmount, job.totalDealAmount);
 
             if (totalPaid < shouldHavePaid) {
                 // Find latest paidUntilDate for information

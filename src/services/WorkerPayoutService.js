@@ -24,7 +24,7 @@ const getWorkerPayoutDue = async (workerId, jobCardId) => {
 
 
         const previousPayouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);
-        const totalPaidSoFar = previousPayouts.reduce((sum, p) => sum + Number(p.amount, 0));
+        const totalPaidSoFar = previousPayouts.reduce((sum, p) => sum + Number(p.amount), 0);
 
 
         const remainingDue = totalEarned - totalPaidSoFar;
