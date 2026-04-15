@@ -30,7 +30,30 @@ const isAdmin = (req, res, next) => {
     }
 }
 
+const workerAuthMiddleware = async (req, res, next) => {
+    try {
+        const token = req.cookies.workerAccessToken;
+        if (!token) {
+            return res.status(401).json({ message: "No token found or invalid format, Unauthorized" });
+        }
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ message: "Unauthorized", error: error.message });
+    }
+}
+
+const allowAnyAuth = (req, res, next) => {
+    if (req.worker || req.user || req.admin) {
+        return next();
+    }
+    return res.status(403).json({ message: "Unauthorized" });
+};
+
 module.exports = {
     authMiddleware,
     isAdmin,
+    workerAuthMiddleware,
+    allowAnyAuth
 };

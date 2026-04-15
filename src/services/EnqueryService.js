@@ -35,6 +35,7 @@ const createEnquiryService = async (data) => {
     const result = await enqueryRepository.createEnquiry(data);
     const issend = await sendGreetToCoustomer(data.phone, data.name);
     const issend2 = await sendMailOnAdmin(data);
+    console.log(issend, issend2);
     if (!issend) {
         console.log(" error in  whatsapp message");
     }
