@@ -37,7 +37,7 @@ const workerAuthMiddleware = async (req, res, next) => {
             return res.status(401).json({ message: "No token found or invalid format, Unauthorized" });
         }
         const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
+        req.worker = decoded;
         next();
     } catch (error) {
         return res.status(401).json({ message: "Unauthorized", error: error.message });
@@ -45,7 +45,7 @@ const workerAuthMiddleware = async (req, res, next) => {
 }
 
 const allowAnyAuth = (req, res, next) => {
-    if (req.worker || req.user || req.admin) {
+    if (req.worker || req.admin) {
         return next();
     }
     return res.status(403).json({ message: "Unauthorized" });
