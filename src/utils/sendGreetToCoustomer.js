@@ -33,6 +33,7 @@ const sendGreetToCoustomer = async (phone, name) => {
                 },
             }
         )
+        console.log('whatsapp message send successfully ', sendmessage);
         if (sendmessage.status !== 200) {
             console.log("Failed to send message to customer", sendmessage.data);
         }
