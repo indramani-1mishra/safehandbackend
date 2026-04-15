@@ -2,24 +2,24 @@ const nodemailer = require("nodemailer");
 const { EMAIL_USER_ID, EMAIL_PASSWORD_ID, DEFAULT_ADMIN_EMAIL } = require("../config/serverConfig");
 
 const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: EMAIL_USER_ID,
-        pass: EMAIL_PASSWORD_ID
-    }
+  service: "gmail",
+  auth: {
+    user: EMAIL_USER_ID,
+    pass: EMAIL_PASSWORD_ID
+  }
 });
 
 const sendMailOnAdmin = async (enqueryData, to = EMAIL_USER_ID, subject = "New Enquiry Received") => {
-    if (!enqueryData) {
-        console.error("sendMailOnAdmin: enqueryData is undefined");
-        return;
-    }
-    try {
-        await transporter.sendMail({
-            from: EMAIL_USER_ID,
-            to,
-            subject,
-            html: ` 
+  if (!enqueryData) {
+    console.error("sendMailOnAdmin: enqueryData is undefined");
+    return;
+  }
+  try {
+    await transporter.sendMail({
+      from: EMAIL_USER_ID,
+      to,
+      subject,
+      html: ` 
             <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -262,13 +262,13 @@ const sendMailOnAdmin = async (enqueryData, to = EMAIL_USER_ID, subject = "New E
 </body>
 </html>
             `
-        });
-        console.log("Email sent successfully");
-    } catch (error) {
-        console.error("Error sending email:", error);
-    }
+    });
+    console.log("Email sent successfully");
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
 };
 
 module.exports = {
-    sendMailOnAdmin
+  sendMailOnAdmin
 };

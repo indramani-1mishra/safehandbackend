@@ -103,6 +103,9 @@ const verifyAttendanceOtpService = async (data) => {
             data: attendance
         };
     } catch (error) {
+        if (error.code === 11000 || error.message.includes("E11000 duplicate key error")) {
+            throw new Error("Attendance is already marked for today!");
+        }
         throw new Error(error.message || "Failed to verify attendance");
     }
 };

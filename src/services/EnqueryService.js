@@ -3,6 +3,7 @@ const { sendMailOnAdmin } = require("../utils/sendmailonAdmin");
 const { sendGreetToCoustomer } = require("../utils/sendGreetToCoustomer");
 const createEnquiryService = async (data) => {
     // Validations
+    console.log(data);
     if (data.phone && !/^\d{10}$/.test(data.phone)) {
         throw new Error("Phone must be 10 digits");
     }
@@ -25,12 +26,22 @@ const createEnquiryService = async (data) => {
     if (!data.phone) {
         throw new Error("Missing required fields for service enquiry");
     }
+    if (!data.name) {
+        throw new Error("Missing required fields for service enquiry");
+    }
 
 
     // Call the repository to save
     const result = await enqueryRepository.createEnquiry(data);
-    await sendMailOnAdmin(data);
-    await sendGreetToCoustomer(data.phone, data.name);
+    const issend = await sendGreetToCoustomer(data.phone, data.name);
+    const issend2 = await sendMailOnAdmin(data);
+    if (!issend) {
+        console.log(" error in  whatsapp message");
+    }
+    if (!issend2) {
+        console.log(" error in  mail message");
+    }
+
 
     return result;
 };

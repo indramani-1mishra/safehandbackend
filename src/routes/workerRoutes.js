@@ -23,7 +23,7 @@ router.get("/getbyemail/:email", workerController.getWorkerByEmailController);
 router.put(
     "/update/:id",
     authMiddleware,
-    isAdmin,
+
     upload.fields([
         { name: "image", maxCount: 1 },
         { name: "documents", maxCount: 10 }
