@@ -26,8 +26,9 @@ const createEnquiryService = async (data) => {
     if (!data.phone) {
         throw new Error("Missing required fields for service enquiry");
     }
+    
     if (!data.name) {
-        throw new Error("Missing required fields for service enquiry");
+        data.name = data.patientName || "Customer";
     }
 
 

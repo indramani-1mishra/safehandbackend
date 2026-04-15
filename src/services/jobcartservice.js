@@ -54,33 +54,30 @@ const createJobCardService = async (data) => {
         const { plan = 'basic', duration = 1, timing = '12hr' } = data?.serviceDetails || {};
 
         //  Price Calculation Logic
-        const cityPricing = service.pricingByCity.find(p => p.city.toLowerCase() === city.toLowerCase());
-        if (!cityPricing) {
-            throw new Error(`Pricing for city: ${city} not found in service: ${service.name}`);
+        const cityPricing = service.pricingByCity?.find(p => p.city.toLowerCase() === city.toLowerCase());
+
+        let finalCustomerPrice = 0;
+
+        if (cityPricing) {
+            const planKey = plan === 'advance' ? 'advance' : 'basic';
+            const timingKey = timing === '24hr' ? 'hr24' : 'hr12';
+
+            const pricePerDay = cityPricing[planKey] && cityPricing[planKey][timingKey] ? cityPricing[planKey][timingKey] : 0;
+
+            const baseTotal = pricePerDay * duration;
+            const addonsTotal = (data.addons || []).reduce((sum, addon) => sum + (Number(addon.price) || 0), 0);
+            finalCustomerPrice = baseTotal + addonsTotal;
+        } else {
+            // Fallback to what frontend explicitly passed if pricing is missing for city
+            finalCustomerPrice = data.totalDealAmount || 0;
         }
-
-        const planKey = plan === 'advance' ? 'advance' : 'basic';
-        const timingKey = timing === '24hr' ? 'hr24' : 'hr12';
-
-        const pricePerDay = cityPricing[planKey][timingKey];
-        if (!pricePerDay) {
-            throw new Error(`Price not defined for ${plan} plan and ${timing} timing in ${city}`);
-        }
-
-        const baseTotal = pricePerDay * duration;
-
-        // Addons total
-        const addonsTotal = (data.addons || []).reduce((sum, addon) => sum + (Number(addon.price) || 0), 0);
-
-        const finalCustomerPrice = baseTotal + addonsTotal;
 
         // Update data object
         data.priceforCoustomer = finalCustomerPrice.toString();
         data.totalCalculatedPrice = finalCustomerPrice;
 
-        // Placeholder for worker price (you can change this logic later)
-        // For example: 70% of customer price
-        data.priceforWorker = (finalCustomerPrice * 0.7).toFixed(0).toString();
+        // Placeholder for worker price
+        data.priceforWorker = data.totalNurseSalary ? data.totalNurseSalary.toString() : (finalCustomerPrice * 0.7).toFixed(0).toString();
 
         const jobCard = await jobcartRepository.createJobCard(data);
 
