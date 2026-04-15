@@ -22,7 +22,7 @@ router.get("/getbyemail/:email", workerController.getWorkerByEmailController);
 // Update Worker - Admin only
 router.put(
     "/update/:id",
-    authMiddleware,
+
 
     upload.fields([
         { name: "image", maxCount: 1 },
