@@ -100,7 +100,7 @@ const sendMailOnAdmin = async (enqueryData, to = EMAIL_USER_ID, subject = "New E
                     <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Enquiry Type:</td>
                     <td style="padding: 8px 0;">
                       <span style="background-color: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; text-transform: uppercase;">
-                        ${enqueryData.enquiryType === 'urgentEnquery' ? '🚨 Urgent Enquiry' : '📞 Service Enquiry'}
+                        ${enqueryData.enquiryType === 'quickEnquery' ? '🚨 quickEnquery' : enqueryData.enquiryType === "urgentEnquiry" ? "urgent Enquiry" : "serviceEnquery"}
                       </span>
                     </td>
                   </tr>
