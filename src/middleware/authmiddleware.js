@@ -45,6 +45,7 @@ const workerAuthMiddleware = async (req, res, next) => {
 }
 
 const allowAnyAuth = (req, res, next) => {
+    console.log(req.worker, req.admin);
     if (req.worker || req.admin) {
         return next();
     }
