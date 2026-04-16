@@ -1,0 +1,1210 @@
+{
+  "info": {
+    "name": "SafeHand Comprehensive API Collection",
+    "description": "Full API collation for SafeHand Backend. Contains Admin, Worker, Service, Enquiry, JobCard, Attendance, and Financial modules.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin Auth",
+      "item": [
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Admin Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Admin Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Worker Auth",
+      "item": [
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+918888888888\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/worker-auth/send-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "worker-auth", "send-otp"]
+            }
+          }
+        },
+        {
+          "name": "Verify OTP & Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+918888888888\",\n  \"otp\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/worker-auth/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "worker-auth", "verify-otp"]
+            }
+          }
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+918888888888\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/worker-auth/resend-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "worker-auth", "resend-otp"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/worker-auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "worker-auth", "refresh-token"]
+            }
+          }
+        },
+        {
+          "name": "Worker Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/worker-auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "worker-auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admins",
+      "item": [
+        {
+          "name": "Create Admin",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newadmin@example.com\",\n  \"password\": \"admin123\",\n  \"name\": \"Full Name\",\n  \"phone\": \"9876543210\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admins/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admins", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get All Admins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admins/getall",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admins", "getall"]
+            }
+          }
+        },
+        {
+          "name": "Get Admin by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admins/get/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admins", "get", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Admin",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"phone\": \"9876543210\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admins/update/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admins", "update", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Admin",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admins/delete/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admins", "delete", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Make User Admin",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admins/makeadmin/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admins", "makeadmin", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
+        {
+          "name": "Create Service",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Service Name", "type": "text" },
+                { "key": "description", "value": "Description", "type": "text" },
+                { "key": "pricingByCity", "value": "{}", "type": "text" },
+                { "key": "basicFeatures", "value": "[]", "type": "text" },
+                { "key": "advanceFeatures", "value": "[]", "type": "text" },
+                { "key": "addons", "value": "[]", "type": "text" },
+                { "key": "image", "type": "file", "src": [] },
+                { "key": "basicImage", "type": "file", "src": [] },
+                { "key": "advanceImage", "type": "file", "src": [] }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/services/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get All Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/services/getall",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "getall"]
+            }
+          }
+        },
+        {
+          "name": "Get Service by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/services/get/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "get", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Updated Name", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/services/update/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "update", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Service",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/services/delete/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "delete", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Find Service (Names & Images)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/services/findservice",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "findservice"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enquiries",
+      "item": [
+        {
+          "name": "Create Enquiry",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"9876543210\",\n  \"email\": \"patient@example.com\",\n  \"enquiryType\": \"One-time\",\n  \"patientName\": \"John Patient\",\n  \"address\": \"Mumbai\",\n  \"startDate\": \"2024-05-01\",\n  \"service\": \"Physiotherapy\",\n  \"serviceDuration\": \"1 hour\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/enqueries/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enqueries", ""]
+            }
+          }
+        },
+        {
+          "name": "Get All Enquiries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/enqueries/?type=&status=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enqueries", ""],
+              "query": [
+                { "key": "type", "value": "" },
+                { "key": "status", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Enquiries by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/enqueries/status/:status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enqueries", "status", ":status"],
+              "variable": [
+                { "key": "status", "value": "pending" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Enquiries by Type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/enqueries/type/:type",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enqueries", "type", ":type"],
+              "variable": [
+                { "key": "type", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get by Type & Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/enqueries/type/:type/status/:status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enqueries", "type", ":type", "status", ":status"],
+              "variable": [
+                { "key": "type", "value": "" },
+                { "key": "status", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Enquiry by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/enqueries/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enqueries", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Enquiry",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"9876543210\",\n  \"email\": \"updated@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/enqueries/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enqueries", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Enquiry Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/enqueries/:id/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enqueries", ":id", "status"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Convert Enquiry Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/enqueries/:id/convert",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enqueries", ":id", "convert"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Enquiry",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/enqueries/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enqueries", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workers",
+      "item": [
+        {
+          "name": "Create Worker",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Worker Name", "type": "text" },
+                { "key": "email", "value": "worker@example.com", "type": "text" },
+                { "key": "phone", "value": "8888888888", "type": "text" },
+                { "key": "age", "value": "30", "type": "text" },
+                { "key": "gender", "value": "male", "type": "text" },
+                { "key": "city", "value": "Mumbai", "type": "text" },
+                { "key": "services", "value": "[\"Physiotherapy\"]", "type": "text" },
+                { "key": "image", "type": "file", "src": [] },
+                { "key": "documents", "type": "file", "src": [] }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/workers/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workers", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get All Workers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/workers/getall",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workers", "getall"]
+            }
+          }
+        },
+        {
+          "name": "Get Worker by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/workers/get/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workers", "get", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Worker",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Updated Worker Name", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/workers/update/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workers", "update", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Worker by Phone",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/workers/getbyphone/:phone",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workers", "getbyphone", ":phone"],
+              "variable": [
+                { "key": "phone", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Worker by Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/workers/getbyemail/:email",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workers", "getbyemail", ":email"],
+              "variable": [
+                { "key": "email", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Worker",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/workers/delete/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workers", "delete", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Free (Available) Workers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/workers/free",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workers", "free"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "JobCards",
+      "item": [
+        {
+          "name": "Create Job Card",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inquiryId\": \"65b9...\",\n  \"patientDetails\": {\n    \"name\": \"John Doe\",\n    \"age\": 45,\n    \"gender\": \"male\",\n    \"address\": \"123 Main St\",\n    \"city\": \"Mumbai\",\n    \"phone\": \"9876543210\"\n  },\n  \"serviceDetails\": {\n    \"service\": \"65b9...\",\n    \"plan\": \"basic\",\n    \"duration\": 3,\n    \"timing\": \"12hr\"\n  },\n  \"addons\": [],\n  \"totalPrice\": 3500,\n  \"isDirectAssignWorker\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards"]
+            }
+          }
+        },
+        {
+          "name": "Get All Job Cards (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards"]
+            }
+          }
+        },
+        {
+          "name": "Get Job Card by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Job Card",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in-progress\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assign Worker to Job",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workerId\": \"65b9...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards/:id/assign",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards", ":id", "assign"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Worker Interested",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workerId\": \"65b9...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards/:id/interested",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards", ":id", "interested"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Worker Not Interested",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workerId\": \"65b9...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards/:id/not-interested",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards", ":id", "not-interested"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Job Cards by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards/status/:status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards", "status", ":status"],
+              "variable": [
+                { "key": "status", "value": "pending" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Job Cards by Worker",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards/worker/:workerId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards", "worker", ":workerId"],
+              "variable": [
+                { "key": "workerId", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get by Status & Worker",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards/status/:status/worker/:workerId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards", "status", ":status", "worker", ":workerId"],
+              "variable": [
+                { "key": "status", "value": "" },
+                { "key": "workerId", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Complete Job Card",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards/:id/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards", ":id", "complete"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Job Card",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobcards/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobcards", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Get All Attendance (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Request Attendance OTP (Worker)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobCardId\": \"65b9...\",\n  \"workerId\": \"65b9...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance/request-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance", "request-otp"]
+            }
+          }
+        },
+        {
+          "name": "Verify Attendance OTP",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobCardId\": \"65b9...\",\n  \"workerId\": \"65b9...\",\n  \"otp\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance", "verify-otp"]
+            }
+          }
+        },
+        {
+          "name": "Get Attendance by Worker",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance/worker/:workerId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance", "worker", ":workerId"],
+              "variable": [
+                { "key": "workerId", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Attendance by Date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance/date/:date",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance", "date", ":date"],
+              "variable": [
+                { "key": "date", "value": "2024-05-01" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Attendance Record",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"absent\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Attendance Record",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Client Payments",
+      "item": [
+        {
+          "name": "Record Client Payment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobCardId\": \"65b9...\",\n  \"amount\": 5000,\n  \"paymentMethod\": \"upi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments"]
+            }
+          }
+        },
+        {
+          "name": "Get All Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments"]
+            }
+          }
+        },
+        {
+          "name": "Clients Due Today",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/due/today",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "due", "today"]
+            }
+          }
+        },
+        {
+          "name": "Get Payments by JobCard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/jobcard/:jobCardId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "jobcard", ":jobCardId"],
+              "variable": [
+                { "key": "jobCardId", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Payment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", ":id"],
+              "variable": [
+                { "key": "id", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Worker Payouts",
+      "item": [
+        {
+          "name": "Process Worker Payout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workerId\": \"65b9...\",\n  \"jobCardId\": \"65b9...\",\n  \"amount\": 2500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/worker-payouts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "worker-payouts"]
+            }
+          }
+        },
+        {
+          "name": "Check Worker Due Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/worker-payouts/due?workerId=&jobCardId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "worker-payouts", "due"],
+              "query": [
+                { "key": "workerId", "value": "" },
+                { "key": "jobCardId", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Worker Payout History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/worker-payouts/history/:workerId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "worker-payouts", "history", ":workerId"],
+              "variable": [
+                { "key": "workerId", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Financial Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "summary"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": { "type": "text/javascript", "exec": [""] }
+    },
+    {
+      "listen": "test",
+      "script": { "type": "text/javascript", "exec": [""] }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
+

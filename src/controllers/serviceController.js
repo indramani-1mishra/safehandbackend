@@ -189,6 +189,40 @@ const getonlyservicenameandimagecontroller = async (req, res) => {
         });
     }
 }
+
+const getServiceByidandCityController = async (req, res) => {
+    try {
+        const { id, city } = req.params;
+
+        const service = await serviceService.getServiceByidandCityService(id, city);
+        return res.status(200).json({
+            success: true,
+            data: service,
+            message: "Service fetched successfully"
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+const getallcitycontroller = async (req, res) => {
+    try {
+        const city = await serviceService.getallcityService();
+        return res.status(200).json({
+            success: true,
+            data: city,
+            message: "City fetched successfully"
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
 module.exports = {
     uploadImages,
     createServiceController,
@@ -196,5 +230,7 @@ module.exports = {
     getAllServicesController,
     getServiceByIdController,
     deleteServiceController,
-    getonlyservicenameandimagecontroller
+    getonlyservicenameandimagecontroller,
+    getServiceByidandCityController,
+    getallcitycontroller
 };

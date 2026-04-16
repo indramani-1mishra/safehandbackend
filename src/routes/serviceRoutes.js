@@ -9,7 +9,8 @@ router.post(
     authMiddleware,
     isAdmin,
     serviceController.uploadImages,
-    serviceController.createServiceController
+    serviceController.createServiceController,
+
 );
 router.get(
     "/findservice",
@@ -43,5 +44,12 @@ router.delete(
     isAdmin,
     serviceController.deleteServiceController
 );
-
+router.get(
+    "/getbyidandcity/:id/:city",
+    serviceController.getServiceByidandCityController
+);
+router.get(
+    "/getallcity",
+    serviceController.getallcitycontroller
+);
 module.exports = router;

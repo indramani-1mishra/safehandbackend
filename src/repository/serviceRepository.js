@@ -34,12 +34,20 @@ const getServiceById = async (id) => {
 const getonlyservicenameandimage = async () => {
     return await Service.find().select("_id name image description");
 }
+const getServiceByidandCity = async (id, city) => {
+    return await Service.findOne({ _id: id, city: city });
+}
 
+const getallcity = async () => {
+    return await Service.find().select("city");
+}
 module.exports = {
     createService,
     updateService,
     deleteService,
     getAllServices,
     getServiceById,
-    getonlyservicenameandimage
+    getonlyservicenameandimage,
+    getServiceByidandCity,
+    getallcity
 };

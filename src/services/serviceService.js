@@ -54,10 +54,30 @@ const deleteServiceService = async (id) => {
     return await serviceRepository.deleteService(id);
 };
 
+const getServiceByidandCityService = async (id, city) => {
+    if (!id || !city) {
+        throw new Error("Please provide service id and city");
+    }
+    const service = await serviceRepository.getServiceByidandCity(id, city);
+    if (!service) {
+        throw new Error("Service not found");
+    }
+    return service;
+}
+
+const getallcityService = async () => {
+    const city = await serviceRepository.getallcity();
+    if (!city) {
+        throw new Error("City not found");
+    }
+    return city;
+}
 module.exports = {
     createServiceService,
     updateServiceService,
     getAllServicesService,
     getServiceByIdService,
-    deleteServiceService
+    deleteServiceService,
+    getServiceByidandCityService,
+    getallcityService
 };
