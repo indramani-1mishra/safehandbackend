@@ -62,7 +62,18 @@ const getServiceByidandCityService = async (id, city) => {
     if (!service) {
         throw new Error("Service not found");
     }
-    return service;
+
+    // Convert Mongoose document to plain object so we can modify the array
+    const serviceObj = service.toObject();
+    
+    // Filter the pricingByCity array to keep only the matching city
+    if (serviceObj.pricingByCity) {
+        serviceObj.pricingByCity = serviceObj.pricingByCity.filter(
+            p => p.city.toLowerCase() === city.toLowerCase()
+        );
+    }
+
+    return serviceObj;
 }
 
 const getallcityService = async () => {

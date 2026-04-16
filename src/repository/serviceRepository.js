@@ -35,11 +35,17 @@ const getonlyservicenameandimage = async () => {
     return await Service.find().select("_id name image description");
 }
 const getServiceByidandCity = async (id, city) => {
-    return await Service.findOne({ _id: id, city: city });
+    return await Service.findOne({
+        _id: id,
+        "pricingByCity.city": city
+    });
 }
 
 const getallcity = async () => {
     return await Service.find().select("city");
+}
+const getpriceBycityname = async (city) => {
+    return await Service.findOne({ city: city });
 }
 module.exports = {
     createService,
