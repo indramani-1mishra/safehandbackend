@@ -137,6 +137,10 @@ const sendMailOnAdmin = async (enqueryData, to = EMAIL_USER_ID, subject = "New E
                     <td style="padding: 8px 0; color: #64748b; font-weight: 600; vertical-align: top;">Patient Condition:</td>
                     <td style="padding: 8px 0; color: #dc2626; font-weight: 700; line-height: 1.6;">${enqueryData.patientCondition}</td>
                   </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Description:</td>
+                    <td style="padding: 8px 0; color: #1e293b; line-height: 1.6;">${enqueryData.description || 'N/A'}</td>
+                  </tr>
                 </table>
               </div>
 
@@ -160,9 +164,13 @@ const sendMailOnAdmin = async (enqueryData, to = EMAIL_USER_ID, subject = "New E
                     <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.contactPersonName}</td>
                   </tr>
                   <tr>
+                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Landmark:</td>
+                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.landmark || 'N/A'}</td>
+                  </tr>
+                  <tr>
                     <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Alternate Number:</td>
                     <td style="padding: 8px 0;">
-                      <a href="tel:${enqueryData.alternateNumber}" style="color: #10b981; text-decoration: none; font-weight: 600;">${enqueryData.alternateNumber}</a>
+                      <a href="tel:${enqueryData.alternateNumber}" style="color: #10b981; text-decoration: none; font-weight: 600;">${enqueryData.alternateNumber || 'N/A'}</a>
                     </td>
                   </tr>
                 </table>
@@ -204,20 +212,32 @@ const sendMailOnAdmin = async (enqueryData, to = EMAIL_USER_ID, subject = "New E
                 
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size: 14px;">
                   <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600; width: 35%;">Service:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.service}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Service Name:</td>
+                    <td style="padding: 8px 0; color: #64748b; font-weight: 600; width: 35%;">Service Name:</td>
                     <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.serviceName}</td>
                   </tr>
                   <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Enquiry For:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.enquiryFor}</td>
+                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Package Type:</td>
+                    <td style="padding: 8px 0;">
+                      <span style="background-color: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                        ${enqueryData.packageType || 'N/A'}
+                      </span>
+                    </td>
                   </tr>
                   <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Service Duration:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.serviceDuration}</td>
+                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Duration:</td>
+                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.serviceDuration} Hours</td>
+                  </tr>
+                   <tr>
+                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Patient Name:</td>
+                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.patientName || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Patient Condition:</td>
+                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.patientCondition || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Start Date:</td>
+                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.startDate || 'N/A'}</td>
                   </tr>
                 </table>
               </div>
