@@ -119,9 +119,7 @@ const enquirySchema = new mongoose.Schema({
     packageType: {
         type: String,
         enum: ["basic", "advance"],
-        required: function () {
-            return this.enquiryType === "serviceEnquery";
-        }
+
     },
 
     // 🔹 Status
