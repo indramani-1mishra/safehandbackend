@@ -15,12 +15,15 @@ const sendMailOnAdmin = async (enqueryData, to = EMAIL_USER_ID, subject = "New E
     return;
   }
   try {
+    const isUrgent = enqueryData.enquiryType === "urgentEnquery";
+    const enquiryLabel = enqueryData.enquiryType === 'quickEnquery' ? '🚨 quickEnquery' : isUrgent ? "urgent Enquiry" : "serviceEnquery";
+
     await transporter.sendMail({
       from: EMAIL_USER_ID,
       to,
       subject,
       html: ` 
-            <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -28,260 +31,95 @@ const sendMailOnAdmin = async (enqueryData, to = EMAIL_USER_ID, subject = "New E
   <title>New Enquiry - SafeHand Lifecare</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7fb;">
-  
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f7fb; padding: 40px 20px;">
     <tr>
       <td align="center">
-        
-        <!-- Main Container -->
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; max-width: 100%;">
           
-          <!-- Header with Logo/Brand -->
+          <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center;">
-              <div style="width: 60px; height: 60px; background-color: white; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                <span style="font-size: 30px;">🏥</span>
-              </div>
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
-                SafeHand Lifecare Pvt Ltd
-              </h1>
-              <p style="margin: 8px 0 0; color: #d1fae5; font-size: 14px; font-weight: 500;">
-                Professional Home Healthcare Services
-              </p>
+            <td style="background: linear-gradient(135deg, ${isUrgent ? '#ef4444' : '#10b981'} 0%, ${isUrgent ? '#b91c1c' : '#059669'} 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 700;">SafeHand Lifecare Pvt Ltd</h1>
+              <p style="margin: 8px 0 0; color: #ffffff; opacity: 0.9; font-size: 14px;">${enquiryLabel.toUpperCase()}</p>
             </td>
           </tr>
 
-          <!-- Alert Badge -->
+          <!-- Basic Info -->
           <tr>
-            <td style="padding: 30px 30px 0;">
-              <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b; padding: 16px 20px; border-radius: 10px; margin-bottom: 25px;">
-                <p style="margin: 0; color: #92400e; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 20px;">⚡</span>
-                  <strong>New Enquiry Received!</strong> Please review and respond at your earliest convenience.
-                </p>
+            <td style="padding: 30px 30px 20px;">
+              <div style="background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 8px;">
+                <h2 style="margin: 0 0 15px 0; color: #1e3a8a; font-size: 18px;">📋 Basic Contact Information</h2>
+                <table width="100%" style="font-size: 14px;">
+                  <tr><td style="color: #64748b; font-weight: 600; width: 35%;">Name:</td><td style="font-weight: 700;">${enqueryData.name}</td></tr>
+                  <tr><td style="color: #64748b; font-weight: 600;">Phone:</td><td style="color: #10b981; font-weight: 700;">${enqueryData.phone}</td></tr>
+                  <tr><td style="color: #64748b; font-weight: 600;">Email:</td><td>${enqueryData.email || 'N/A'}</td></tr>
+                  <tr><td style="color: #64748b; font-weight: 600;">City:</td><td style="font-weight: 700;">${enqueryData.city || 'N/A'}</td></tr>
+                  <tr><td style="color: #64748b; font-weight: 600; vertical-align: top;">Message:</td><td>${enqueryData.message || 'No specific message'}</td></tr>
+                </table>
               </div>
             </td>
           </tr>
 
-          <!-- Basic Information Card -->
+          <!-- Location & Logistics -->
+          ${(enqueryData.address || enqueryData.pincode || enqueryData.landmark) ? `
           <tr>
             <td style="padding: 0 30px 20px;">
-              <div style="background: linear-gradient(to right, #eff6ff, #dbeafe); border-left: 4px solid #3b82f6; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                <h2 style="margin: 0 0 15px 0; color: #1e3a8a; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                  <span>📋</span> Basic Information
-                </h2>
-                
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size: 14px;">
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600; width: 35%;">Name:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.name}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Email:</td>
-                    <td style="padding: 8px 0;">
-                      <a href="mailto:${enqueryData.email}" style="color: #3b82f6; text-decoration: none; font-weight: 600;">${enqueryData.email}</a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Phone:</td>
-                    <td style="padding: 8px 0;">
-                      <a href="tel:${enqueryData.phone}" style="color: #10b981; text-decoration: none; font-weight: 600;">${enqueryData.phone}</a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">City:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.city}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600; vertical-align: top;">Message:</td>
-                    <td style="padding: 8px 0; color: #1e293b; line-height: 1.6;">${enqueryData.message}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Enquiry Type:</td>
-                    <td style="padding: 8px 0;">
-                      <span style="background-color: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; text-transform: uppercase;">
-                        ${enqueryData.enquiryType === 'quickEnquery' ? '🚨 quickEnquery' : enqueryData.enquiryType === "urgentEnquiry" ? "urgent Enquiry" : "serviceEnquery"}
-                      </span>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Urgent Enquiry Details (Conditional) -->
-          ${enqueryData.enquiryType === "urgentEnquery" ? `
-          <tr>
-            <td style="padding: 0 30px 20px;">
-              
-              <!-- Patient Information -->
-              <div style="background: linear-gradient(to right, #fef2f2, #fee2e2); border-left: 4px solid #ef4444; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                <h2 style="margin: 0 0 15px 0; color: #991b1b; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                  <span>👤</span> Patient Details
-                </h2>
-                
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size: 14px;">
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600; width: 35%;">Patient Name:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.patientName}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Age:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.age} years</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Gender:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.gender}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600; vertical-align: top;">Patient Condition:</td>
-                    <td style="padding: 8px 0; color: #dc2626; font-weight: 700; line-height: 1.6;">${enqueryData.patientCondition}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Description:</td>
-                    <td style="padding: 8px 0; color: #1e293b; line-height: 1.6;">${enqueryData.description || 'N/A'}</td>
-                  </tr>
-                </table>
-              </div>
-
-              <!-- Location & Contact -->
-              <div style="background: linear-gradient(to right, #fef3c7, #fde68a); border-left: 4px solid #f59e0b; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                <h2 style="margin: 0 0 15px 0; color: #92400e; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                  <span>📍</span> Location & Additional Contact
-                </h2>
-                
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size: 14px;">
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600; width: 35%;">Address:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600; line-height: 1.6;">${enqueryData.address}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Pincode:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.pincode}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Contact Person:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.contactPersonName}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Landmark:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.landmark || 'N/A'}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Alternate Number:</td>
-                    <td style="padding: 8px 0;">
-                      <a href="tel:${enqueryData.alternateNumber}" style="color: #10b981; text-decoration: none; font-weight: 600;">${enqueryData.alternateNumber || 'N/A'}</a>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-
-              <!-- Service Details -->
-              <div style="background: linear-gradient(to right, #f0fdf4, #dcfce7); border-left: 4px solid #10b981; padding: 20px; border-radius: 10px;">
-                <h2 style="margin: 0 0 15px 0; color: #065f46; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                  <span>⚙️</span> Service Requirements
-                </h2>
-                
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size: 14px;">
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600; width: 35%;">Start Date:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.startDate}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Preferred Staff:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.preferredStaff}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Payment Mode:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.paymentMode}</td>
-                  </tr>
+              <div style="background-color: #fffaf0; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px;">
+                <h2 style="margin: 0 0 15px 0; color: #92400e; font-size: 18px;">📍 Location & Logistics</h2>
+                <table width="100%" style="font-size: 14px;">
+                  <tr><td style="color: #64748b; font-weight: 600; width: 35%;">Address:</td><td style="font-weight: 700;">${enqueryData.address || 'N/A'}</td></tr>
+                  <tr><td style="color: #64748b; font-weight: 600;">Pincode:</td><td style="font-weight: 700;">${enqueryData.pincode || 'N/A'}</td></tr>
+                  <tr><td style="color: #64748b; font-weight: 600;">Landmark:</td><td>${enqueryData.landmark || 'N/A'}</td></tr>
+                  <tr><td style="color: #64748b; font-weight: 600;">Contact Person:</td><td>${enqueryData.contactPersonName || 'N/A'}</td></tr>
+                  <tr><td style="color: #64748b; font-weight: 600;">Alternate No:</td><td>${enqueryData.alternateNumber || 'N/A'}</td></tr>
                 </table>
               </div>
             </td>
           </tr>
           ` : ""}
 
-          <!-- Service Enquiry Details (Conditional) -->
-          ${enqueryData.enquiryType === "serviceEnquery" ? `
+          <!-- Specialized Details -->
           <tr>
             <td style="padding: 0 30px 20px;">
-              <div style="background: linear-gradient(to right, #f0fdf4, #dcfce7); border-left: 4px solid #10b981; padding: 20px; border-radius: 10px;">
-                <h2 style="margin: 0 0 15px 0; color: #065f46; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                  <span>💼</span> Service Details
-                </h2>
-                
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size: 14px;">
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600; width: 35%;">Service Name:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.serviceName}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Package Type:</td>
-                    <td style="padding: 8px 0;">
-                      <span style="background-color: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
-                        ${enqueryData.packageType || 'N/A'}
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Duration:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.serviceDuration} Hours</td>
-                  </tr>
-                   <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Patient Name:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.patientName || 'N/A'}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Patient Condition:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.patientCondition || 'N/A'}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Start Date:</td>
-                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${enqueryData.startDate || 'N/A'}</td>
-                  </tr>
+              <div style="background-color: ${isUrgent ? '#fff5f5' : '#f0fdf4'}; border-left: 4px solid ${isUrgent ? '#ef4444' : '#10b981'}; padding: 20px; border-radius: 8px;">
+                <h2 style="margin: 0 0 15px 0; color: ${isUrgent ? '#991b1b' : '#065f46'}; font-size: 18px;">💡 Service & Patient Details</h2>
+                <table width="100%" style="font-size: 14px;">
+                  ${enqueryData.serviceName ? `<tr><td style="color: #64748b; font-weight: 600; width: 35%;">Service:</td><td style="font-weight: 700;">${enqueryData.serviceName}</td></tr>` : ""}
+                  ${enqueryData.packageType ? `<tr><td style="color: #64748b; font-weight: 600;">Package:</td><td><strong style="text-transform: uppercase; background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${enqueryData.packageType}</strong></td></tr>` : ""}
+                  ${enqueryData.serviceDuration ? `<tr><td style="color: #64748b; font-weight: 600;">Duration:</td><td>${enqueryData.serviceDuration} Hours</td></tr>` : ""}
+                  ${enqueryData.patientName ? `<tr><td style="color: #64748b; font-weight: 600;">Patient Name:</td><td style="font-weight: 700;">${enqueryData.patientName}</td></tr>` : ""}
+                  ${enqueryData.age ? `<tr><td style="color: #64748b; font-weight: 600;">Patient Age:</td><td>${enqueryData.age} Years</td></tr>` : ""}
+                  ${enqueryData.gender ? `<tr><td style="color: #64748b; font-weight: 600;">Gender:</td><td>${enqueryData.gender}</td></tr>` : ""}
+                  ${enqueryData.startDate ? `<tr><td style="color: #64748b; font-weight: 600;">Start Date:</td><td style="color: #ef4444; font-weight: 700;">${enqueryData.startDate}</td></tr>` : ""}
+                  ${enqueryData.patientCondition ? `<tr><td style="color: #64748b; font-weight: 600; vertical-align: top;">Condition:</td><td>${enqueryData.patientCondition}</td></tr>` : ""}
+                  ${enqueryData.preferredStaff ? `<tr><td style="color: #64748b; font-weight: 600;">Staff Pref:</td><td>${enqueryData.preferredStaff}</td></tr>` : ""}
+                  ${enqueryData.paymentMode ? `<tr><td style="color: #64748b; font-weight: 600;">Payment Mode:</td><td>${enqueryData.paymentMode}</td></tr>` : ""}
                 </table>
               </div>
             </td>
           </tr>
-          ` : ""}
 
-          <!-- Call-to-Action -->
+          <!-- Call to Action -->
           <tr>
             <td style="padding: 0 30px 30px; text-align: center;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
-                <tr>
-                  <td style="text-align: center; padding: 20px 0;">
-                    <a href="tel:${enqueryData.phone}" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
-                      📞 Call ${enqueryData.name}
-                    </a>
-                  </td>
-                </tr>
-              </table>
+              <a href="tel:${enqueryData.phone}" style="display: inline-block; background-color: #10b981; color: #ffffff; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">📞 CALL CUSTOMER NOW</a>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="background-color: #f8fafc; padding: 25px 30px; border-top: 1px solid #e2e8f0; text-align: center;">
-              <p style="margin: 0 0 10px 0; color: #64748b; font-size: 12px; line-height: 1.6;">
-                <strong style="color: #1e293b;">SafeHand Lifecare Pvt Ltd</strong><br>
-                Professional Home Healthcare Services<br>
-                🔒 This is an automated notification. Please respond within 24 hours.
-              </p>
-              <p style="margin: 10px 0 0 0; color: #94a3b8; font-size: 11px;">
-                © ${new Date().getFullYear()} SafeHand Lifecare. All rights reserved.
-              </p>
+            <td style="background-color: #f8fafc; padding: 25px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0; color: #64748b; font-size: 12px;">SafeHand Lifecare Pvt Ltd. © ${new Date().getFullYear()}</p>
+              <p style="margin: 5px 0 0; color: #94a3b8; font-size: 11px;">This is an automated system notification.</p>
             </td>
           </tr>
-
         </table>
       </td>
     </tr>
   </table>
-
 </body>
 </html>
-            `
+`
     });
     console.log("Email sent successfully");
   } catch (error) {
