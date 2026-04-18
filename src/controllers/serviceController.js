@@ -61,33 +61,35 @@ const createServiceController = async (req, res) => {
 const updateServiceController = async (req, res) => {
     try {
         const { id } = req.params;
+        const body = req.body || {};
         let serviceData = {};
 
         // ✅ Basic fields
-        if (req.body.name) serviceData.name = req.body.name;
-        if (req.body.description) serviceData.description = req.body.description;
+        if (body.name) serviceData.name = body.name;
+        if (body.description) serviceData.description = body.description;
+        if (body.category) serviceData.category = body.category;
 
         // ✅ JSON fields parse
         const parseField = (field) => {
-            if (!req.body[field]) return;
-            return typeof req.body[field] === "string"
-                ? JSON.parse(req.body[field])
-                : req.body[field];
+            if (!body[field]) return;
+            return typeof body[field] === "string"
+                ? JSON.parse(body[field])
+                : body[field];
         };
 
-        if (req.body.pricingByCity) {
+        if (body.pricingByCity) {
             serviceData.pricingByCity = parseField("pricingByCity");
         }
 
-        if (req.body.basicFeatures) {
+        if (body.basicFeatures) {
             serviceData.basicFeatures = parseField("basicFeatures");
         }
 
-        if (req.body.advanceFeatures) {
+        if (body.advanceFeatures) {
             serviceData.advanceFeatures = parseField("advanceFeatures");
         }
 
-        if (req.body.addons) {
+        if (body.addons) {
             serviceData.addons = parseField("addons");
         }
 

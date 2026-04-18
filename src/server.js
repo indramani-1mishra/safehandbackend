@@ -17,7 +17,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-    origin: ['https://www.safehandlifecare.com', 'https://safehandlifecare.com', 'http://localhost:3000', 'http://localhost:3001'],
+    origin: ['https://www.safehandlifecare.com', 'https://safehandlifecare.com', 'http://localhost:3000', 'http://localhost:3001', 'https://safehandwebsite.vercel.app'],
     credentials: true
 }));
 app.use(express.json());
