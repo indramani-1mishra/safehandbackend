@@ -21,7 +21,9 @@ const serviceSchema = new mongoose.Schema({
     advanceImage: {
         type: String
     },
-
+    category: {
+        type: String,
+    },
     description: {
         type: String
     },
