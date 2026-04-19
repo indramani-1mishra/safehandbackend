@@ -67,10 +67,10 @@ const updateEnquiryStatusService = async (id, status) => {
     return await enqueryRepository.updateEnquiryStatus(id, status);
 };
 
-const getAllEnquiriesService = async (query) => {
+const getAllEnquiriesService = async (query, page, limit) => {
     // If the query provides type or status, use the specialized filtered method
     if (query.type || query.status) {
-        return await enqueryRepository.getEnquiries({ type: query.type, status: query.status });
+        return await enqueryRepository.getEnquiries({ type: query.type, status: query.status, page, limit });
     }
     return await enqueryRepository.getAllEnquiries(query);
 };

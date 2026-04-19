@@ -43,7 +43,9 @@ const updateEnquiryStatus = async (req, res) => {
 
 const getAllEnquiries = async (req, res) => {
     try {
-        const enquiries = await getAllEnquiriesService(req.query);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const enquiries = await getAllEnquiriesService(req.query, page, limit);
         res.status(200).json({ success: true, data: enquiries });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
