@@ -26,7 +26,8 @@ const getAllEnquiries = async (query = {}) => {
 
     return await Enquiry.find()
         .skip((page - 1) * limit)
-        .limit(Number(limit));
+        .limit(Number(limit))
+        .sort({ createdAt: -1 });
 };
 
 const getEnquiryById = async (id) => {
