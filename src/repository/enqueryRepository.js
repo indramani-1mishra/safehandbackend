@@ -52,13 +52,16 @@ const getEnquiryByType = async (type) => {
     return await Enquiry.find({ enquiryType: type });
 };
 
-const getEnquiries = async ({ type, status }) => {
+const getEnquiries = async ({ type, status, page = 1, limit = 10 }) => {
     const filter = {};
 
     if (type) filter.enquiryType = type;
     if (status) filter.status = status;
 
-    return await Enquiry.find(filter);
+    return await Enquiry.find(filter)
+        .skip((page - 1) * limit)
+        .limit(Number(limit))
+        .sort({ createdAt: -1 });
 };
 
 module.exports = {

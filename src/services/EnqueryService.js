@@ -26,7 +26,7 @@ const createEnquiryService = async (data) => {
     if (!data.phone) {
         throw new Error("Missing required fields for service enquiry");
     }
-    
+
     if (!data.name) {
         data.name = data.patientName || "Customer";
     }
@@ -74,6 +74,8 @@ const getAllEnquiriesService = async (query) => {
     }
     return await enqueryRepository.getAllEnquiries(query);
 };
+
+
 
 const getEnquiryByIdService = async (id) => {
     return await enqueryRepository.getEnquiryById(id);
