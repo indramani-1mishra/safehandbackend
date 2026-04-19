@@ -58,10 +58,15 @@ const getEnquiries = async ({ type, status, page = 1, limit = 10 }) => {
     if (type) filter.enquiryType = type;
     if (status) filter.status = status;
 
-    return await Enquiry.find(filter)
+    const data = await Enquiry.find(filter)
         .skip((page - 1) * limit)
         .limit(Number(limit))
         .sort({ createdAt: -1 });
+
+    return {
+        data,
+        totalPages: Math.ceil(data.length / limit)
+    };
 };
 
 module.exports = {
