@@ -23,14 +23,14 @@ const VerifyOtpController = async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-            maxAge: 24 * 60 * 60 * 1000
+
         });
 
         res.cookie("workerRefreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-            maxAge: 24 * 60 * 60 * 1000
+
         });
 
         return res.status(200).json({
@@ -64,7 +64,7 @@ const ResendOtpController = async (req, res) => {
 const LogoutController = async (req, res) => {
     try {
         const refreshToken = req.cookies.workerRefreshToken;
-        
+
         if (refreshToken) {
             const jwt = require("jsonwebtoken");
             let decodedId = null;
@@ -75,7 +75,7 @@ const LogoutController = async (req, res) => {
                 const decoded = jwt.decode(refreshToken);
                 if (decoded) decodedId = decoded.id;
             }
-            
+
             if (decodedId) {
                 await workerService.logoutService(decodedId);
             }
@@ -92,7 +92,7 @@ const LogoutController = async (req, res) => {
             sameSite: "strict",
             path: "/"
         });
-        
+
         return res.status(200).json({
             success: true,
             message: "Worker logged out successfully"
@@ -108,11 +108,11 @@ const LogoutController = async (req, res) => {
 const RefreshTokenController = async (req, res) => {
     try {
         const tokenFromCookie = req.cookies.workerRefreshToken;
-        
+
         if (!tokenFromCookie) {
             return res.status(401).json({ success: false, message: "No refresh token provided" });
         }
-        
+
         const { worker, accessToken, refreshToken } = await workerService.refreshTokenService(tokenFromCookie);
         res.cookie("workerAccessToken", accessToken, {
             httpOnly: true,

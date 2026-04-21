@@ -65,9 +65,24 @@ const allowAnyAuth = (req, res, next) => {
     return res.status(403).json({ message: "Unauthorized" });
 };
 
+const clientAuthMiddleware = async (req, res, next) => {
+    try {
+        const token = req.cookies.clientToken;
+        if (!token) {
+            return res.status(401).json({ success: false, message: "Authentication required. Please login." });
+        }
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ success: false, message: "Invalid or expired session. Please login again." });
+    }
+}
+
 module.exports = {
     authMiddleware,
     isAdmin,
     workerAuthMiddleware,
-    allowAnyAuth
+    allowAnyAuth,
+    clientAuthMiddleware
 };

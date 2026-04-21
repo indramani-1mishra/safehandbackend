@@ -2,61 +2,33 @@ const mongoose = require("mongoose");
 
 const serviceSchema = new mongoose.Schema({
 
-    //  Basic Info
     name: {
         type: String,
         required: true,
         trim: true
     },
-
     image: {
         type: String,
         required: true
     },
-
-    basicImage: {
-        type: String
+    subCategory: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ServiceSubCategory",
+        required: true
     },
-
-    advanceImage: {
-        type: String
-    },
-    category: {
-        type: String,
-    },
+    //  Basic Info
     description: {
         type: String
     },
-
+    features: {
+        type: [String],
+        default: []
+    },
     //  City-wise Pricing
-    pricingByCity: [
+    cityAndPrice: [
         {
-            city: {
-                type: String,
-                required: true
-            },
-
-            basic: {
-                hr12: Number,
-                hr24: Number
-            },
-
-            advance: {
-                hr12: Number,
-                hr24: Number
-            }
-        }
-    ],
-
-    //  Features
-    basicFeatures: [String],
-    advanceFeatures: [String],
-
-    //  Add-ons
-    addons: [
-        {
-            name: String,
-            price: Number
+            city: { type: String, required: true },
+            price: { type: Number, required: true }
         }
     ]
 

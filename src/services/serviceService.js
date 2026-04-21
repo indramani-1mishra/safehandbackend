@@ -1,30 +1,28 @@
 const serviceRepository = require("../repository/serviceRepository");
 
-// Ensure service modal and repository match logic properly
+/**
+ * Creates a new service.
+ */
 const createServiceService = async (data) => {
-    if (!data.name || !data.image) {
-        throw new Error("Name and primary image are required");
+    if (!data.name || !data.image || !data.subCategory) {
+        throw new Error("Name, Image, and SubCategory are required");
     }
-
     return await serviceRepository.createService(data);
 };
 
+/**
+ * Updates an existing service.
+ */
 const updateServiceService = async (id, data) => {
     const service = await serviceRepository.getServiceById(id);
-
     if (!service) {
         throw new Error("Service not found");
     }
 
-    //  Clean unwanted values
+    // Clean undefined/empty values
     const cleanedData = {};
-
     Object.keys(data).forEach((key) => {
-        if (
-            data[key] !== undefined &&
-            data[key] !== null &&
-            data[key] !== ""
-        ) {
+        if (data[key] !== undefined && data[key] !== null && data[key] !== "") {
             cleanedData[key] = data[key];
         }
     });
@@ -36,59 +34,81 @@ const updateServiceService = async (id, data) => {
     return await serviceRepository.updateService(id, cleanedData);
 };
 
+/**
+ * Gets all services with pagination and deep population.
+ */
 const getAllServicesService = async (query = {}) => {
     return await serviceRepository.getAllServices(query);
 };
 
+/**
+ * Gets a service by its ID with full category/subcategory context.
+ */
 const getServiceByIdService = async (id) => {
     return await serviceRepository.getServiceById(id);
 };
 
+/**
+ * Deletes a service.
+ */
 const deleteServiceService = async (id) => {
-    // Delete service check
     const service = await serviceRepository.getServiceById(id);
-    if (!service) {
-        throw new Error("Service not found to be deleted");
-    }
-
-    return await serviceRepository.deleteService(id);
-};
-
-const getServiceByidandCityService = async (id, city) => {
-    if (!id || !city) {
-        throw new Error("Please provide service id and city");
-    }
-    const service = await serviceRepository.getServiceByidandCity(id, city);
     if (!service) {
         throw new Error("Service not found");
     }
+    return await serviceRepository.deleteService(id);
+};
 
-    // Convert Mongoose document to plain object so we can modify the array
-    const serviceObj = service.toObject();
+/**
+ * Gets services by SubCategory.
+ */
+const getServicesBySubCategoryService = async (subCategoryId) => {
+    return await serviceRepository.getServiceBySubCategoryId(subCategoryId);
+};
+
+/**
+ * Gets a specific service's price for a specific city.
+ * Optimized to only return the relevant city's pricing info.
+ */
+const getServiceByidandCityService = async (id, city) => {
+    if (!id || !city) {
+        throw new Error("Service ID and City are required");
+    }
     
-    // Filter the pricingByCity array to keep only the matching city
-    if (serviceObj.pricingByCity) {
-        serviceObj.pricingByCity = serviceObj.pricingByCity.filter(
-            p => p.city.toLowerCase() === city.toLowerCase()
-        );
+    const service = await serviceRepository.getServiceByidandCity(id, city);
+    if (!service) {
+        throw new Error(`Service not available in ${city}`);
     }
 
-    return serviceObj;
-}
+    return service;
+};
 
+/**
+ * Gets a unique list of all cities where services are available.
+ */
 const getallcityService = async () => {
-    const city = await serviceRepository.getallcity();
-    if (!city) {
-        throw new Error("City not found");
+    const cities = await serviceRepository.getallcity();
+    if (!cities || cities.length === 0) {
+        throw new Error("No service cities found");
     }
-    return city;
+    return cities;
+};
+
+/**
+ * Gets all services available in a specific city.
+ */
+const getServicesByCityService = async (city) => {
+    return await serviceRepository.getServiceByCityName(city);
 }
+
 module.exports = {
     createServiceService,
     updateServiceService,
     getAllServicesService,
     getServiceByIdService,
     deleteServiceService,
+    getServicesBySubCategoryService,
     getServiceByidandCityService,
-    getallcityService
+    getallcityService,
+    getServicesByCityService
 };

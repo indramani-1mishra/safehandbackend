@@ -17,9 +17,22 @@
       "description": "Admin Operations"
     },
     {
-      "name": "Services",
-      "description": "Service Operations"
+      "name": "Service Category",
+      "description": "High-level service category management."
     },
+    {
+      "name": "Service SubCategory",
+      "description": "Management of specific service sub-types."
+    },
+    {
+      "name": "Services",
+      "description": "Specific service offerings and pricing."
+    },
+    {
+      "name": "Cart",
+      "description": "Shopping cart management for clients."
+    },
+
     {
       "name": "Enquiries",
       "description": "Enquiry Operations"
@@ -59,6 +72,10 @@
     {
       "name": "Dashboard",
       "description": "Business financial overview"
+    },
+    {
+      "name": "Clients",
+      "description": "Client registration and management"
     }
   ],
   "components": {
@@ -117,7 +134,78 @@
             "example": 2500
           }
         }
+      },
+      "Client": {
+        "type": "object",
+        "required": [
+          "name",
+          "phone",
+          "email"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "phone": { "type": "string" },
+          "email": { "type": "string" },
+          "image": { "type": "string" }
+        }
+      },
+      "ServiceCategory": {
+        "type": "object",
+        "required": ["name", "image"],
+        "properties": {
+          "name": { "type": "string" },
+          "image": { "type": "string", "example": "https://example.com/cat.png" }
+        }
+      },
+      "ServiceSubCategory": {
+        "type": "object",
+        "required": ["name", "image", "category"],
+        "properties": {
+          "name": { "type": "string" },
+          "image": { "type": "string" },
+          "category": { "type": "string", "description": "Category ID" },
+          "features": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "Service": {
+        "type": "object",
+        "required": ["name", "image", "subCategory"],
+        "properties": {
+          "name": { "type": "string" },
+          "image": { "type": "string" },
+          "subCategory": { "type": "string", "description": "SubCategory ID" },
+          "description": { "type": "string" },
+          "features": { "type": "array", "items": { "type": "string" } },
+          "cityAndPrice": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "city": { "type": "string" },
+                "price": { "type": "number" }
+              }
+            }
+          }
+        }
+      },
+      "Cart": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "serviceId": { "type": "string" },
+                "quantity": { "type": "number" },
+                "city": { "type": "string" }
+              }
+            }
+          }
+        }
       }
+
     }
   },
   "paths": {
@@ -293,12 +381,69 @@
         }
       }
     },
+    "/api/categories/create": {
+      "post": {
+        "summary": "Create Service Category",
+        "tags": ["Service Category"],
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "image": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Created" } }
+      }
+    },
+    "/api/categories/getall": {
+      "get": {
+        "summary": "Get all Category",
+        "tags": ["Service Category"],
+        "responses": { "200": { "description": "Success" } }
+      }
+    },
+    "/api/subcategories/create": {
+      "post": {
+        "summary": "Create SubCategory",
+        "tags": ["Service SubCategory"],
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "category": { "type": "string" },
+                  "features": { "type": "string", "description": "JSON array string" },
+                  "image": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Created" } }
+      }
+    },
+    "/api/subcategories/getall": {
+      "get": {
+        "summary": "Get all SubCategories",
+        "tags": ["Service SubCategory"],
+        "responses": { "200": { "description": "Success" } }
+      }
+    },
     "/api/services/create": {
       "post": {
         "summary": "Create a Service",
-        "tags": [
-          "Services"
-        ],
+        "tags": ["Services"],
+        "security": [{ "cookieAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -306,195 +451,84 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string"
-                  },
-                  "pricingByCity": {
-                    "type": "string",
-                    "description": "JSON string"
-                  },
-                  "basicFeatures": {
-                    "type": "string",
-                    "description": "JSON string arrays"
-                  },
-                  "advanceFeatures": {
-                    "type": "string",
-                    "description": "JSON string arrays"
-                  },
-                  "addons": {
-                    "type": "string",
-                    "description": "JSON string format"
-                  },
-                  "image": {
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "basicImage": {
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "advanceImage": {
-                    "type": "string",
-                    "format": "binary"
-                  }
+                  "name": { "type": "string" },
+                  "subCategory": { "type": "string" },
+                  "description": { "type": "string" },
+                  "cityAndPrice": { "type": "string", "description": "JSON string" },
+                  "features": { "type": "string", "description": "JSON string" },
+                  "image": { "type": "string", "format": "binary" }
                 }
               }
             }
           }
         },
-        "responses": {
-          "201": {
-            "description": "Service created successfully"
-          },
-          "400": {
-            "description": "Error creating service"
-          }
-        }
-      }
-    },
-    "/api/services/findservice": {
-      "get": {
-        "summary": "Find Service Names and Images",
-        "tags": [
-          "Services"
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful operation"
-          }
-        }
-      }
-    },
-    "/api/services/update/{id}": {
-      "patch": {
-        "summary": "Update a Service",
-        "tags": [
-          "Services"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string"
-                  },
-                  "pricingByCity": {
-                    "type": "string"
-                  },
-                  "basicFeatures": {
-                    "type": "string"
-                  },
-                  "advanceFeatures": {
-                    "type": "string"
-                  },
-                  "addons": {
-                    "type": "string"
-                  },
-                  "image": {
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "basicImage": {
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "advanceImage": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Service updated successfully"
-          }
-        }
+        "responses": { "201": { "description": "Created" } }
       }
     },
     "/api/services/getall": {
       "get": {
         "summary": "Get all Services",
-        "tags": [
-          "Services"
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful operation"
-          }
-        }
+        "tags": ["Services"],
+        "responses": { "200": { "description": "Success" } }
       }
     },
     "/api/services/get/{id}": {
       "get": {
         "summary": "Get Service by ID",
-        "tags": [
-          "Services"
-        ],
+        "tags": ["Services"],
         "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
         ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
+        "responses": { "200": { "description": "Success" } }
       }
     },
-    "/api/services/delete/{id}": {
+    "/api/services/getbyidandcity/{id}/{city}": {
+      "get": {
+        "summary": "Get Service for specific city",
+        "tags": ["Services"],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } },
+          { "in": "path", "name": "city", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Success" } }
+      }
+    },
+    "/api/cart/": {
+      "get": {
+        "summary": "Get Client Cart",
+        "tags": ["Cart"],
+        "responses": { "200": { "description": "Success" } }
+      }
+    },
+    "/api/cart/add": {
+      "post": {
+        "summary": "Add to Cart",
+        "tags": ["Cart"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "serviceId": { "type": "string" },
+                  "city": { "type": "string" },
+                  "quantity": { "type": "number", "default": 1 }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Updated" } }
+      }
+    },
+    "/api/cart/clear": {
       "delete": {
-        "summary": "Delete a Service",
-        "tags": [
-          "Services"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Service deleted successfully"
-          }
-        }
+        "summary": "Clear Cart",
+        "tags": ["Cart"],
+        "responses": { "200": { "description": "Cleared" } }
       }
     },
+
     "/api/enqueries/": {
       "post": {
         "summary": "Create an Enquiry",
@@ -2063,6 +2097,180 @@
         "responses": {
           "200": {
             "description": "Dashboard data fetched"
+          }
+        }
+      }
+    },
+    "/api/clients/login": {
+      "post": {
+        "summary": "Login Client",
+        "tags": [
+          "Clients"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "rak@gmail.com"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "7236005136"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/clients/create": {
+      "post": {
+        "summary": "Create Client (Password based)",
+        "tags": [
+          "Clients"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "email": { "type": "string" },
+                  "password": { "type": "string", "example": "password123" },
+                  "image": { "type": "string", "format": "binary" },
+                  "address": { "type": "string" },
+                  "city": { "type": "string" },
+                  "state": { "type": "string" },
+                  "zip": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Client created successfully"
+          },
+          "400": {
+            "description": "Missing fields or bad request"
+          },
+          "409": {
+            "description": "Account already exists"
+          }
+        }
+      }
+    },
+    "/api/clients/getall": {
+      "get": {
+        "summary": "Get all Clients",
+        "tags": [
+          "Clients"
+        ],
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of clients"
+          }
+        }
+      }
+    },
+    "/api/clients/get/{id}": {
+      "get": {
+        "summary": "Get Client by ID",
+        "tags": [
+          "Clients"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Client data"
+          }
+        }
+      }
+    },
+    "/api/clients/update/{id}": {
+      "put": {
+        "summary": "Update Client",
+        "tags": [
+          "Clients"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "image": { "type": "string", "format": "binary" },
+                  "address": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Client updated"
+          }
+        }
+      }
+    },
+    "/api/clients/delete/{id}": {
+      "delete": {
+        "summary": "Delete Client",
+        "tags": [
+          "Clients"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Client deleted"
           }
         }
       }

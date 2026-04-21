@@ -27,6 +27,9 @@ app.use(cookieParser());
 
 // Require Routes
 const serviceRoutes = require('./routes/serviceRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const subCategoryRoutes = require('./routes/subCategoryRoutes');
+
 const enqueryRoutes = require('./routes/enqueryRoutes');
 const workerRoutes = require('./routes/workerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
@@ -35,9 +38,15 @@ const jobCartRoutes = require('./routes/jobCartRoutes');
 const clientPaymentRoutes = require('./routes/clientPaymentRoutes');
 const workerPayoutRoutes = require('./routes/workerPayoutRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const clientRoutes = require('./routes/clientRoutes');
+const cartRoutes = require('./routes/cartRoutes');
+
 
 // API Routing setup
 app.use('/api/services', serviceRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/subcategories', subCategoryRoutes);
+
 app.use('/api/enqueries', enqueryRoutes);
 app.use('/api/admins', adminRoutes);
 app.use('/api/auth', authRoutes);
@@ -48,6 +57,9 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/payments', clientPaymentRoutes);
 app.use('/api/worker-payouts', workerPayoutRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/cart', cartRoutes);
+
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
