@@ -19,8 +19,9 @@ const getCartController = async (req, res) => {
 const addToCartController = async (req, res) => {
     try {
         const userId = req.user.id || req.user._id;
-        console.log(req.user);
+        console.log(userId);
         const { serviceId, selectionDetails, quantity, city } = req.body;
+        console.log(serviceId, selectionDetails, quantity, city);
 
         // Use selectionDetails if provided, otherwise fallback to city in root body
         const finalSelection = selectionDetails || { city };

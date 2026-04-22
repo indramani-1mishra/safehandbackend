@@ -25,8 +25,8 @@ async function addToCart(userId, serviceId, selectionDetails, quantity = 1) {
 
     // Try to update existing item quantity first for the same service and city
     let cart = await Cart.findOneAndUpdate(
-        { 
-            userId, 
+        {
+            userId,
             "items.serviceId": serviceId,
             "items.city": city
         },
@@ -38,10 +38,10 @@ async function addToCart(userId, serviceId, selectionDetails, quantity = 1) {
     if (!cart) {
         cart = await Cart.findOneAndUpdate(
             { userId },
-            { 
-                $push: { 
-                    items: { serviceId, city, quantity } 
-                } 
+            {
+                $push: {
+                    items: { serviceId, city, quantity }
+                }
             },
             { upsert: true, new: true }
         );

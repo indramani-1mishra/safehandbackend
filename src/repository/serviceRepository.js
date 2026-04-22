@@ -60,6 +60,17 @@ const getServiceByidandCity = async (id, city) => {
     });
 }
 
+const getServiceByCityandSubCategoryId = async (city, subCategoryId) => {
+    return await Service.findOne({
+        subCategory: subCategoryId,
+        "cityAndPrice.city": city
+    }, {
+        name: 1,
+        image: 1,
+        cityAndPrice: { $elemMatch: { city: city } } // Return only the price for the requested city
+    });
+}
+
 /**
  * Returns a unique list of all cities across all services.
  */
@@ -85,5 +96,6 @@ module.exports = {
     getServiceByidandCity,
     getallcity,
     getServiceBySubCategoryId,
-    getServiceByCityName
+    getServiceByCityName,
+    getServiceByCityandSubCategoryId
 };

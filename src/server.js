@@ -44,8 +44,8 @@ const cartRoutes = require('./routes/cartRoutes');
 
 // API Routing setup
 app.use('/api/services', serviceRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/subcategories', subCategoryRoutes);
+app.use('/api/category', categoryRoutes);
+app.use('/api/subcategory', subCategoryRoutes);
 
 app.use('/api/enqueries', enqueryRoutes);
 app.use('/api/admins', adminRoutes);
@@ -59,6 +59,7 @@ app.use('/api/worker-payouts', workerPayoutRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/cart', cartRoutes);
+
 
 
 // Swagger Documentation

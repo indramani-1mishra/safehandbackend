@@ -74,7 +74,7 @@ const getServiceByidandCityService = async (id, city) => {
     if (!id || !city) {
         throw new Error("Service ID and City are required");
     }
-    
+
     const service = await serviceRepository.getServiceByidandCity(id, city);
     if (!service) {
         throw new Error(`Service not available in ${city}`);
@@ -101,6 +101,17 @@ const getServicesByCityService = async (city) => {
     return await serviceRepository.getServiceByCityName(city);
 }
 
+const getServiceByCityandSubCategoryIdService = async (city, subCategoryId) => {
+    if (!city || !subCategoryId) {
+        throw new Error("City and SubCategory ID are required");
+    }
+    const service = await serviceRepository.getServiceByCityandSubCategoryId(city, subCategoryId);
+    if (!service) {
+        throw new Error(`No service found for this subcategory in ${city}`);
+    }
+    return service;
+};
+
 module.exports = {
     createServiceService,
     updateServiceService,
@@ -110,5 +121,6 @@ module.exports = {
     getServicesBySubCategoryService,
     getServiceByidandCityService,
     getallcityService,
-    getServicesByCityService
+    getServicesByCityService,
+    getServiceByCityandSubCategoryIdService
 };

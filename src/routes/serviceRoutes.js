@@ -13,6 +13,7 @@ router.get("/getall", serviceController.getAllServicesController);
 router.get("/get/:id", serviceController.getServiceByIdController);
 router.get("/getbysubcategory/:subCategoryId", serviceController.getServicesBySubCategoryController);
 router.get("/getbyidandcity/:id/:city", serviceController.getServiceByidandCityController);
+router.get("/getbycityandsubcategory/:city/:subCategoryId", serviceController.getServiceByCityandSubCategoryIdController);
 router.get("/getallcity", serviceController.getallcitycontroller);
 
 module.exports = router;

@@ -166,6 +166,23 @@ const getServicesBySubCategoryController = async (req, res) => {
     }
 };
 
+const getServiceByCityandSubCategoryIdController = async (req, res) => {
+    try {
+        const { city, subCategoryId } = req.params;
+        const service = await serviceService.getServiceByCityandSubCategoryIdService(city, subCategoryId);
+        return res.status(200).json({
+            success: true,
+            data: service,
+            message: "Service fetched successfully for city and subcategory"
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     uploadImages,
     createServiceController,
@@ -175,5 +192,6 @@ module.exports = {
     deleteServiceController,
     getServiceByidandCityController,
     getallcitycontroller,
-    getServicesBySubCategoryController
+    getServicesBySubCategoryController,
+    getServiceByCityandSubCategoryIdController
 };
