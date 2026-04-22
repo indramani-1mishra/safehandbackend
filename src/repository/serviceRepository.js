@@ -61,7 +61,7 @@ const getServiceByidandCity = async (id, city) => {
 }
 
 const getServiceByCityandSubCategoryId = async (city, subCategoryId) => {
-    return await Service.findOne({
+    return await Service.find({
         subCategory: subCategoryId,
         "cityAndPrice.city": { $regex: new RegExp(`^${city}$`, 'i') }
     }, {
