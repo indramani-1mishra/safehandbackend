@@ -52,7 +52,7 @@ const getonlyservicenameandimage = async () => {
 const getServiceByidandCity = async (id, city) => {
     return await Service.findOne({
         _id: id,
-        "cityAndPrice.city": city
+        "cityAndPrice.city": { $regex: new RegExp(`^${city}$`, 'i') }
     }, {
         name: 1,
         image: 1,
@@ -63,7 +63,7 @@ const getServiceByidandCity = async (id, city) => {
 const getServiceByCityandSubCategoryId = async (city, subCategoryId) => {
     return await Service.findOne({
         subCategory: subCategoryId,
-        "cityAndPrice.city": city
+        "cityAndPrice.city": { $regex: new RegExp(`^${city}$`, 'i') }
     }, {
         name: 1,
         image: 1,
