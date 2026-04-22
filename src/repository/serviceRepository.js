@@ -67,7 +67,9 @@ const getServiceByCityandSubCategoryId = async (city, subCategoryId) => {
     }, {
         name: 1,
         image: 1,
-        cityAndPrice: { $elemMatch: { city: city } } // Return only the price for the requested city
+        description: 1,
+        features: 1,
+        cityAndPrice: { $elemMatch: { city: { $regex: new RegExp(`^${city}$`, 'i') } } } 
     });
 }
 
