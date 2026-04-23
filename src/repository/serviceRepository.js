@@ -69,9 +69,9 @@ const getServiceByCityandSubCategoryId = async (city, subCategoryId) => {
         image: 1,
         description: 1,
         features: 1,
-        Category: 1,
+
         cityAndPrice: { $elemMatch: { city: { $regex: new RegExp(`^${city}$`, 'i') } } }
-    });
+    }).populate("subCategory", "name").populate("category", "name");
 }
 
 /**
