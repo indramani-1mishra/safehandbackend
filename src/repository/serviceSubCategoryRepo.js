@@ -17,7 +17,7 @@ const getAllServiceSubCategoriesRepository = async () => {
 }
 
 const updateServiceSubCategoryRepository = async (id, data) => {
-    return await ServiceSubCategory.findByIdAndUpdate(id, data, { new: true }).populate("category", "name");
+    return await ServiceSubCategory.findByIdAndUpdate(id, data, { returnDocument: "after", }).populate("category", "name");
 }
 
 const deleteServiceSubCategoryRepository = async (id) => {
