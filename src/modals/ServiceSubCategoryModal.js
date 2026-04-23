@@ -19,6 +19,18 @@ const serviceSubCategorySchema = new mongoose.Schema({
         type: [String],
         default: []
     },
+    price: {
+        type: {
+            minPrice: {
+                type: Number,
+                default: 0
+            },
+            maxPrice: {
+                type: Number,
+                default: 0
+            }
+        }
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model("ServiceSubCategory", serviceSubCategorySchema);
