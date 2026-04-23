@@ -83,12 +83,20 @@ const logoutService = async (id) => {
 
 const refreshTokenService = async (refreshToken) => {
     try {
-        const worker = await workerRepository.findWorkerByRefreshToken(refreshToken);
-        if (!worker) {
-            throw new Error("Worker not found");
+        if (!refreshToken) {
+            throw new Error("Refresh token required");
         }
+
+        // Verify the token signature and expiry
+        const decoded = jwt.verify(refreshToken, REFRESH_SECRET);
+
+        const worker = await workerRepository.findWorkerByRefreshToken(refreshToken);
+        if (!worker || worker._id.toString() !== decoded.id) {
+            throw new Error("Invalid or expired refresh token");
+        }
+
         const accessToken = jwt.sign(
-            { id: worker._id },
+            { id: worker._id, role: worker.role || "worker" }, // Added role, default to 'worker' if missing
             JWT_SECRET,
             { expiresIn: "15m" }
         );
@@ -106,13 +114,12 @@ const refreshTokenService = async (refreshToken) => {
             worker: {
                 _id: worker._id,
                 email: worker.email,
-
             },
             accessToken,
-            refreshToken
+            refreshToken: newRefreshToken
         };
     } catch (error) {
-        throw error;
+        throw new Error(error.message || "Invalid refresh token");
     }
 }
 

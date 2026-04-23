@@ -56,8 +56,8 @@ const AdminLogin = async (data) => {
 
 };
 
-const AdminLogout = async (adminId, refreshToken) => {
-    await adminRepository.removeRefreshToken(adminId, refreshToken);
+const AdminLogout = async (adminId) => {
+    await adminRepository.removeRefreshToken(adminId);
 
     return {
         success: true,
@@ -89,7 +89,7 @@ const AdminRefreshToken = async (refreshToken) => {
             REFRESH_SECRET,
             { expiresIn: "7d" }
         );
-        await adminRepository.removeRefreshToken(admin._id, refreshToken);
+        await adminRepository.removeRefreshToken(admin._id);
         await adminRepository.saveRefreshToken(admin._id, newRefreshToken);
 
         return { accessToken, refreshToken: newRefreshToken };
