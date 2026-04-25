@@ -121,7 +121,7 @@
             if (!workerId) return alert("Please enter a Worker ID");
 
             currentWorkerId = workerId;
-            socket = io('http://localhost:5000');
+            socket = io('http://localhost:3000');
 
             socket.on('connect', () => {
                 document.getElementById('status').innerText = "Status: Connected (ID: " + socket.id + ")";
