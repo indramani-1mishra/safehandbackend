@@ -77,12 +77,31 @@ const workerSchema = new mongoose.Schema({
     refreshToken: {
         type: String,
         default: null
-    }
+    },
+    otp: {
+        type: String,
+        default: null
+    },
+    otpExpires: {
+        type: Date,
+        default: () => Date.now() + 1 * 60 * 1000
+    },
+    isPhoneVerified: {
+        type: Boolean,
+        default: false
+    },
+    role: {
+        type: String,
+        default: "worker"
+    },
+
+    fcmToken: { type: String, default: "" },
+
 
 }, { timestamps: true });
 
 
-// 🔥 AUTO GENERATE workerId (safehand00001)
+// AUTO GENERATE workerId (safehand00001)
 workerSchema.pre("save", async function () {
     if (this.workerId) return;
 
@@ -100,11 +119,7 @@ workerSchema.pre("save", async function () {
     }
 });
 
-workerSchema.pre("save", async function () {
-    if (this.isModified("password")) {
-        this.password = await bcrypt.hash(this.password, 10);
-        return;
-    }
-});
+// Removed broken password hashing hook as it was missing bcrypt import and password field.
+// If password login is needed later, add password field to schema and import bcrypt.
 
 module.exports = mongoose.model("Worker", workerSchema);

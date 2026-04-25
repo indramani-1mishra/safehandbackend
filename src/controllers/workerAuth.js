@@ -18,7 +18,7 @@ const SendOtpController = async (req, res) => {
 
 const VerifyOtpController = async (req, res) => {
     try {
-        const { worker, accessToken, refreshToken } = await workerService.verifyOtpService(req.body.phone, req.body.otp);
+        const { worker, accessToken, refreshToken } = await workerService.verifyOtpService(req.body.phone, req.body.otp, req.body.fcmToken);
         res.cookie("workerAccessToken", accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",

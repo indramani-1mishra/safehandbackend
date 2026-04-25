@@ -27,6 +27,24 @@ const getAttendanceByWorkerIdController = async (req, res) => {
     }
 }
 
+const getAttendanceByJobCardIdController = async (req, res) => {
+    try {
+        const attendance = await attendenceWorkerService.getAttendanceByJobCardIdService(req.params.jobCardId);
+        res.status(200).json({ success: true, data: attendance });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+const getAttendanceByJobCardIdAndWorkerIdController = async (req, res) => {
+    try {
+        const attendance = await attendenceWorkerService.getAttendanceByJobCardIdAndWorkerIdService(req.params.jobCardId, req.params.workerId);
+        res.status(200).json({ success: true, data: attendance });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
 const getAttendanceByDateController = async (req, res) => {
     try {
         const attendance = await attendenceWorkerService.getAttendanceByDateService(req.params.date);
@@ -67,6 +85,8 @@ module.exports = {
     requestAttendanceOtpController,
     verifyAttendanceOtpController,
     getAttendanceByWorkerIdController,
+    getAttendanceByJobCardIdController,
+    getAttendanceByJobCardIdAndWorkerIdController,
     getAttendanceByDateController,
     updateAttendanceController,
     deleteAttendanceController,

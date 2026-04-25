@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 const attendenceWorkerRepository = require("../repository/attendenceWorker");
 const jobCardRepository = require("../repository/jobcartRepository");
 const workerRepository = require("../repository/workerRepository");
-const { sendOtp, verifyOtp } = require("../utils/senotp");
+const { generateSecureOtp, hashOtp, verifyOtp } = require('../utils/jenratesixdigitOtp');
+const sendOtpThroughWhatsapp = require('../utils/sendOtpThroughWhatsapp');
 const getdate = require("../utils/getCurrentDate");
 
 const VALID_STATUS = ["present", "absent", "leave"];
@@ -35,19 +36,17 @@ const requestAttendanceOtpService = async (data) => {
             throw new Error("Worker is not assigned to this job card");
         }
 
-        // Check if attendance already marked for today
-        {/**  const today = getdate();
+        const today = getdate();
         const existingAttendance = await attendenceWorkerRepository.getAttendanceByWorkerIdAndJobCardIdAndDate(workerId, jobCardId, today);
         if (existingAttendance) {
             throw new Error("Attendance already marked for today for this job");
-        } */}
+        }
 
         const clientPhone = jobCard.patientDetails.phone;
-        const response = await sendOtp(`91${clientPhone}`);
-
-        if (response.status !== "pending") {
-            throw new Error("Failed to send OTP");
-        }
+        const otp = generateSecureOtp();
+        await sendOtpThroughWhatsapp(clientPhone, otp);
+        const hashedOtp = await hashOtp(otp);
+        await workerRepository.updateWorker(workerId, { otp: hashedOtp, otpExpires: Date.now() + 5 * 60 * 1000 }); // Increased to 5 mins
 
         return {
             success: true,
@@ -67,29 +66,30 @@ const verifyAttendanceOtpService = async (data) => {
             throw new Error("Job card not found");
         }
 
-        // Double check for duplicate before creating
-        {/** FOR TESTIONG 
-              const today = getdate();
+        const today = getdate();
         const existingAttendance = await attendenceWorkerRepository.getAttendanceByWorkerIdAndJobCardIdAndDate(workerId, jobCardId, today);
         if (existingAttendance) {
             throw new Error("Attendance already marked for today for this job");
         }
-            
-            */}
 
-        const clientPhone = jobCard.patientDetails.phone;
-        {/** const verifyOtp1 = await verifyOtp(`91${clientPhone}`, otp);
-
-        if (verifyOtp1.status !== "approved" ) {
-            throw new Error("Failed to verify OTP");
-        } */}
-
-        const verifyOtp1 = otp == "123456" ? true : false;
-        if (!verifyOtp1) {
-            throw new Error("Failed to verify OTP");
+        const worker = await workerRepository.findWorkerById(workerId);
+        if (!worker) {
+            throw new Error("Worker not found");
         }
 
+        if (!worker.otp || !worker.otpExpires || worker.otpExpires < Date.now()) {
+            throw new Error("OTP expired or not found. Please request a new one.");
+        }
 
+        const verifyOtp1 = await verifyOtp(otp, worker.otp);
+        if (!verifyOtp1) {
+            throw new Error("Invalid OTP");
+        }
+
+        await workerRepository.updateWorker(workerId, {
+            otp: null,
+            otpExpires: null
+        });
         const attendance = await attendenceWorkerRepository.createAttendance({
             jobCardId,
             workerId,
@@ -125,6 +125,36 @@ const getAttendanceByWorkerIdService = async (workerId, page = 1, limit = 10) =>
             limit
         );
 
+        return {
+            success: true,
+            data: attendance
+        };
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+const getAttendanceByJobCardIdService = async (jobCardId) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(jobCardId)) {
+            throw new Error("Invalid jobCardId");
+        }
+        const attendance = await attendenceWorkerRepository.getAttendanceByJobCardId(jobCardId);
+        return {
+            success: true,
+            data: attendance
+        };
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+const getAttendanceByJobCardIdAndWorkerIdService = async (jobCardId, workerId) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(jobCardId) || !mongoose.Types.ObjectId.isValid(workerId)) {
+            throw new Error("Invalid IDs");
+        }
+        const attendance = await attendenceWorkerRepository.getAttendanceByJobCardIdAndWorkerId(jobCardId, workerId);
         return {
             success: true,
             data: attendance
@@ -212,6 +242,8 @@ module.exports = {
     requestAttendanceOtpService,
     verifyAttendanceOtpService,
     getAttendanceByWorkerIdService,
+    getAttendanceByJobCardIdService,
+    getAttendanceByJobCardIdAndWorkerIdService,
     getAttendanceByDateService,
     updateAttendanceService,
     deleteAttendanceService,

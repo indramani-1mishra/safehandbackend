@@ -22,6 +22,9 @@ const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 const EMAIL_USER_ID = process.env.EMAIL_USER_ID;
 const EMAIL_PASSWORD_ID = process.env.EMAIL_PASSWORD_ID;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const FIREBASE_KEY_PATH = process.env.FIREBASE_KEY_PATH;
+
+const WHAT_MESSAGE_SECRET = process.env.WHAT_MESSAGE_SECRET;
 module.exports = {
     PORT,
     MONGO_URL,
@@ -43,6 +46,9 @@ module.exports = {
     PHONE_NUMBER_ID,
     EMAIL_USER_ID,
     EMAIL_PASSWORD_ID,
-    GEMINI_API_KEY
+    GEMINI_API_KEY,
+
+    WHAT_MESSAGE_SECRET,
+    FIREBASE_KEY_PATH
 
 }

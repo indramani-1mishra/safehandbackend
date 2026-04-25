@@ -6,20 +6,28 @@ const createWorkerPayout = async (data) => {
 }
 
 const getPayoutsByWorkerAndJob = async (workerId, jobCardId) => {
-    return await WorkerPayout.find({ workerId, jobCardId });
+    return await WorkerPayout.find({ workerId, jobCardId })
 }
 
 const getAllPayoutsByWorker = async (workerId) => {
-    return await WorkerPayout.find({ workerId });
+    return await WorkerPayout.find({ workerId })
 }
 
 const getPayoutById = async (id) => {
-    return await WorkerPayout.findById(id).populate("workerId jobCardId");
+    return await WorkerPayout.findById(id);
 }
+
+const getAllPayouts = async () => {
+    return await WorkerPayout.find();
+}
+
+
+
 
 module.exports = {
     createWorkerPayout,
     getPayoutsByWorkerAndJob,
     getAllPayoutsByWorker,
-    getPayoutById
+    getPayoutById,
+    getAllPayouts
 }

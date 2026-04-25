@@ -8,7 +8,8 @@ const filesToMerge = [
   'payments_swagger.json',
   'worker_swagger_postman.json',
   'worker_auth_swagger_postman.json',
-  'safehand_ultimate_swagger.json'
+  'safehand_ultimate_swagger.json',
+  'worker_payout_swagger.json'
 ];
 
 const master = {

@@ -31,6 +31,17 @@ const sendWhatsappMessage = async (phoneNumber, message, name) => {
                                     text: message
                                 }
                             ]
+                        },
+                        {
+                            type: "button",
+                            sub_type: "url",
+                            index: "1", // Index 0 Call hai, isliye 1 try kar rahe hain
+                            parameters: [
+                                {
+                                    type: "text",
+                                    text: "pay"
+                                }
+                            ]
                         }
                     ]
                 }

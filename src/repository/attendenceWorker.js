@@ -11,11 +11,9 @@ const createAttendance = async (data) => {
     }
 }
 
-const getAttendanceByWorkerId = async (workerId, skip = 0, limit = 10) => {
+const getAttendanceByWorkerId = async (workerId) => {
     try {
-        return await Attendance.find({ workerId })
-            .skip(skip)
-            .limit(limit);
+        return await Attendance.find({ workerId });
     } catch (error) {
         throw error;
     }
@@ -29,11 +27,17 @@ const getAttendanceByJobCardId = async (jobCardId) => {
     }
 }
 
-const getAttendanceByDate = async (date, skip = 0, limit = 10) => {
+const getAttendanceByJobCardIdAndWorkerId = async (jobCardId, workerId) => {
+    try {
+        return await Attendance.find({ jobCardId, workerId });
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getAttendanceByDate = async (date) => {
     try {
         return await Attendance.find({ date })
-            .skip(skip)
-            .limit(limit);
     } catch (error) {
         throw error;
     }
@@ -41,7 +45,7 @@ const getAttendanceByDate = async (date, skip = 0, limit = 10) => {
 
 const getAttendanceByWorkerIdAndDate = async (workerId, date) => {
     try {
-        return await Attendance.findOne({ workerId, date });
+        return await Attendance.findOne({ workerId, date })
     } catch (error) {
         throw error;
     }
@@ -49,7 +53,7 @@ const getAttendanceByWorkerIdAndDate = async (workerId, date) => {
 
 const getAttendanceByJobCardIdAndDate = async (jobCardId, date) => {
     try {
-        return await Attendance.findOne({ jobCardId, date });
+        return await Attendance.findOne({ jobCardId, date })
     } catch (error) {
         throw error;
     }
@@ -57,7 +61,7 @@ const getAttendanceByJobCardIdAndDate = async (jobCardId, date) => {
 
 const getAttendanceByWorkerIdAndJobCardId = async (workerId, jobCardId) => {
     try {
-        return await Attendance.findOne({ workerId, jobCardId });
+        return await Attendance.findOne({ workerId, jobCardId })
     } catch (error) {
         throw error;
     }
@@ -65,7 +69,7 @@ const getAttendanceByWorkerIdAndJobCardId = async (workerId, jobCardId) => {
 
 const getAttendanceByWorkerIdAndJobCardIdAndDate = async (workerId, jobCardId, date) => {
     try {
-        return await Attendance.findOne({ workerId, jobCardId, date });
+        return await Attendance.findOne({ workerId, jobCardId, date })
     } catch (error) {
         throw error;
     }
@@ -83,7 +87,8 @@ const getAllWorkersAttendance = async (skip = 0, limit = 10) => {
     try {
         return await Attendance.find()
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+
     } catch (error) {
         throw error;
     }
@@ -101,6 +106,7 @@ module.exports = {
     createAttendance,
     getAttendanceByWorkerId,
     getAttendanceByJobCardId,
+    getAttendanceByJobCardIdAndWorkerId, // Added this
     getAttendanceByDate,
     getAttendanceByWorkerIdAndDate,
     getAttendanceByJobCardIdAndDate,

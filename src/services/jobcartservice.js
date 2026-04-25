@@ -15,6 +15,7 @@ const {
     generateAdminPdfTemplate
 } = require("../utils/pdfTemplates");
 const { DEFAULT_ADMIN_PHONE } = require("../config/serverConfig");
+const { sendFcmNotification } = require("../utils/fcmService");
 
 const createJobCardService = async (data) => {
     try {
@@ -99,6 +100,22 @@ const createJobCardService = async (data) => {
                 city: city
             });
         });
+
+        // 📱 FCM Push Notification to matched workers
+        /** const fcmTokens = matchedWorkers
+             .map(worker => worker.fcmToken)
+         .filter(token => token && token.trim() !== "");
+ 
+     if (fcmTokens.length > 0) {
+         await sendFcmNotification(fcmTokens, {
+             title: "New Job Alert! 📢",
+             body: `New job for ${service.name} in ${city}. Tap to check details.`
+         }, {
+             jobId: jobCard._id.toString(),
+             type: "incoming_call"
+         });
+     }
+         */
 
         return {
             jobCard,
@@ -205,6 +222,17 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
             serviceDetails: updatedJobCard.serviceDetails,
             city: updatedJobCard.patientDetails.city,
         });
+
+        // 📱 Notify Assigned Worker via FCM
+        if (assignedWorker.fcmToken) {
+            await sendFcmNotification(assignedWorker.fcmToken, {
+                title: "🎉 Job Assigned!",
+                body: `You have been assigned to Job Card #${safeJobCardId}. Check details in the app.`
+            }, {
+                jobId: safeJobCardId.toString(),
+                type: "job_assigned"
+            });
+        }
 
         // 📄 PDF Generation & WhatsApp Notification Flow
         try {

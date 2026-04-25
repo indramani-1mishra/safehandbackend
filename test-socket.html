@@ -1,24 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafeHand Socket Test</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .notification { background: #e7f3ff; border-left: 5px solid #007bff; padding: 15px; margin: 10px 0; display: none; }
-        .success-notification { background: #d4edda; border-left: 5px solid #28a745; padding: 15px; margin: 10px 0; display: none; color: #155724; }
-        .reject-notification { background: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; margin: 10px 0; display: none; color: #856404; }
-        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-        .btn-red { background: #dc3545; margin-left: 10px; }
-        input { padding: 10px; width: 250px; border-radius: 5px; border: 1px solid #ddd; }
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #f4f4f9;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .notification {
+            background: #e7f3ff;
+            border-left: 5px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .success-notification {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 10px 0;
+            display: none;
+            color: #155724;
+        }
+
+        .reject-notification {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 10px 0;
+            display: none;
+            color: #856404;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-red {
+            background: #dc3545;
+            margin-left: 10px;
+        }
+
+        input {
+            padding: 10px;
+            width: 250px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
+
 <body>
     <h1>SafeHand Worker Socket Test</h1>
-    
+
     <div class="card">
         <h3>1. Connect as Worker</h3>
         <input type="text" id="workerId" placeholder="Enter Worker MongoID">
@@ -28,7 +82,7 @@
 
     <div id="notificationArea" class="card" style="display: none;">
         <h3>🔔 Notifications Hub</h3>
-        
+
         <!-- Matching Alert -->
         <div id="jobAlert" class="notification">
             <p id="alertMsg"></p>
@@ -65,9 +119,9 @@
         function connectSocket() {
             const workerId = document.getElementById('workerId').value;
             if (!workerId) return alert("Please enter a Worker ID");
-            
+
             currentWorkerId = workerId;
-            socket = io('http://localhost:3000');
+            socket = io('http://localhost:5000');
 
             socket.on('connect', () => {
                 document.getElementById('status').innerText = "Status: Connected (ID: " + socket.id + ")";
@@ -129,4 +183,5 @@
         }
     </script>
 </body>
+
 </html>
