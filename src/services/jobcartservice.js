@@ -107,7 +107,7 @@ const createJobCardService = async (data) => {
         });
 
         // 📱 FCM Push Notification to matched workers
-        /** const fcmTokens = matchedWorkers
+        const fcmTokens = matchedWorkers
              .map(worker => worker.fcmToken)
          .filter(token => token && token.trim() !== "");
  
@@ -120,7 +120,7 @@ const createJobCardService = async (data) => {
              type: "incoming_call"
          });
      }
-         */
+
 
         return {
             jobCard,
