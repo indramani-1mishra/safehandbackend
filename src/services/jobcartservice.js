@@ -91,8 +91,13 @@ const createJobCardService = async (data) => {
 
         // 🚀 Socket Notification to matched workers (only for Matchmaking)
         const io = socketUtils.getIo();
+        console.log(`[Socket] Sending notifications to ${matchedWorkers.length} matched workers...`);
+
         matchedWorkers.forEach(worker => {
-            io.to(worker._id.toString()).emit("new_job_alert", {
+            const workerId = worker._id.toString();
+            console.log(`[Socket] Emitting 'new_job_alert' to worker room: ${workerId}`);
+            
+            io.to(workerId).emit("new_job_alert", {
                 message: "New Job Match Found!",
                 jobId: jobCard._id,
                 serviceName: service.name,
