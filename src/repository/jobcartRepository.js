@@ -23,6 +23,10 @@ const getAllJobCards = async (query = {}) => {
     const { page = 1, limit = 10 } = query;
 
     return await JobCard.find()
+        .populate("workers.interested")
+        .populate("workers.assigned")
+        .populate("serviceDetails.service")
+        .populate("inquiryId")
         .skip((page - 1) * limit)
         .limit(Number(limit));
 };
@@ -64,7 +68,11 @@ const assignWorkerToJobCard = async (jobCardId, workerId) => {
 
 const getJobCardById = async (id) => {
     const safeId = typeof id === 'string' ? id.trim() : id;
-    const jobCard = await JobCard.findById(safeId);
+    const jobCard = await JobCard.findById(safeId)
+        .populate("workers.interested")
+        .populate("workers.assigned")
+        .populate("serviceDetails.service")
+        .populate("inquiryId");
     if (!jobCard) throw new Error("JobCard not found");
     return jobCard;
 };
