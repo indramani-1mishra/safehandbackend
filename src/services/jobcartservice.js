@@ -96,7 +96,7 @@ const createJobCardService = async (data) => {
         matchedWorkers.forEach(worker => {
             const workerId = worker._id.toString();
             console.log(`[Socket] Emitting 'new_job_alert' to worker room: ${workerId}`);
-            
+
             io.to(workerId).emit("new_job_alert", {
                 message: "New Job Match Found!",
                 jobId: jobCard._id,
@@ -106,7 +106,7 @@ const createJobCardService = async (data) => {
             });
         });
 
-        // 📱 FCM Push Notification to matched workers
+        /* 📱 FCM Push Notification to matched workers
         const fcmTokens = matchedWorkers
              .map(worker => worker.fcmToken)
          .filter(token => token && token.trim() !== "");
@@ -119,7 +119,7 @@ const createJobCardService = async (data) => {
              jobId: jobCard._id.toString(),
              type: "incoming_call"
          });
-     }
+     }*/
 
 
         return {
