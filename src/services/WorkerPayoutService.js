@@ -212,8 +212,14 @@ const approvePayoutRequestService = async (payoutId, updateData) => {
         if (!payout) throw new Error("Payout request not found");
         if (payout.status !== "pending") throw new Error(`Payout is already ${payout.status}`);
 
+        const { paymentMethod, transactionId, remarks, paidFromDate, paidUntilDate } = updateData;
+
         const updatedPayout = await WorkerPayoutRepository.updateWorkerPayout(payoutId, {
-            ...updateData,
+            paymentMethod,
+            transactionId,
+            remarks,
+            paidFromDate,
+            paidUntilDate,
             status: "paid",
             payoutDate: new Date()
         });

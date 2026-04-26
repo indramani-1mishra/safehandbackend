@@ -82,14 +82,14 @@ const createJobCardService = async (data) => {
 
         const jobCard = await jobcartRepository.createJobCard(data);
 
-        // 🚀 Skip Matchmaking notifications if it's a Direct Assignment
+        //  Skip Matchmaking notifications if it's a Direct Assignment
         if (data.isDirectAssignWorker && data.assignedWorkerId) {
             console.log("Direct Assignment Job Card created. Skipping worker notifications.");
             await assignWorkerToJobCardService(jobCard._id, data.assignedWorkerId);
             return { jobCard, matchedWorkers: [] };
         }
 
-        // 🚀 Socket Notification to matched workers (only for Matchmaking)
+        //  Socket Notification to matched workers (only for Matchmaking)
         const io = socketUtils.getIo();
         console.log(`[Socket] Sending notifications to ${matchedWorkers.length} matched workers...`);
 
@@ -106,7 +106,7 @@ const createJobCardService = async (data) => {
             });
         });
 
-        // 📱 FCM Push Notification to matched workers
+        //  FCM Push Notification to matched workers
         const fcmTokens = matchedWorkers
             .map(worker => worker.fcmToken)
             .filter(token => token && token.trim() !== "");

@@ -26,6 +26,10 @@ const WorkerPayoutSchema = new mongoose.Schema({
         enum: ["cash", "upi", "bank_transfer"],
         default: "upi"
     },
+    transactionId: {
+        type: String,
+        trim: true
+    },
     status: {
         type: String,
         enum: ["pending", "paid", "failed"],

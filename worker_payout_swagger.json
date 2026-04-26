@@ -1,84 +1,184 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "SafeHand Worker Payout API",
-    "description": "API documentation for the SafeHand Worker Payout and Financial Management system. Includes payout requests, admin approvals, and balance summaries.",
-    "version": "1.0.0"
+    "title": "SafeHand - Worker Payout APIs",
+    "version": "1.0.0",
+    "description": "API documentation for managing worker balances and payout requests."
   },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
   "tags": [
     {
-      "name": "Worker Payout (Worker)",
+      "name": "Worker Payout",
       "description": "Endpoints for workers to request and track payments."
-    },
-    {
-      "name": "Worker Payout (Admin)",
-      "description": "Admin management for worker financials and approvals."
     }
   ],
   "paths": {
     "/api/worker-payouts/request": {
       "post": {
-        "summary": "Request a Payout (Worker)",
-        "tags": ["Worker Payout (Worker)"],
+        "summary": "Worker: Request a payout",
+        "tags": [
+          "Worker Payout"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["workerId", "jobCardId", "amount"],
+                "required": [
+                  "workerId",
+                  "jobCardId",
+                  "amount"
+                ],
                 "properties": {
-                  "workerId": { "type": "string", "example": "65b9dbf8a7c21a..." },
-                  "jobCardId": { "type": "string", "example": "65b9dbf8a7c23a..." },
-                  "amount": { "type": "number", "example": 500 }
+                  "workerId": {
+                    "type": "string",
+                    "example": "65b9dbf8a7c21a..."
+                  },
+                  "jobCardId": {
+                    "type": "string",
+                    "example": "65b9dbf8a7c23a..."
+                  },
+                  "amount": {
+                    "type": "number",
+                    "example": 5000
+                  }
                 }
               }
             }
           }
         },
         "responses": {
-          "201": { "description": "Payout request sent successfully" },
-          "400": { "description": "Insufficient balance or invalid data" }
+          "201": {
+            "description": "Payout request sent successfully"
+          },
+          "400": {
+            "description": "Insufficient balance or invalid input"
+          }
         }
       }
     },
     "/api/worker-payouts/balance": {
       "get": {
-        "summary": "Get Worker Balance Breakdown",
-        "tags": ["Worker Payout (Worker)"],
+        "summary": "Worker: Get balance breakdown for a specific job",
+        "tags": [
+          "Worker Payout"
+        ],
         "parameters": [
-          { "name": "workerId", "in": "query", "required": true, "schema": { "type": "string" } },
-          { "name": "jobCardId", "in": "query", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "workerId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jobCardId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Detailed balance breakdown" }
+          "200": {
+            "description": "Detailed breakdown of earnings, paid, and pending amounts"
+          }
         }
       }
     },
     "/api/worker-payouts/pending": {
       "get": {
-        "summary": "Get All Pending Payout Requests (Admin)",
-        "tags": ["Worker Payout (Admin)"],
+        "summary": "Admin: Get all pending payout requests",
+        "tags": [
+          "Worker Payout"
+        ],
         "responses": {
-          "200": { "description": "List of pending requests" }
+          "200": {
+            "description": "List of all worker requests awaiting approval"
+          }
+        }
+      }
+    },
+    "/api/worker-payouts/admin/summary": {
+      "get": {
+        "summary": "Admin: Get summary of all worker payables across all jobs",
+        "tags": [
+          "Worker Payout"
+        ],
+        "parameters": [
+          {
+            "name": "hasPendingRequest",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "cycleOverdue",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "minBalance",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filterable list of workers and their due amounts"
+          }
         }
       }
     },
     "/api/worker-payouts/paid": {
       "get": {
-        "summary": "Get All Paid/Approved Payouts (Admin)",
-        "tags": ["Worker Payout (Admin)"],
+        "summary": "Admin: Get all successfully paid/approved payouts",
+        "tags": [
+          "Worker Payout"
+        ],
         "responses": {
-          "200": { "description": "List of paid history" }
+          "200": {
+            "description": "History of approved payouts"
+          }
         }
       }
     },
     "/api/worker-payouts/approve/{id}": {
       "put": {
-        "summary": "Approve a Payout Request (Admin)",
-        "tags": ["Worker Payout (Admin)"],
+        "summary": "Admin: Approve a pending payout request",
+        "tags": [
+          "Worker Payout"
+        ],
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "content": {
@@ -86,54 +186,122 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "paymentMethod": { "type": "string", "example": "upi" },
-                  "remarks": { "type": "string", "example": "Paid via PhonePe" }
+                  "transactionId": {
+                    "type": "string",
+                    "example": "TXN123456"
+                  },
+                  "remarks": {
+                    "type": "string",
+                    "example": "Approved via IMPS"
+                  }
                 }
               }
             }
           }
         },
         "responses": {
-          "200": { "description": "Payout approved successfully" }
+          "200": {
+            "description": "Payout approved and status changed to 'paid'"
+          }
         }
       }
     },
-    "/api/worker-payouts/admin/summary": {
-      "get": {
-        "summary": "Get Summary of All Worker Payables (Admin)",
-        "tags": ["Worker Payout (Admin)"],
-        "parameters": [
-          { "name": "hasPendingRequest", "in": "query", "schema": { "type": "boolean" } },
-          { "name": "cycleOverdue", "in": "query", "schema": { "type": "boolean" } },
-          { "name": "minBalance", "in": "query", "schema": { "type": "number" } }
+    "/api/worker-payouts": {
+      "post": {
+        "summary": "Admin: Create a manual payout (Mark as paid without request)",
+        "tags": [
+          "Worker Payout"
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "workerId",
+                  "jobCardId",
+                  "amount",
+                  "status"
+                ],
+                "properties": {
+                  "workerId": {
+                    "type": "string"
+                  },
+                  "jobCardId": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "example": "paid"
+                  },
+                  "remarks": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
-          "200": { "description": "Comprehensive summary of worker financials" }
-        }
-      }
-    },
-    "/api/worker-payouts/history/{workerId}": {
-      "get": {
-        "summary": "Get Payout History for a Worker",
-        "tags": ["Worker Payout (Worker)"],
-        "parameters": [
-          { "name": "workerId", "in": "path", "required": true, "schema": { "type": "string" } }
-        ],
-        "responses": {
-          "200": { "description": "List of all previous payouts" }
+          "201": {
+            "description": "Payout created successfully"
+          }
         }
       }
     },
     "/api/worker-payouts/due": {
       "get": {
-        "summary": "Check Current Due Balance (Legacy)",
-        "tags": ["Worker Payout (Admin)"],
+        "summary": "Get worker's current due balance (Legacy endpoint)",
+        "tags": [
+          "Worker Payout"
+        ],
         "parameters": [
-          { "name": "workerId", "in": "query", "required": true, "schema": { "type": "string" } },
-          { "name": "jobCardId", "in": "query", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "workerId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jobCardId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Simple due balance calculation" }
+          "200": {
+            "description": "Calculation of total earned vs total paid"
+          }
+        }
+      }
+    },
+    "/api/worker-payouts/history/{workerId}": {
+      "get": {
+        "summary": "Get specific worker's entire payment history",
+        "tags": [
+          "Worker Payout"
+        ],
+        "parameters": [
+          {
+            "name": "workerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all payouts (paid, pending, failed) for the worker"
+          }
         }
       }
     }

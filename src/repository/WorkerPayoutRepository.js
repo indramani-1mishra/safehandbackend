@@ -24,10 +24,15 @@ const getAllPayouts = async () => {
 
 
 
+const updateWorkerPayout = async (id, data) => {
+    return await WorkerPayout.findByIdAndUpdate(id, { $set: data }, { new: true });
+}
+
 module.exports = {
     createWorkerPayout,
     getPayoutsByWorkerAndJob,
     getAllPayoutsByWorker,
     getPayoutById,
-    getAllPayouts
+    getAllPayouts,
+    updateWorkerPayout
 }
