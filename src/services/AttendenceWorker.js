@@ -32,7 +32,7 @@ const requestAttendanceOtpService = async (data) => {
             throw new Error("Worker not found");
         }
 
-        if (!jobCard.workers.assigned || jobCard.workers.assigned.toString() !== workerId.toString()) {
+        if (!jobCard.workers.assigned._id || jobCard.workers.assigned._id.toString() !== workerId.toString()) {
             throw new Error("Worker is not assigned to this job card");
         }
 
