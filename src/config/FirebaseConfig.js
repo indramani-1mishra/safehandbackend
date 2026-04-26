@@ -9,4 +9,5 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
 });
 console.log(admin)
+
 module.exports = admin;

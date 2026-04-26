@@ -106,20 +106,20 @@ const createJobCardService = async (data) => {
             });
         });
 
-        /* 📱 FCM Push Notification to matched workers
+        // 📱 FCM Push Notification to matched workers
         const fcmTokens = matchedWorkers
-             .map(worker => worker.fcmToken)
-         .filter(token => token && token.trim() !== "");
- 
-     if (fcmTokens.length > 0) {
-         await sendFcmNotification(fcmTokens, {
-             title: "New Job Alert! 📢",
-             body: `New job for ${service.name} in ${city}. Tap to check details.`
-         }, {
-             jobId: jobCard._id.toString(),
-             type: "incoming_call"
-         });
-     }*/
+            .map(worker => worker.fcmToken)
+            .filter(token => token && token.trim() !== "");
+
+        if (fcmTokens.length > 0) {
+            await sendFcmNotification(fcmTokens, {
+                title: "New Job Alert! 📢",
+                body: `New job for ${service.name} in ${city}. Tap to check details.`
+            }, {
+                jobId: jobCard._id.toString(),
+                type: "incoming_call"
+            });
+        }
 
 
         return {
