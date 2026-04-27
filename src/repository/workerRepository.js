@@ -1,9 +1,14 @@
 const Worker = require("../modals/workerModel");
+const Service = require("../modals/serviceModel"); // Explicitly import Service model
+
+
 
 const createWorker = async (data) => {
     const worker = new Worker(data);
-    return await worker.save();
+    const savedWorker = await worker.save();
+    return await savedWorker.populate({ path: 'services', model: Service });
 };
+
 
 const findWorkerByEmail = async (email) => {
     return await Worker.findOne({ email });
@@ -14,16 +19,18 @@ const findWorkerByPhone = async (phone) => {
 };
 
 const findWorkerById = async (id) => {
-    return await Worker.findById(id);
+    return await Worker.findById(id).populate({ path: 'services', model: Service });
 };
+
 
 const updateWorker = async (id, data) => {
     return await Worker.findByIdAndUpdate(
         id,
         { $set: data },
         { returnDocument: 'after', runValidators: true }
-    );
+    ).populate({ path: 'services', model: Service });
 };
+
 
 
 const deleteWorker = async (id) => {
@@ -34,15 +41,20 @@ const getAllWorkers = async (query = {}) => {
     const { page = 1, limit = 10 } = query;
 
     return await Worker.find()
+        .populate({ path: 'services', model: Service })
         .skip((page - 1) * limit)
         .limit(Number(limit));
 };
 
+
+
 const getWorkerById = async (id) => {
-    const worker = await Worker.findById(id);
+    const worker = await Worker.findById(id).populate({ path: 'services', model: Service });
     if (!worker) throw new Error("Worker not found");
     return worker;
 };
+
+
 
 const findFreeWorkers = async () => {
     return await Worker.find({ isBusy: false });
