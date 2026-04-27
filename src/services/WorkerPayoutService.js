@@ -1,7 +1,9 @@
 const WorkerPayoutRepository = require("../repository/WorkerPayoutRepository");
 const jobCardRepository = require("../repository/jobcartRepository");
 const attendenceWorkerRepository = require("../repository/attendenceWorker");
+const workerRepository = require("../repository/workerRepository");
 const mongoose = require("mongoose");
+const { sendFcmNotification } = require("../utils/fcmService");
 
 /**
  * Worker requests a payout. Validates balance before creating a pending request.
@@ -43,6 +45,21 @@ const requestPayoutService = async (data) => {
             remarks: "Worker requested payment"
         });
 
+        const worker = await workerRepository.getWorkerById(workerId);
+        const workerDevice = worker?.fcmToken;
+        const patientName = jobCard?.patientDetails?.name || "your job";
+
+        if (workerDevice) {
+            await sendFcmNotification(workerDevice, {
+                title: "Payout Request Submitted 💰",
+                body: `Your payout request of ₹${amount} for ${patientName}'s job has been submitted for review.`,
+            }, {
+                type: "payout_requested",
+                jobCardId: jobCardId.toString(),
+                payoutId: payoutRequest._id.toString()
+            });
+        }
+
         return {
             success: true,
             message: "Payout request sent successfully",
@@ -75,14 +92,14 @@ const getPendingPayoutRequestsService = async () => {
 const getWorkerPayoutDue = async (workerId, jobCardId) => {
     const jobCard = await jobCardRepository.getJobCardById(jobCardId);
     if (!jobCard) return { remainingDue: 0 };
-    
+
     const attendance = await attendenceWorkerRepository.getAttendanceByJobCardIdAndWorkerId(jobCardId, workerId);
     const presentDays = attendance.filter(a => a.status === 'present').length;
     const totalEarned = presentDays * (jobCard.perDayNurseCost || 0);
-    
+
     const payouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);
     const totalPaid = payouts.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
-    
+
     return {
         totalEarned,
         totalPaid,
@@ -111,11 +128,11 @@ const getWorkerBalanceService = async (workerId, jobCardId) => {
 
         // 2. Calculate Total already Paid or Pending
         const existingPayouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);
-        
+
         const paidAmount = existingPayouts
             .filter(p => p.status === "paid")
             .reduce((sum, p) => sum + p.amount, 0);
-            
+
         const pendingAmount = existingPayouts
             .filter(p => p.status === "pending")
             .reduce((sum, p) => sum + p.amount, 0);
@@ -223,6 +240,21 @@ const approvePayoutRequestService = async (payoutId, updateData) => {
             status: "paid",
             payoutDate: new Date()
         });
+
+        const payoutWithDetails = await WorkerPayoutRepository.getWorkerbyPayoutId(payoutId);
+        const workerDevice = payoutWithDetails?.workerId?.fcmToken;
+        const patientName = payoutWithDetails?.jobCardId?.patientDetails?.name || "your job";
+
+        if (workerDevice) {
+            await sendFcmNotification(workerDevice, {
+                title: "Payout Approved 💰",
+                body: `Your payout request of ₹${updatedPayout.amount} for ${patientName}'s job has been approved and marked as paid.`,
+            }, {
+                type: "payout_approved",
+                jobCardId: updatedPayout.jobCardId.toString(),
+                payoutId: payoutId.toString()
+            });
+        }
 
         return {
             success: true,

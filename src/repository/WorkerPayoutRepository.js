@@ -27,6 +27,10 @@ const getAllPayouts = async () => {
 const updateWorkerPayout = async (id, data) => {
     return await WorkerPayout.findByIdAndUpdate(id, { $set: data }, { new: true });
 }
+// find worker by payout id
+const getWorkerbyPayoutId = async (id) => {
+    return await WorkerPayout.findById(id).populate("workerId").populate("jobCardId");
+}
 
 module.exports = {
     createWorkerPayout,
@@ -34,5 +38,6 @@ module.exports = {
     getAllPayoutsByWorker,
     getPayoutById,
     getAllPayouts,
-    updateWorkerPayout
+    updateWorkerPayout,
+    getWorkerbyPayoutId
 }

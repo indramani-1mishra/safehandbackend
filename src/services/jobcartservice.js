@@ -220,13 +220,16 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
 
         const io = socketUtils.getIo();
 
-        // 🏆 Notify Assigned Worker via Socket
+        //  Notify Assigned Worker via Socket
         io.to(safeWorkerId).emit("job_assigned", {
-            message: `🎉 Great news! You have been assigned to Job Card #${safeJobCardId}`,
+            message: `Great news! You have been assigned to Job Card #${safeJobCardId}`,
             jobDetails: updatedJobCard.patientDetails,
             serviceDetails: updatedJobCard.serviceDetails,
             city: updatedJobCard.patientDetails.city,
         });
+
+        // const userFCMToken = jobCard.user.fcmToken;
+
 
         // 📱 Notify Assigned Worker via FCM
         if (assignedWorker.fcmToken) {
@@ -276,8 +279,23 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
             // We don't throw here to avoid failing the assignment if notification fails
         }
 
-        // 🧁 Automatic Rejection Logic for Other Workers
-        const otherWorkers = jobCard.workers.interested.filter(id => id.toString() !== safeWorkerId);
+        //  Automatic Rejection Logic for Other Workers
+        const otherWorkers = jobCard.workers.interested.filter(worker => worker._id.toString() !== safeWorkerId);
+
+        const otherWorkerFCMTokens = otherWorkers
+            .map(worker => worker.fcmToken)
+            .filter(token => token && token.trim() !== "");
+
+        if (otherWorkerFCMTokens.length > 0) {
+            console.log(`Sending rejection notifications to ${otherWorkerFCMTokens.length} workers`);
+            await sendFcmNotification(otherWorkerFCMTokens, {
+                title: "Job Rejected",
+                body: "Thank you for showing interest! Unfortunately, this job has been assigned to another nurse. We will notify you whenever we find another match for you. Good luck!"
+            }, {
+                jobCardId: safeJobCardId.toString(),
+                type: "job_rejected"
+            });
+        }
 
         otherWorkers.forEach(otherWorkerId => {
             io.to(otherWorkerId.toString()).emit("job_rejected", {
@@ -285,6 +303,7 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
                 jobCardId: safeJobCardId
             });
         });
+
 
         return updatedJobCard;
     } catch (error) {

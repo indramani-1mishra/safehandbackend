@@ -5,6 +5,7 @@ const workerRepository = require("../repository/workerRepository");
 const { generateSecureOtp, hashOtp, verifyOtp } = require('../utils/jenratesixdigitOtp');
 const sendOtpThroughWhatsapp = require('../utils/sendOtpThroughWhatsapp');
 const getdate = require("../utils/getCurrentDate");
+const { sendFcmNotification } = require('../utils/fcmService');
 
 const VALID_STATUS = ["present", "absent", "leave"];
 
@@ -96,6 +97,18 @@ const verifyAttendanceOtpService = async (data) => {
             date: getdate(),
             status: "present"
         });
+
+
+        if (attendance) {
+            await sendFcmNotification(worker.fcmToken, {
+                title: "Job Attendance Verified",
+                body: `Your attendance has been marked successfully for job card #${jobCard?.patientDetails?.name} . `,
+                data: {
+                    jobId: jobCardId,
+                    type: "attendance_verified"
+                }
+            });
+        }
 
         return {
             success: true,
