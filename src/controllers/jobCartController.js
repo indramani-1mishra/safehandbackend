@@ -87,7 +87,7 @@ const getJobCardsByWorkerIdController = async (req, res) => {
 
 const getJobCardsByStatusController = async (req, res) => {
     try {
-        const jobCards = await jobcartService.getJobCardsByStatusService(req.params.status);
+        const jobCards = await jobcartService.getJobCardsByStatusService(req.params.status, req.query);
         res.status(200).json({ success: true, data: jobCards });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

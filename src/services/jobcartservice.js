@@ -348,10 +348,10 @@ const getJobCardsByWorkerIdService = async (workerId) => {
     }
 }
 
-const getJobCardsByStatusService = async (status) => {
+const getJobCardsByStatusService = async (status, query = {}) => {
     try {
         const safeStatus = typeof status === 'string' ? status.trim() : status;
-        const jobCards = await jobcartRepository.getJobCardsByStatus(safeStatus);
+        const jobCards = await jobcartRepository.getJobCardsByStatus(safeStatus, query);
         return jobCards;
     } catch (error) {
         throw error;

@@ -27,6 +27,7 @@ const getAllJobCards = async (query = {}) => {
         .populate("workers.assigned")
         .populate("serviceDetails.service")
         .populate("inquiryId")
+        .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(Number(limit));
 };
@@ -77,8 +78,16 @@ const getJobCardById = async (id) => {
     return jobCard;
 };
 
-const getJobCardsByStatus = async (status) => {
-    return await JobCard.find({ status: status });
+const getJobCardsByStatus = async (status, query = {}) => {
+    const { page = 1, limit = 10 } = query;
+    return await JobCard.find({ status: status })
+        .populate("workers.interested")
+        .populate("workers.assigned")
+        .populate("serviceDetails.service")
+        .populate("inquiryId")
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(Number(limit));
 };
 
 const getJobCardsByStatusAndWorkerId = async (status, workerId) => {
