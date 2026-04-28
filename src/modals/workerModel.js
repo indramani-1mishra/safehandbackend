@@ -112,7 +112,7 @@ workerSchema.pre("save", async function () {
             { returnDocument: 'after', upsert: true }
         );
 
-        this.workerId = "safehand" + String(counter.seq).padStart(5, "0");
+        this.workerId = "0404" + String(counter.seq).padStart(5, "0");
 
     } catch (error) {
         throw error;

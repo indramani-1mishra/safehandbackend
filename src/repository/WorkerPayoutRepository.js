@@ -10,7 +10,7 @@ const getPayoutsByWorkerAndJob = async (workerId, jobCardId) => {
 }
 
 const getAllPayoutsByWorker = async (workerId) => {
-    return await WorkerPayout.find({ workerId })
+    return await WorkerPayout.find({ workerId }).populate("workerId").populate("jobCardId");
 }
 
 const getPayoutById = async (id) => {
@@ -18,7 +18,7 @@ const getPayoutById = async (id) => {
 }
 
 const getAllPayouts = async () => {
-    return await WorkerPayout.find();
+    return await WorkerPayout.find().populate("workerId").populate("jobCardId");
 }
 
 

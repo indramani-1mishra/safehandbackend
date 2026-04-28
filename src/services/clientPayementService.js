@@ -23,7 +23,7 @@ const calculateDaysInclusive = (startDate, endDate) => {
 
 const createClientPayment = async (data) => {
     try {
-        const { jobCardId, amount } = data;
+        const { jobCardId, amount, paymentMethod } = data;
 
         const jobCard = await JobCard.findById(jobCardId);
         if (!jobCard) throw new Error("JobCard not found");
@@ -66,6 +66,7 @@ const createClientPayment = async (data) => {
             overLimit,
             reachLimit,
             paymentStatus: "paid",
+            paymentMethod: paymentMethod || "cash",
             paymentDate: new Date(),
         };
 
