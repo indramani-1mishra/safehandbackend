@@ -45,6 +45,7 @@ const updateWorkerSchema = Joi.object({
     isActive: Joi.boolean(),
     isOnline: Joi.boolean(),
     isBusy: Joi.boolean(),
+    services: Joi.array().items(Joi.string()).optional(),
     documents: Joi.array().items(Joi.string()).optional(),
     photo: Joi.string().optional(),
     workerId: Joi.string().optional()
