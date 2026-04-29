@@ -1,4 +1,5 @@
 const JobCard = require("../modals/jobcartModel");
+const mongoose = require("mongoose");
 
 const createJobCard = async (data) => {
     const jobCard = new JobCard(data);
@@ -108,12 +109,14 @@ const getJobCardsByStatus = async (status, query = {}) => {
 
 const getJobCardsByStatusAndWorkerId = async (status, workerId) => {
     const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;
+    const workerObjectId = new mongoose.Types.ObjectId(safeWorkerId);
 
-    return await JobCard.find({ status: status, "workers.assigned": safeWorkerId })
+    return await JobCard.find({ status: status, "workers.assigned": workerObjectId })
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")
-        .populate("inquiryId");
+        .populate("inquiryId")
+        .sort({ createdAt: -1 });
 }
 const completeJobCard = async (jobCardId) => {
     const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
