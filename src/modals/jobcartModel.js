@@ -96,6 +96,12 @@ const jobCardSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    requirementsofthepatient: {
+        type: String,
+        default: ""
+    },
+
+
 
     assignedAt: Date,
     completedAt: Date

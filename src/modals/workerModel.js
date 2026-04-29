@@ -94,9 +94,19 @@ const workerSchema = new mongoose.Schema({
         type: String,
         default: "worker"
     },
-
+    prefer_city: {
+        type: String,
+        default: ""
+    },
+    Religion: {
+        type: String,
+    },
     fcmToken: { type: String, default: "" },
-
+    bankName: { type: String, default: "" },
+    accountNumber: { type: String, default: "" },
+    ifscCode: { type: String, default: "" },
+    accountHolderName: { type: String, default: "" },
+    upiId: { type: String, default: "" },
 
 }, { timestamps: true });
 

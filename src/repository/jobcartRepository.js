@@ -34,7 +34,11 @@ const getAllJobCards = async (query = {}) => {
 
 const getJobCardsByWorkerId = async (workerId) => {
     const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;
-    return await JobCard.find({ "workers.interested": safeWorkerId }).populate("workers.interested");
+    return await JobCard.find({ "workers.interested": safeWorkerId })
+        .populate("workers.interested")
+        .populate("workers.assigned")
+        .populate("serviceDetails.service")
+        .populate("inquiryId");
 }
 
 const addWorkerToJobCard = async (jobCardId, workerId) => {
@@ -44,7 +48,11 @@ const addWorkerToJobCard = async (jobCardId, workerId) => {
         safeJobCardId,
         { $push: { "workers.interested": safeWorkerId } },
         { returnDocument: 'after', runValidators: true }
-    ).populate("workers.interested");
+    )
+        .populate("workers.interested")
+        .populate("workers.assigned")
+        .populate("serviceDetails.service")
+        .populate("inquiryId");
 }
 
 const removeWorkerFromJobCard = async (jobCardId, workerId) => {
@@ -54,7 +62,11 @@ const removeWorkerFromJobCard = async (jobCardId, workerId) => {
         safeJobCardId,
         { $pull: { "workers.interested": safeWorkerId } },
         { returnDocument: 'after', runValidators: true }
-    );
+    )
+        .populate("workers.interested")
+        .populate("workers.assigned")
+        .populate("serviceDetails.service")
+        .populate("inquiryId");
 }
 
 const assignWorkerToJobCard = async (jobCardId, workerId) => {
@@ -64,7 +76,11 @@ const assignWorkerToJobCard = async (jobCardId, workerId) => {
         safeJobCardId,
         { $set: { "workers.assigned": safeWorkerId }, status: "assigned", isAssigned: true, },
         { returnDocument: 'after', runValidators: true }
-    ).populate("workers.assigned");
+    )
+        .populate("workers.interested")
+        .populate("workers.assigned")
+        .populate("serviceDetails.service")
+        .populate("inquiryId");
 }
 
 const getJobCardById = async (id) => {
@@ -93,15 +109,23 @@ const getJobCardsByStatus = async (status, query = {}) => {
 const getJobCardsByStatusAndWorkerId = async (status, workerId) => {
     const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;
 
-    return await JobCard.find({ status: status, "workers.assigned": safeWorkerId });
+    return await JobCard.find({ status: status, "workers.assigned": safeWorkerId })
+        .populate("workers.interested")
+        .populate("workers.assigned")
+        .populate("serviceDetails.service")
+        .populate("inquiryId");
 }
 const completeJobCard = async (jobCardId) => {
     const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
     return await JobCard.findByIdAndUpdate(
         safeJobCardId,
-        { $set: { status: "completed", completedAt: new Date(), isAssigned: "false" }, },
+        { $set: { status: "completed", completedAt: new Date(), isAssigned: false }, },
         { returnDocument: 'after', runValidators: true }
-    ).populate("workers.assigned");
+    )
+        .populate("workers.interested")
+        .populate("workers.assigned")
+        .populate("serviceDetails.service")
+        .populate("inquiryId");
 }
 
 module.exports = {

@@ -21,7 +21,7 @@ const matchUsers = async (serviceId, city) => {
         // 🚀 Query
         const matchedWorkers = await workerModel.find({
             services: serviceObjectId,
-            city: { $regex: `^${cleanCity}$`, $options: "i" }, // case insensitive
+            prefer_city: { $regex: `^${cleanCity}$`, $options: "i" }, // case insensitive
             isActive: true,
             isOnline: true,
             isBusy: false,
