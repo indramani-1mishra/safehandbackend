@@ -131,7 +131,7 @@ const generateWorkerPdfTemplate = (jobcart, worker) => {
                     <div class="info-grid">
                         <div class="info-item">
                             <span class="label">Service</span>
-                            <span class="value">${jobcart.serviceDetails.service.name || 'Healthcare Service'}</span>
+                            <span class="value">${(jobcart.serviceDetails.service && jobcart.serviceDetails.service.name) ? jobcart.serviceDetails.service.name : 'Healthcare Service'}</span>
                         </div>
                         <div class="info-item">
                             <span class="label">Plan / Timing</span>
@@ -223,7 +223,7 @@ const generateClientPdfTemplate = (jobcart, worker) => {
                     <div class="info-grid">
                         <div class="info-item">
                             <span class="label">Service Name</span>
-                            <span class="value">${jobcart.serviceDetails.service.name}</span>
+                            <span class="value">${(jobcart.serviceDetails.service && jobcart.serviceDetails.service.name) ? jobcart.serviceDetails.service.name : 'Healthcare Service'}</span>
                         </div>
                         <div class="info-item">
                             <span class="label">Plan / Timing</span>
@@ -315,7 +315,7 @@ const generateAdminPdfTemplate = (jobcart, worker) => {
             <div class="section-title">Job & Service Breakdown</div>
             <div class="card" style="margin-bottom: 20px;">
                 <div class="info-grid">
-                    <div class="info-item"><span class="label">Service</span><span class="value">${jobcart.serviceDetails.service.name}</span></div>
+                    <div class="info-item"><span class="label">Service</span><span class="value">${(jobcart.serviceDetails.service && jobcart.serviceDetails.service.name) ? jobcart.serviceDetails.service.name : 'Healthcare Service'}</span></div>
                     <div class="info-item"><span class="label">Total Days</span><span class="value">${jobcart.totalDays}</span></div>
                     <div class="info-item"><span class="label">Start Date</span><span class="value">${new Date(jobcart.serviceStart).toLocaleDateString()}</span></div>
                     <div class="info-item"><span class="label">End Date</span><span class="value">${new Date(jobcart.serviceEnd).toLocaleDateString()}</span></div>

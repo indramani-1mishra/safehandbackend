@@ -230,8 +230,8 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
             throw new Error("Failed to assign worker beacase job card is already assigned");
         }
         // Populate service details for PDF generation
+        // NOTE: getJobCardById already populates all fields — do NOT call .populate() again or it crashes
         const fullJobCard = await jobcartRepository.getJobCardById(safeJobCardId);
-        await fullJobCard.populate("serviceDetails.service");
         const assignedWorker = await workerRepository.getWorkerById(safeWorkerId);
 
         // Changed isBusy to isFree: false since isBusy doesn't exist by default in your model!
