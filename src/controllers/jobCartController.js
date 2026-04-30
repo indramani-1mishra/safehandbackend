@@ -72,7 +72,9 @@ const assignWorkerToJobCardController = async (req, res) => {
         const jobCard = await jobcartService.assignWorkerToJobCardService(req.params.id, req.body.workerId);
         res.status(200).json({ success: true, message: "Worker assigned successfully", data: jobCard });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        // 400 = intentional business logic error (e.g. worker busy, already assigned)
+        // 500 should only be for truly unexpected crashes
+        res.status(400).json({ success: false, message: error.message });
     }
 }
 
