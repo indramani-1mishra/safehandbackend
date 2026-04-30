@@ -101,6 +101,7 @@ const getTodayDuePayments = async () => {
                 dueClients.push({
                     jobCardId: job._id,
                     patientName: job.patientDetails.name,
+                    patientPhone: job.patientDetails.phone,
                     totalDeal: job.totalDealAmount,
                     totalPaid: totalPaid,
                     dueAmount: Math.ceil(shouldHavePaid - totalPaid),
