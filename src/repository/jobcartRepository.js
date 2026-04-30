@@ -45,6 +45,10 @@ const getJobCardsByWorkerId = async (workerId) => {
 const addWorkerToJobCard = async (jobCardId, workerId) => {
     const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
     const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;
+
+    // Check if worker is already interested in this job card
+
+
     return await JobCard.findByIdAndUpdate(
         safeJobCardId,
         { $push: { "workers.interested": safeWorkerId } },

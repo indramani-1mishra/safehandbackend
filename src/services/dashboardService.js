@@ -1,6 +1,7 @@
 const ClientRepository = require("../repository/ClientRepository");
 const JobCard = require("../modals/jobcartModel");
 const ClientPayment = require("../modals/clientPayment");
+const Enquiry = require("../modals/enqueryModel");
 const WorkerPayoutService = require("./WorkerPayoutService");
 
 /**
@@ -71,6 +72,9 @@ const getAdminDashboardSummary = async () => {
             }
         }
 
+        // 4. Enquiry Stats
+        const totalEnquiries = await Enquiry.countDocuments();
+
         return {
             revenue: {
                 total: totalRevenue,
@@ -85,7 +89,8 @@ const getAdminDashboardSummary = async () => {
                 totalToWorkers: totalWorkerPayable
             },
             stats: {
-                activeJobs: ongoingJobs.length
+                activeJobs: ongoingJobs.length,
+                totalEnquiries: totalEnquiries
             }
         };
     } catch (error) {
