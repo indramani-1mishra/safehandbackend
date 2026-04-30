@@ -5,7 +5,7 @@ const enquirySchema = new mongoose.Schema({
     // Enquiry Type
     enquiryType: {
         type: String,
-        enum: ["quickEnquery", "urgentEnquery", "serviceEnquery"],
+        enum: ["quickEnquery", "urgentEnquery", "serviceEnquery", "incompleteBooking"],
         default: "quickEnquery"
     },
 
