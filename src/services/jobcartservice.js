@@ -16,6 +16,7 @@ const {
 } = require("../utils/pdfTemplates");
 const { DEFAULT_ADMIN_PHONE } = require("../config/serverConfig");
 const { sendFcmNotification } = require("../utils/fcmService");
+const ClientRepository = require("../repository/ClientRepository");
 
 const createJobCardService = async (data) => {
     try {
@@ -344,7 +345,40 @@ const deleteJobCardService = async (id) => {
 const getAllJobCardsService = async (query) => {
     try {
         const jobCards = await jobcartRepository.getAllJobCards(query);
-        return jobCards;
+        
+        // Enhance with financial stats
+        const enhancedJobCards = await Promise.all(jobCards.map(async (job) => {
+            const payments = await ClientRepository.getClientPaymentsByJobCardId(job._id);
+            const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+            
+            // Calculate Days Worked
+            const start = new Date(job.serviceStart);
+            const today = new Date();
+            const diffTime = Math.max(0, today - start);
+            const daysWorked = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Calculate Expected Payment based on days worked
+            const totalDuration = job.totalDays || 1;
+            const perDayCost = job.totalDealAmount / totalDuration;
+            const expectedPaid = Math.min(daysWorked * perDayCost, job.totalDealAmount);
+            
+            // Overdue check
+            const isOverdue = totalPaid < expectedPaid;
+            const overdueAmount = Math.ceil(Math.max(0, expectedPaid - totalPaid));
+
+            return {
+                ...job._doc,
+                financials: {
+                    totalPaid,
+                    remainingAmount: Math.max(0, job.totalDealAmount - totalPaid),
+                    daysWorked,
+                    isOverdue,
+                    overdueAmount
+                }
+            };
+        }));
+
+        return enhancedJobCards;
     } catch (error) {
         throw error;
     }
