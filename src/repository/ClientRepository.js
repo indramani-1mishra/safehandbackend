@@ -23,6 +23,14 @@ const getAllClientPayments = async (query = {}) => {
     const { page = 1, limit = 10 } = query;
 
     return await ClientPayment.find()
+        .populate({
+            path: 'jobCardId',
+            populate: [
+                { path: 'workers.assigned', select: 'name phone' },
+                { path: 'serviceDetails.service', select: 'name' }
+            ]
+        })
+        .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(Number(limit));
 }
