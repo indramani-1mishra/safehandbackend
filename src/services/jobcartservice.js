@@ -155,6 +155,24 @@ const addWorkerToJobCardService = async (jobCardId, workerId,) => {
         if (!worker) {
             throw new Error("Worker not found");
         }
+
+        const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
+        const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;
+
+        // Check if worker is already interested in this job card
+        // NOTE: workers.interested is populated (Worker docs), so we compare _id not .worker
+        const alreadyInterested = jobCard.workers.interested.some(
+            (interest) => interest._id.toString() === safeWorkerId
+        );
+        if (alreadyInterested) {
+            throw new Error("Worker is already interested in this job card");
+        }
+        // check worker if already busy (assigned to another job card)
+        // getJobCardsByWorkerId returns an array, so we check isBusy directly on the worker document
+        if (worker.isBusy) {
+            throw new Error("You are already assigned to another job card");
+        }
+
         const updatedJobCard = await jobcartRepository.addWorkerToJobCard(jobCardId, workerId);
 
         // 👑 Socket Notification to Admin
@@ -203,12 +221,14 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
         if (!jobCard) {
             throw new Error("Job card not found");
         }
-
-        if (jobCard.isAssigned) {
-            throw new Error("Job card is already assigned");
+        const isWorkerBusy = await workerRepository.checkWorkerBusyStatus(safeWorkerId);
+        if (isWorkerBusy) {
+            throw new Error("Worker is already busy to take another job ,please select another worker");
         }
         const updatedJobCard = await jobcartRepository.assignWorkerToJobCard(safeJobCardId, new mongoose.Types.ObjectId(safeWorkerId));
-
+        if (!updatedJobCard) {
+            throw new Error("Failed to assign worker beacase job card is already assigned");
+        }
         // Populate service details for PDF generation
         const fullJobCard = await jobcartRepository.getJobCardById(safeJobCardId);
         await fullJobCard.populate("serviceDetails.service");
@@ -297,8 +317,9 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
             });
         }
 
-        otherWorkers.forEach(otherWorkerId => {
-            io.to(otherWorkerId.toString()).emit("job_rejected", {
+        // NOTE: otherWorkers elements are populated Worker documents, so we must use ._id
+        otherWorkers.forEach(otherWorker => {
+            io.to(otherWorker._id.toString()).emit("job_rejected", {
                 message: "Thank you for showing interest! Unfortunately, this job has been assigned to another nurse. We will notify you whenever we find another match for you. Good luck!",
                 jobCardId: safeJobCardId
             });
@@ -334,7 +355,7 @@ const getJobCardByIdService = async (id) => {
         const jobCard = await jobcartRepository.getJobCardById(id);
         return jobCard;
     } catch (error) {
-        throw error;;
+        throw error;
     }
 }
 

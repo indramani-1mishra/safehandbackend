@@ -6,7 +6,7 @@ const {
 const AppError = require("../utils/AppError");
 
 
-// 🔥 CREATE WORKER
+//  CREATE WORKER
 const createWorker = async (data) => {
 
     const { error, value } = createWorkerSchema.validate(data);

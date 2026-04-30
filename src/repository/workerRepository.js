@@ -22,6 +22,12 @@ const findWorkerById = async (id) => {
     return await Worker.findById(id).populate({ path: 'services', model: Service });
 };
 
+const checkWorkerBusyStatus = async (id) => {
+    const worker = await Worker.findById(id);
+    if (!worker) throw new Error("Worker not found");
+    return worker.isBusy;
+}
+
 
 const updateWorker = async (id, data) => {
     return await Worker.findByIdAndUpdate(
@@ -81,5 +87,6 @@ module.exports = {
     saveRefreshToken,
     removeRefreshToken,
     findWorkerByRefreshToken,
-    findFreeWorkers
+    findFreeWorkers,
+    checkWorkerBusyStatus
 };
