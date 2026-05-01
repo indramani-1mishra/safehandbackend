@@ -44,10 +44,21 @@ const deleteWorker = async (id) => {
 };
 
 const getAllWorkers = async (query = {}) => {
-    const { page = 1, limit = 10 } = query;
+    const { page = 1, limit = 50, search } = query;
 
-    return await Worker.find()
+    let filter = {};
+    if (search) {
+        filter = {
+            $or: [
+                { name: { $regex: search, $options: "i" } },
+                { phone: { $regex: search, $options: "i" } }
+            ]
+        };
+    }
+
+    return await Worker.find(filter)
         .populate({ path: 'services', model: Service })
+        .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(Number(limit));
 };

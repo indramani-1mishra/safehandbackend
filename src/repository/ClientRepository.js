@@ -20,10 +20,24 @@ const deleteClientPayment = async (id) => {
 }
 
 const getAllClientPayments = async (query = {}) => {
-    const { page = 1, limit = 50, ...filters } = query;
+    const { page = 1, limit = 50, search, ...filters } = query;
 
-    // Convert amount filter if present (e.g. amount[gt]=0)
-    const mongoQuery = { ...filters };
+    let mongoQuery = { ...filters };
+    
+    // If search is present, we first find matching JobCards
+    if (search) {
+        const JobCard = mongoose.model("JobCard");
+        const matchingJobs = await JobCard.find({
+            $or: [
+                { "patientDetails.name": { $regex: search, $options: "i" } },
+                { "patientDetails.phone": { $regex: search, $options: "i" } }
+            ]
+        }).select("_id");
+        
+        const jobIds = matchingJobs.map(j => j._id);
+        mongoQuery.jobCardId = { $in: jobIds };
+    }
+
     if (filters.amount_gt !== undefined) {
         mongoQuery.amount = { $gt: Number(filters.amount_gt) };
         delete mongoQuery.amount_gt;

@@ -21,9 +21,19 @@ const deleteJobCard = async (id) => {
 };
 
 const getAllJobCards = async (query = {}) => {
-    const { page = 1, limit = 10 } = query;
+    const { page = 1, limit = 50, search } = query;
 
-    return await JobCard.find()
+    let filter = {};
+    if (search) {
+        filter = {
+            $or: [
+                { "patientDetails.name": { $regex: search, $options: "i" } },
+                { "patientDetails.phone": { $regex: search, $options: "i" } }
+            ]
+        };
+    }
+
+    return await JobCard.find(filter)
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")
@@ -100,8 +110,17 @@ const getJobCardById = async (id) => {
 };
 
 const getJobCardsByStatus = async (status, query = {}) => {
-    const { page = 1, limit = 10 } = query;
-    return await JobCard.find({ status: status })
+    const { page = 1, limit = 50, search } = query;
+    
+    let filter = { status: status };
+    if (search) {
+        filter.$or = [
+            { "patientDetails.name": { $regex: search, $options: "i" } },
+            { "patientDetails.phone": { $regex: search, $options: "i" } }
+        ];
+    }
+
+    return await JobCard.find(filter)
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")

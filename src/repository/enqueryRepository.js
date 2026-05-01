@@ -22,9 +22,19 @@ const deleteEnquiry = async (id) => {
 };
 
 const getAllEnquiries = async (query = {}) => {
-    const { page = 1, limit = 10 } = query;
+    const { page = 1, limit = 50, search } = query;
 
-    return await Enquiry.find()
+    let filter = {};
+    if (search) {
+        filter = {
+            $or: [
+                { "patientDetails.name": { $regex: search, $options: "i" } },
+                { "patientDetails.phone": { $regex: search, $options: "i" } }
+            ]
+        };
+    }
+
+    return await Enquiry.find(filter)
         .skip((page - 1) * limit)
         .limit(Number(limit))
         .sort({ createdAt: -1 });
@@ -52,11 +62,17 @@ const getEnquiryByType = async (type) => {
     return await Enquiry.find({ enquiryType: type });
 };
 
-const getEnquiries = async ({ type, status, page = 1, limit = 10 }) => {
+const getEnquiries = async ({ type, status, page = 1, limit = 50, search }) => {
     const filter = {};
 
     if (type) filter.enquiryType = type;
     if (status) filter.status = status;
+    if (search) {
+        filter.$or = [
+            { "patientDetails.name": { $regex: search, $options: "i" } },
+            { "patientDetails.phone": { $regex: search, $options: "i" } }
+        ];
+    }
 
     const data = await Enquiry.find(filter)
         .skip((page - 1) * limit)
