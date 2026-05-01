@@ -316,32 +316,21 @@ const getAllJobCardsService = async (query) => {
 
         // Enhance with financial stats
         const enhancedJobCards = await Promise.all(jobCards.map(async (job) => {
-            const payments = await ClientRepository.getClientPaymentsByJobCardId(job._id);
-            const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+            const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(job._id);
+            const totalPaid = (await ClientRepository.getClientPaymentsByJobCardId(job._id))
+                                .reduce((sum, p) => sum + p.amount, 0);
 
-            // Calculate Days Worked
-            const start = new Date(job.serviceStart);
-            const today = new Date();
-            const diffTime = Math.max(0, today - start);
-            const daysWorked = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            // Calculate Expected Payment based on days worked
-            const totalDuration = job.totalDays || 1;
-            const perDayCost = job.totalDealAmount / totalDuration;
-            const expectedPaid = Math.min(daysWorked * perDayCost, job.totalDealAmount);
-
-            // Overdue check
-            const isOverdue = totalPaid < expectedPaid;
-            const overdueAmount = Math.ceil(Math.max(0, expectedPaid - totalPaid));
+            const remainingAmount = latestPayment ? latestPayment.remainingAmount : 0;
+            const isOverdue = latestPayment ? latestPayment.overLimit : false;
 
             return {
                 ...job._doc,
                 financials: {
                     totalPaid,
-                    remainingAmount: Math.max(0, job.totalDealAmount - totalPaid),
-                    daysWorked,
+                    remainingAmount,
                     isOverdue,
-                    overdueAmount
+                    perDayCost: job.perDayCustomerCost || 0,
+                    cycleDays: job.customerPaymentCycleDays || 7
                 }
             };
         }));
