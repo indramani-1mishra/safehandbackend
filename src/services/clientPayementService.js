@@ -15,21 +15,36 @@ const createClientPayment = async (data) => {
         const jobCard = await JobCard.findById(jobCardId);
         if (!jobCard) throw new Error("JobCard not found");
 
-        // 1. Get the latest remaining balance
+        // 1. Get the latest status
         const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(jobCardId);
-        const currentRemaining = latestPayment ? latestPayment.remainingAmount : 0;
+        
+        let currentAvailable = latestPayment ? (latestPayment.availableBalance || 0) : 0;
+        let currentRemaining = latestPayment ? (latestPayment.remainingAmount || 0) : 0;
 
-        // 2. Calculate new remaining after payment
-        const newRemainingAmount = currentRemaining - amount;
+        // 2. Add payment to wallet first
+        let totalAvailable = currentAvailable + Number(amount);
+        let finalRemaining = currentRemaining;
+        let finalAvailable = totalAvailable;
 
-        // 3. Calculate days covered based on perDayCustomerCost
+        // 3. Automatically use wallet to pay off existing debt
+        if (currentRemaining > 0) {
+            if (totalAvailable >= currentRemaining) {
+                finalAvailable = totalAvailable - currentRemaining;
+                finalRemaining = 0;
+            } else {
+                finalRemaining = currentRemaining - totalAvailable;
+                finalAvailable = 0;
+            }
+        }
+
         const perDayAmount = jobCard.perDayCustomerCost || 0;
         const daysCovered = perDayAmount > 0 ? Math.floor(amount / perDayAmount) : 0;
 
         const clientPaymentData = {
             jobCardId,
             amount,
-            remainingAmount: newRemainingAmount,
+            remainingAmount: finalRemaining,
+            availableBalance: finalAvailable,
             dayCovered: daysCovered,
             paymentStatus: "paid",
             paymentMethod: paymentMethod || "cash",

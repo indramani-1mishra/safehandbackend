@@ -101,32 +101,41 @@ const verifyAttendanceOtpService = async (data) => {
 
 
         if (attendance) {
-            // Update Client Payment Remaining Balance
+            // Update Client Payment Logic: Use wallet (availableBalance) first, then debt (remainingAmount)
             const perDayCost = jobCard.perDayCustomerCost || 0;
-            if (perDayCost > 0) {
-                const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(jobCardId);
-                const currentRemaining = latestPayment ? latestPayment.remainingAmount : 0;
-                const newRemaining = currentRemaining + perDayCost;
+            const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(jobCardId);
+            
+            let currentAvailable = latestPayment ? (latestPayment.availableBalance || 0) : 0;
+            let currentRemaining = latestPayment ? (latestPayment.remainingAmount || 0) : 0;
+            
+            let finalAvailable = currentAvailable;
+            let finalRemaining = currentRemaining;
 
-                // Check if Overdue based on Cycle
-                const cycleDays = jobCard.customerPaymentCycleDays || 1;
-                const cycleThreshold = perDayCost * cycleDays;
-
-                const overLimit = newRemaining >= cycleThreshold;
-                const reachLimit = newRemaining >= (cycleThreshold * 0.8); // 80% of cycle reached
-
-                await ClientRepository.createClientPayment({
-                    jobCardId,
-                    amount: 0,
-                    remainingAmount: newRemaining,
-                    paymentStatus: "pending",
-                    paymentMethod: "cash",
-                    paymentDate: new Date(),
-                    overLimit,
-                    reachLimit,
-                    remarks: `Auto-generated from attendance. ${overLimit ? "STATUS: OVERDUE" : ""}`
-                });
+            if (currentAvailable >= perDayCost) {
+                finalAvailable = currentAvailable - perDayCost;
+            } else {
+                const remainderToPay = perDayCost - currentAvailable;
+                finalAvailable = 0;
+                finalRemaining = currentRemaining + remainderToPay;
             }
+
+            const cycleDays = jobCard.customerPaymentCycleDays || 1;
+            const cycleThreshold = perDayCost * cycleDays;
+            const overLimit = finalRemaining >= cycleThreshold;
+            const reachLimit = finalRemaining >= (cycleThreshold * 0.8);
+
+            await ClientRepository.createClientPayment({
+                jobCardId,
+                amount: 0,
+                remainingAmount: finalRemaining,
+                availableBalance: finalAvailable,
+                paymentStatus: "pending",
+                paymentMethod: "cash",
+                paymentDate: new Date(),
+                overLimit,
+                reachLimit,
+                remarks: `Auto-generated from attendance. ${overLimit ? "STATUS: OVERDUE" : ""}`
+            });
 
             await sendFcmNotification(worker.fcmToken, {
                 title: "Job Attendance Verified",

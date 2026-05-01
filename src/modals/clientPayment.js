@@ -51,6 +51,9 @@ const ClientPaymentSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    availableBalance: {
+        type: Number,
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model("ClientPayment", ClientPaymentSchema);

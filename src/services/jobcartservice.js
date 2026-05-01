@@ -328,6 +328,7 @@ const getAllJobCardsService = async (query) => {
                 financials: {
                     totalPaid,
                     remainingAmount,
+                    availableBalance: latestPayment ? (latestPayment.availableBalance || 0) : 0,
                     isOverdue,
                     perDayCost: job.perDayCustomerCost || 0,
                     cycleDays: job.customerPaymentCycleDays || 7
