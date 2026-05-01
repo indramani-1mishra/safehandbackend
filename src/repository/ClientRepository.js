@@ -47,6 +47,11 @@ const getClientPaymentsByJobCardId = async (jobCardId) => {
     return await ClientPayment.find({ jobCardId: safeJobCardId });
 }
 
+const getLatestClientPaymentByJobCardId = async (jobCardId) => {
+    const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
+    return await ClientPayment.findOne({ jobCardId: safeJobCardId }).sort({ createdAt: -1 });
+}
+
 const getClientwithreachlimit = async () => {
     return await ClientPayment.find({ reachLimit: true });
 }
@@ -63,6 +68,7 @@ module.exports = {
     getAllClientPayments,
     getClientPaymentById,
     getClientPaymentsByJobCardId,
+    getLatestClientPaymentByJobCardId,
     getClientwithreachlimit,
     getClientwithoverlimit
 }

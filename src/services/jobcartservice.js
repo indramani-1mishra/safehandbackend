@@ -51,36 +51,6 @@ const createJobCardService = async (data) => {
                 throw new Error("Worker not found in DB");
             }
         }
-
-
-        const { plan = 'basic', duration = 1, timing = '12hr' } = data?.serviceDetails || {};
-
-        //  Price Calculation Logic
-        const cityPricing = service.pricingByCity?.find(p => p.city.toLowerCase() === city.toLowerCase());
-
-        let finalCustomerPrice = 0;
-
-        if (cityPricing) {
-            const planKey = plan === 'advance' ? 'advance' : 'basic';
-            const timingKey = timing === '24hr' ? 'hr24' : 'hr12';
-
-            const pricePerDay = cityPricing[planKey] && cityPricing[planKey][timingKey] ? cityPricing[planKey][timingKey] : 0;
-
-            const baseTotal = pricePerDay * duration;
-            const addonsTotal = (data.addons || []).reduce((sum, addon) => sum + (Number(addon.price) || 0), 0);
-            finalCustomerPrice = baseTotal + addonsTotal;
-        } else {
-            // Fallback to what frontend explicitly passed if pricing is missing for city
-            finalCustomerPrice = data.totalDealAmount || 0;
-        }
-
-        // Update data object
-        data.priceforCoustomer = finalCustomerPrice.toString();
-        data.totalCalculatedPrice = finalCustomerPrice;
-
-        // Placeholder for worker price
-        data.priceforWorker = data.totalNurseSalary ? data.totalNurseSalary.toString() : (finalCustomerPrice * 0.7).toFixed(0).toString();
-
         const jobCard = await jobcartRepository.createJobCard(data);
 
         //  Skip Matchmaking notifications if it's a Direct Assignment
@@ -121,8 +91,6 @@ const createJobCardService = async (data) => {
                 type: "incoming_call"
             });
         }
-
-
         return {
             jobCard,
             matchedWorkers
@@ -345,23 +313,23 @@ const deleteJobCardService = async (id) => {
 const getAllJobCardsService = async (query) => {
     try {
         const jobCards = await jobcartRepository.getAllJobCards(query);
-        
+
         // Enhance with financial stats
         const enhancedJobCards = await Promise.all(jobCards.map(async (job) => {
             const payments = await ClientRepository.getClientPaymentsByJobCardId(job._id);
             const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-            
+
             // Calculate Days Worked
             const start = new Date(job.serviceStart);
             const today = new Date();
             const diffTime = Math.max(0, today - start);
             const daysWorked = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
+
             // Calculate Expected Payment based on days worked
             const totalDuration = job.totalDays || 1;
             const perDayCost = job.totalDealAmount / totalDuration;
             const expectedPaid = Math.min(daysWorked * perDayCost, job.totalDealAmount);
-            
+
             // Overdue check
             const isOverdue = totalPaid < expectedPaid;
             const overdueAmount = Math.ceil(Math.max(0, expectedPaid - totalPaid));

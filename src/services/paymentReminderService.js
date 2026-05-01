@@ -25,25 +25,29 @@ const checkAndSendPaymentReminders = async () => {
         const ongoingJobs = await JobCard.find({ status: "assigned" });
 
         for (const job of ongoingJobs) {
-            const allPayments = await ClientRepository.getClientPaymentsByJobCardId(job._id);
-            const totalPaid = allPayments.reduce((sum, p) => sum + p.amount, 0);
+            const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(job._id);
+            const remaining = latestPayment ? latestPayment.remainingAmount : 0;
+            const perDayCost = job.perDayCustomerCost || 0;
+            const cycleDays = job.customerPaymentCycleDays || 1;
+            const cycleThreshold = perDayCost * cycleDays;
 
-            const totalDuration = calculateDaysInclusive(job.serviceStart, job.serviceEnd);
-            const perDayAmount = job.totalDealAmount / (totalDuration || 1);
-
-            const daysPassed = calculateDaysInclusive(job.serviceStart, new Date());
-            const amountConsumed = daysPassed * perDayAmount;
-            const balanceAmount = totalPaid - amountConsumed;
-            const balanceDays = Math.floor(balanceAmount / perDayAmount);
-
-            // Condition: If balance is less than or equal to 1 day coverage
-            if (balanceDays <= 1) {
-                const message = `${balanceDays < 0 ? 0 : balanceDays}  `;
+            // Condition: If balance is more than or equal to cycle threshold
+            if (remaining >= cycleThreshold && remaining > 0) {
+                const message = `Payment Reminder: Your outstanding balance for ${job.patientDetails.name} is ₹${remaining}. This exceeds your current payment cycle of ${cycleDays} days. Please make a payment soon.`;
 
                 if (job.patientDetails.phone) {
                     const phone = `91${job.patientDetails.phone}`;
                     await sendWhatsappMessage(phone, message, job.patientDetails.name);
-                    console.log(`Reminder sent to ${job.patientDetails.name} (${phone})`);
+                    console.log(`Overdue reminder sent to ${job.patientDetails.name} (${phone}) - Balance: ₹${remaining}`);
+                }
+            } else if (remaining >= (cycleThreshold * 0.8) && remaining > 0) {
+                // Near limit reminder (80% of cycle reached)
+                const message = `Payment Notice: Your outstanding balance for ${job.patientDetails.name} is ₹${remaining}. You are approaching your payment cycle limit.`;
+                
+                if (job.patientDetails.phone) {
+                    const phone = `91${job.patientDetails.phone}`;
+                    await sendWhatsappMessage(phone, message, job.patientDetails.name);
+                    console.log(`Near-limit notice sent to ${job.patientDetails.name} (${phone}) - Balance: ₹${remaining}`);
                 }
             }
         }

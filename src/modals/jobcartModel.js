@@ -39,28 +39,12 @@ const jobCardSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-    serviceEnd: {
-        type: Date,
-        required: true
-    },
-
-    totalDays: Number,
-
-    // 💰 CUSTOMER SIDE
-    totalDealAmount: {
-        type: Number,
-        required: true
-    },
 
     perDayCustomerCost: Number,
 
     customerPaymentCycleDays: Number, // 7 / 15 / 30
 
     // 👨‍⚕️ NURSE SIDE
-    totalNurseSalary: {
-        type: Number,
-        required: true
-    },
 
     perDayNurseCost: Number,
 

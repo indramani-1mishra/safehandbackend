@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const attendenceWorkerRepository = require("../repository/attendenceWorker");
 const jobCardRepository = require("../repository/jobcartRepository");
 const workerRepository = require("../repository/workerRepository");
+const ClientRepository = require("../repository/ClientRepository");
 const { generateSecureOtp, hashOtp, verifyOtp } = require('../utils/jenratesixdigitOtp');
 const sendOtpThroughWhatsapp = require('../utils/sendOtpThroughWhatsapp');
 const getdate = require("../utils/getCurrentDate");
@@ -100,6 +101,33 @@ const verifyAttendanceOtpService = async (data) => {
 
 
         if (attendance) {
+            // Update Client Payment Remaining Balance
+            const perDayCost = jobCard.perDayCustomerCost || 0;
+            if (perDayCost > 0) {
+                const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(jobCardId);
+                const currentRemaining = latestPayment ? latestPayment.remainingAmount : 0;
+                const newRemaining = currentRemaining + perDayCost;
+
+                // Check if Overdue based on Cycle
+                const cycleDays = jobCard.customerPaymentCycleDays || 1;
+                const cycleThreshold = perDayCost * cycleDays;
+
+                const overLimit = newRemaining >= cycleThreshold;
+                const reachLimit = newRemaining >= (cycleThreshold * 0.8); // 80% of cycle reached
+
+                await ClientRepository.createClientPayment({
+                    jobCardId,
+                    amount: 0,
+                    remainingAmount: newRemaining,
+                    paymentStatus: "pending",
+                    paymentMethod: "cash",
+                    paymentDate: new Date(),
+                    overLimit,
+                    reachLimit,
+                    remarks: `Auto-generated from attendance. ${overLimit ? "STATUS: OVERDUE" : ""}`
+                });
+            }
+
             await sendFcmNotification(worker.fcmToken, {
                 title: "Job Attendance Verified",
                 body: `Your attendance has been marked successfully for job card #${jobCard?.patientDetails?.name} . `,
