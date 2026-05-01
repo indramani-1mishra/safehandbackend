@@ -20,9 +20,16 @@ const deleteClientPayment = async (id) => {
 }
 
 const getAllClientPayments = async (query = {}) => {
-    const { page = 1, limit = 10 } = query;
+    const { page = 1, limit = 50, ...filters } = query;
 
-    return await ClientPayment.find()
+    // Convert amount filter if present (e.g. amount[gt]=0)
+    const mongoQuery = { ...filters };
+    if (filters.amount_gt !== undefined) {
+        mongoQuery.amount = { $gt: Number(filters.amount_gt) };
+        delete mongoQuery.amount_gt;
+    }
+
+    return await ClientPayment.find(mongoQuery)
         .populate({
             path: 'jobCardId',
             populate: [
