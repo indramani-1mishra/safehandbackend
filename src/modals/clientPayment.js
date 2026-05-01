@@ -10,6 +10,7 @@ const ClientPaymentSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+
     paymentDate: {
         type: Date,
         default: Date.now
@@ -50,10 +51,6 @@ const ClientPaymentSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-
-
-
-
-})
+}, { timestamps: true });
 
 module.exports = mongoose.model("ClientPayment", ClientPaymentSchema);

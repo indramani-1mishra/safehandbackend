@@ -37,7 +37,7 @@ const getAllClientPayments = async (query = {}) => {
                 { path: 'serviceDetails.service', select: 'name' }
             ]
         })
-        .sort({ createdAt: -1 })
+        .sort({ paymentDate: -1, createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(Number(limit));
 }
@@ -56,7 +56,7 @@ const getClientPaymentsByJobCardId = async (jobCardId) => {
 
 const getLatestClientPaymentByJobCardId = async (jobCardId) => {
     const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
-    return await ClientPayment.findOne({ jobCardId: safeJobCardId }).sort({ createdAt: -1 });
+    return await ClientPayment.findOne({ jobCardId: safeJobCardId }).sort({ paymentDate: -1, createdAt: -1, _id: -1 });
 }
 
 const getClientwithreachlimit = async () => {
