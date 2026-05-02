@@ -28,8 +28,10 @@ const getAllEnquiries = async (query = {}) => {
     if (search) {
         filter = {
             $or: [
-                { "patientDetails.name": { $regex: search, $options: "i" } },
-                { "patientDetails.phone": { $regex: search, $options: "i" } }
+                { "name": { $regex: search, $options: "i" } },
+                { "phone": { $regex: search, $options: "i" } },
+                { "email": { $regex: search, $options: "i" } },
+                { "patientName": { $regex: search, $options: "i" } }
             ]
         };
     }
@@ -69,8 +71,10 @@ const getEnquiries = async ({ type, status, page = 1, limit = 50, search }) => {
     if (status) filter.status = status;
     if (search) {
         filter.$or = [
-            { "patientDetails.name": { $regex: search, $options: "i" } },
-            { "patientDetails.phone": { $regex: search, $options: "i" } }
+            { "name": { $regex: search, $options: "i" } },
+            { "phone": { $regex: search, $options: "i" } },
+            { "email": { $regex: search, $options: "i" } },
+            { "patientName": { $regex: search, $options: "i" } }
         ];
     }
 

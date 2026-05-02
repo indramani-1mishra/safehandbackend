@@ -185,6 +185,14 @@ const getAdminAllWorkersPayablesService = async (filters = {}) => {
         }
 
         // 2. Apply Dynamic Filters
+        if (filters.search) {
+            const s = filters.search.toLowerCase();
+            summaryList = summaryList.filter(item => 
+                (item.workerName && item.workerName.toLowerCase().includes(s)) ||
+                (item.patientName && item.patientName.toLowerCase().includes(s))
+            );
+        }
+
         if (filters.hasPendingRequest === 'true') {
             summaryList = summaryList.filter(item => item.pendingAmount > 0);
         }

@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const ClientPayment = require("../modals/clientPayment");
 
 const createClientPayment = async (data) => {
