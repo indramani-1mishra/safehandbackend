@@ -57,11 +57,11 @@ const updateEnquiryStatus = async (id, status) => {
 
 }
 const getEnquiryByStatus = async (status) => {
-    return await Enquiry.find({ status });
+    return await Enquiry.find({ status }).sort({ createdAt: -1 });
 };
 
 const getEnquiryByType = async (type) => {
-    return await Enquiry.find({ enquiryType: type });
+    return await Enquiry.find({ enquiryType: type }).sort({ createdAt: -1 });
 };
 
 const getEnquiries = async ({ type, status, page = 1, limit = 50, search }) => {

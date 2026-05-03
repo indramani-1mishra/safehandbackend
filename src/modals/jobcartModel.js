@@ -84,6 +84,10 @@ const jobCardSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    remark: {
+        type: String,
+        default: ""
+    },
 
 
 

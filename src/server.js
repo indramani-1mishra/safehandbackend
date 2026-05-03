@@ -86,9 +86,13 @@ createDefaultAdmin();
 
 const { startPaymentReminderCron } = require('./services/paymentReminderService');
 //const { startGKQuestionCron } = require('./services/gkQuestionCronService');
+const TESTINGPORT = 5001;
+const mode = "production"
+const CURRENT_PORT = mode === "local" ? TESTINGPORT : PORT;
 
-server.listen(PORT, async () => {
-    console.log(`Server is running on port ${PORT}`);
+
+server.listen(CURRENT_PORT, async () => {
+    console.log(`Server is running on port ${CURRENT_PORT}`);
     await connectToDatabase();
 
     // Start background job for payment reminders

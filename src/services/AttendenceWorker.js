@@ -104,15 +104,17 @@ const verifyAttendanceOtpService = async (data) => {
             // Update Client Payment Logic: Use wallet (availableBalance) first, then debt (remainingAmount)
             const perDayCost = jobCard.perDayCustomerCost || 0;
             const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(jobCardId);
-            
+
             let currentAvailable = latestPayment ? (latestPayment.availableBalance || 0) : 0;
             let currentRemaining = latestPayment ? (latestPayment.remainingAmount || 0) : 0;
-            
+
             let finalAvailable = currentAvailable;
             let finalRemaining = currentRemaining;
 
             if (currentAvailable >= perDayCost) {
                 finalAvailable = currentAvailable - perDayCost;
+
+
             } else {
                 const remainderToPay = perDayCost - currentAvailable;
                 finalAvailable = 0;
