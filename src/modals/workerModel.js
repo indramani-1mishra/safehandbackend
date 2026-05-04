@@ -16,7 +16,8 @@ const workerSchema = new mongoose.Schema({
     },
 
     photo: {
-        type: String
+        type: String,
+        default: ""
     },
 
     phone: {
@@ -107,6 +108,7 @@ const workerSchema = new mongoose.Schema({
     ifscCode: { type: String, default: "" },
     accountHolderName: { type: String, default: "" },
     upiId: { type: String, default: "" },
+    scanner: { type: String, default: "" }
 
 }, { timestamps: true });
 

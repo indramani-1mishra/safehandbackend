@@ -21,15 +21,14 @@ const generateTokens = (client) => {
     return { accessToken, refreshToken };
 };
 
-// 1. Send OTP for Registration (Check if phone exists)
-const sendOtpRegistrationService = async (phone) => {
+/**
+ * 🔥 UNIVERSAL AUTH FLOW (Login/Register)
+ * If user doesn't exist, it creates one.
+ * Sends OTP to phone number.
+ */
+const sendOtpService = async (phone) => {
     try {
-        const existingClient = await ClientRepository.findClientByPhoneRepository(phone);
-        if (existingClient && (existingClient.isPhoneVerified || existingClient.email)) {
-            throw new Error("Account already exists with this phone number");
-        }
-
-        let client = existingClient;
+        let client = await ClientRepository.findClientByPhoneRepository(phone);
         if (!client) {
             client = await ClientRepository.createClientRepository({ phone });
         }
@@ -47,14 +46,18 @@ const sendOtpRegistrationService = async (phone) => {
     }
 }
 
-// 2. Verify OTP for Registration (NOW Generates Tokens)
-const verifyOtpRegistrationService = async (phone, otp) => {
+/**
+ * 🔥 VERIFY OTP (Universal)
+ * Verifies OTP and returns Tokens.
+ */
+const verifyOtpService = async (phone, otp) => {
     try {
         const client = await ClientRepository.findClientByPhoneRepository(phone);
         if (!client) {
             throw new Error("Client not found");
         }
 
+        // Master OTP for testing
         if (client.phone === "0000000000" && otp === "123456") {
             await ClientRepository.updateClientRepository(client._id, {
                 otp: null,
@@ -90,7 +93,10 @@ const verifyOtpRegistrationService = async (phone, otp) => {
     }
 }
 
-// 3. Complete Registration (Authenticated - Called with Access Token)
+/**
+ * 🔥 COMPLETE PROFILE (Registration Step 2)
+ * After verification, user provides name/email.
+ */
 const completeRegistrationService = async (clientId, data) => {
     const { email, name, image } = data;
     if (!email || !name) {
@@ -106,7 +112,6 @@ const completeRegistrationService = async (clientId, data) => {
         throw new Error("Phone not verified. Please verify phone first.");
     }
 
-    // Check if email is already taken by another client
     const existingEmailClient = await ClientRepository.findClientByEmailRepository(email);
     if (existingEmailClient && existingEmailClient._id.toString() !== client._id.toString()) {
         throw new Error("Account already exists with this email");
@@ -118,84 +123,9 @@ const completeRegistrationService = async (clientId, data) => {
         image: image || client.image
     });
 
-    // Create cart only if it doesn't exist
     await cartRepository.createCart({ userId: updatedClient._id });
 
     return updatedClient;
-}
-
-const sendOtpService = async (phone) => {
-    try {
-        const client = await ClientRepository.findClientByPhoneRepository(phone);
-        if (!client) {
-            throw new Error("Client not found");
-        }
-        const otp = generateSecureOtp();
-        await sendOtpThroughWhatsapp(phone, otp);
-        const hashedOtp = await hashOtp(otp);
-        await ClientRepository.updateClientRepository(client._id, {
-            otp: hashedOtp,
-            otpExpires: Date.now() + 5 * 60 * 1000 // 5 minutes
-        });
-        return { message: "OTP sent successfully" };
-    } catch (error) {
-        throw error;
-    }
-}
-
-const verifyOtpService = async (phone, otp) => {
-    try {
-        const client = await ClientRepository.findClientByPhoneRepository(phone);
-        if (!client) {
-            throw new Error("Client not found");
-        }
-
-        if (client.phone === "0000000000" && otp === "123456") {
-            const { accessToken, refreshToken } = generateTokens(client);
-            await ClientRepository.saveRefreshToken(client._id, refreshToken);
-            return {
-                client: {
-                    _id: client._id,
-                    email: client.email,
-                    phone: client.phone,
-                    name: client.name
-                },
-                accessToken,
-                refreshToken
-            };
-        }
-
-        if (client.otpExpires < Date.now()) {
-            throw new Error("OTP expired");
-        }
-
-        const isOtpValid = await verifyOtp(otp, client.otp);
-        if (!isOtpValid) {
-            throw new Error("Invalid OTP");
-        }
-
-        await ClientRepository.updateClientRepository(client._id, {
-            otp: null,
-            otpExpires: null,
-            isPhoneVerified: true
-        });
-
-        const { accessToken, refreshToken } = generateTokens(client);
-        await ClientRepository.saveRefreshToken(client._id, refreshToken);
-
-        return {
-            client: {
-                _id: client._id,
-                email: client.email,
-                phone: client.phone,
-                name: client.name
-            },
-            accessToken,
-            refreshToken
-        };
-    } catch (error) {
-        throw error;
-    }
 }
 
 const resendOtpService = async (phone) => {
@@ -214,82 +144,48 @@ const logoutService = async (id) => {
     }
 }
 
-const refreshTokenService = async (refreshToken) => {
+const refreshTokenService = async (oldRefreshToken) => {
     try {
-        if (!refreshToken) {
-            throw new Error("Refresh token required");
-        }
-
-        const decoded = jwt.verify(refreshToken, REFRESH_SECRET);
-        const client = await ClientRepository.findClientByRefreshToken(refreshToken);
+        const decoded = jwt.verify(oldRefreshToken, REFRESH_SECRET);
+        const client = await ClientRepository.findClientByRefreshToken(oldRefreshToken);
 
         if (!client || client._id.toString() !== decoded.id) {
-            throw new Error("Invalid or expired refresh token");
+            throw new Error("Invalid refresh token");
         }
 
-        const { accessToken, refreshToken: newRefreshToken } = generateTokens(client);
-        await ClientRepository.saveRefreshToken(client._id, newRefreshToken);
-
-        return {
-            client: {
-                _id: client._id,
-                email: client.email,
-                phone: client.phone,
-                name: client.name
-            },
-            accessToken,
-            refreshToken: newRefreshToken
-        };
+        const tokens = generateTokens(client);
+        await ClientRepository.saveRefreshToken(client._id, tokens.refreshToken);
+        return tokens;
     } catch (error) {
-        throw new Error(error.message || "Invalid refresh token");
+        throw new Error("Refresh token expired or invalid");
     }
 }
 
-const updateClientService = async (id, data) => {
-    if (!id) {
-        throw new Error("id not found");
-    }
-    const client1 = await ClientRepository.getClientByIdRepository(id);
-    if (!client1) {
-        throw new Error("account not found");
-    }
-
-    const client = await ClientRepository.updateClientRepository(id, data);
-    return client;
+const getAllClients = async () => {
+    return await ClientRepository.getAllClientsRepository();
 }
 
-const deleteClientService = async (id) => {
-    const client = await ClientRepository.getClientByIdRepository(id);
-    if (!client) {
-        throw new Error("account not found");
-    }
+const getClientById = async (id) => {
+    return await ClientRepository.getClientByIdRepository(id);
+}
+
+const updateClient = async (id, data) => {
+    return await ClientRepository.updateClientRepository(id, data);
+}
+
+const deleteClient = async (id) => {
     return await ClientRepository.deleteClientRepository(id);
 }
 
-const getClientByIdService = async (id) => {
-    const client = await ClientRepository.getClientByIdRepository(id);
-    if (!client) {
-        throw new Error("account not found");
-    }
-    return client;
-}
-
-const getAllClientsService = async () => {
-    const clients = await ClientRepository.getAllClientsRepository();
-    return clients;
-}
-
 module.exports = {
-    completeRegistrationService,
-    sendOtpRegistrationService,
-    verifyOtpRegistrationService,
     sendOtpService,
     verifyOtpService,
+    completeRegistrationService,
     resendOtpService,
     logoutService,
     refreshTokenService,
-    updateClientService,
-    deleteClientService,
-    getClientByIdService,
-    getAllClientsService,
-}
+    getAllClients,
+    getClientById,
+    updateClient,
+    deleteClient
+};

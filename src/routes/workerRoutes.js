@@ -11,7 +11,8 @@ router.post(
     isAdmin,
     upload.fields([
         { name: "image", maxCount: 1 },
-        { name: "documents", maxCount: 10 }
+        { name: "documents", maxCount: 10 },
+        { name: "scanner", maxCount: 1 }
     ]),
     workerController.createWorkerController
 );
@@ -25,7 +26,8 @@ router.put(
     allowAnyAuth,
     upload.fields([
         { name: "image", maxCount: 1 },
-        { name: "documents", maxCount: 10 }
+        { name: "documents", maxCount: 10 },
+        { name: "scanner", maxCount: 1 }
     ]),
     workerController.updateWorkerController
 );

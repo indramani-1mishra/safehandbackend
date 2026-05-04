@@ -33,7 +33,8 @@ const createWorkerSchema = Joi.object({
     accountNumber: Joi.string().allow("").optional(),
     ifscCode: Joi.string().allow("").optional(),
     accountHolderName: Joi.string().allow("").optional(),
-    upiId: Joi.string().allow("").optional()
+    upiId: Joi.string().allow("").optional(),
+    scanner: Joi.string().allow("").optional()
 });
 
 
@@ -66,7 +67,8 @@ const updateWorkerSchema = Joi.object({
     accountNumber: Joi.string().allow("").optional(),
     ifscCode: Joi.string().allow("").optional(),
     accountHolderName: Joi.string().allow("").optional(),
-    upiId: Joi.string().allow("").optional()
+    upiId: Joi.string().allow("").optional(),
+    scanner: Joi.string().allow("").optional()
 });
 
 module.exports = {

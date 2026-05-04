@@ -1,20 +1,24 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "SafeHand - Client Authentication & Management APIs",
+    "title": "SafeHand - Client Universal Auth APIs",
     "version": "1.0.0",
-    "description": "API documentation for Client registration (multi-step), Login, and Profile Management."
+    "description": "API documentation for Client Universal Authentication (Login/Register) and Profile Management."
   },
   "servers": [
     {
       "url": "https://api.safehandlifecare.com",
+      "description": "Production Server"
+    },
+    {
+      "url": "http://localhost:5001",
       "description": "Local Development Server"
     }
   ],
   "tags": [
     {
       "name": "Client Auth",
-      "description": "Registration, Login, and Session management."
+      "description": "Universal Login/Register flow and Session management."
     },
     {
       "name": "Client CRUD",
@@ -22,9 +26,10 @@
     }
   ],
   "paths": {
-    "/api/clients/register/send-otp": {
+    "/api/clients/send-otp": {
       "post": {
-        "summary": "Step 1: Send OTP for Registration",
+        "summary": "Universal: Send OTP for Login/Register",
+        "description": "If the phone number doesn't exist, it creates a new pending account. Otherwise, it prepares for login.",
         "tags": [
           "Client Auth"
         ],
@@ -51,19 +56,19 @@
           "200": {
             "description": "OTP sent successfully"
           },
-          "409": {
-            "description": "Account already exists"
+          "400": {
+            "description": "Invalid phone number"
           }
         }
       }
     },
-    "/api/clients/register/verify-otp": {
+    "/api/clients/verify-otp": {
       "post": {
-        "summary": "Step 2: Verify OTP for Registration",
+        "summary": "Universal: Verify OTP & Login",
         "tags": [
           "Client Auth"
         ],
-        "description": "Verifies the OTP and issues Access/Refresh tokens via Cookies.",
+        "description": "Verifies the OTP and issues Access/Refresh tokens via Cookies. Works for both new and existing users.",
         "requestBody": {
           "required": true,
           "content": {
@@ -90,7 +95,7 @@
         },
         "responses": {
           "200": {
-            "description": "Phone verified successfully. Tokens set in Cookies."
+            "description": "Authentication successful. Tokens set in Cookies."
           },
           "400": {
             "description": "Invalid or expired OTP"
@@ -98,13 +103,13 @@
         }
       }
     },
-    "/api/clients/register/complete": {
+    "/api/clients/complete-profile": {
       "post": {
-        "summary": "Step 3: Complete Profile (Authenticated)",
+        "summary": "Profile: Complete Registration (Authenticated)",
         "tags": [
           "Client Auth"
         ],
-        "description": "Finalizes the registration by adding Name and Email. Requires Access Token.",
+        "description": "Used by new users to provide Name and Email after phone verification. Requires Access Token.",
         "requestBody": {
           "required": true,
           "content": {
@@ -139,13 +144,16 @@
           },
           "401": {
             "description": "Unauthorized - Missing or invalid token"
+          },
+          "409": {
+            "description": "Email already exists"
           }
         }
       }
     },
-    "/api/clients/login/send-otp": {
+    "/api/clients/resend-otp": {
       "post": {
-        "summary": "Login: Send OTP for existing user",
+        "summary": "Auth: Resend OTP",
         "tags": [
           "Client Auth"
         ],
@@ -160,8 +168,7 @@
                 ],
                 "properties": {
                   "phone": {
-                    "type": "string",
-                    "example": "9876543210"
+                    "type": "string"
                   }
                 }
               }
@@ -170,58 +177,14 @@
         },
         "responses": {
           "200": {
-            "description": "OTP sent successfully"
-          },
-          "404": {
-            "description": "Client not found"
-          }
-        }
-      }
-    },
-    "/api/clients/login/verify-otp": {
-      "post": {
-        "summary": "Login: Verify OTP and Login",
-        "tags": [
-          "Client Auth"
-        ],
-        "description": "Verifies OTP and issues tokens via Cookies.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "phone",
-                  "otp"
-                ],
-                "properties": {
-                  "phone": {
-                    "type": "string",
-                    "example": "9876543210"
-                  },
-                  "otp": {
-                    "type": "string",
-                    "example": "123456"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Login successful. Tokens set in Cookies."
-          },
-          "401": {
-            "description": "Invalid credentials"
+            "description": "OTP resent successfully"
           }
         }
       }
     },
     "/api/clients/logout": {
       "post": {
-        "summary": "Logout",
+        "summary": "Auth: Logout",
         "tags": [
           "Client Auth"
         ],
@@ -235,7 +198,7 @@
     },
     "/api/clients/refresh-token": {
       "post": {
-        "summary": "Refresh Session",
+        "summary": "Auth: Refresh Session",
         "tags": [
           "Client Auth"
         ],

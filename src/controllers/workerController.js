@@ -18,6 +18,10 @@ const createWorkerController = async (req, res) => {
             if (req.files.documents && req.files.documents.length > 0) {
                 workerData.documents = req.files.documents.map(file => file.location || file.path);
             }
+
+            if (req.files.scanner && req.files.scanner.length > 0) {
+                workerData.scanner = req.files.scanner[0].location || req.files.scanner[0].path;
+            }
         }
 
         // Form-data sometimes sends arrays as Strings. We must parse 'services' string to array if needed.
@@ -63,6 +67,10 @@ const updateWorkerController = async (req, res) => {
             if (req.files.documents && req.files.documents.length > 0) {
                 // Note: updating documents might just overwrite the array depending on requirement
                 workerData.documents = req.files.documents.map(file => file.location || file.path);
+            }
+
+            if (req.files.scanner && req.files.scanner.length > 0) {
+                workerData.scanner = req.files.scanner[0].location || req.files.scanner[0].path;
             }
         }
 
