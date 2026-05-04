@@ -7,14 +7,14 @@ const upload = multer({
     storage: multerS3({
         s3: s3,
         bucket: serverConfig.AWS_BUCKET_NAME,
-        contentType: multerS3.AUTO_CONTENT_TYPE, // Isse browser mein file open hogi, download nahi
+        acl: "public-read", // Make each uploaded file publicly accessible
+        contentType: multerS3.AUTO_CONTENT_TYPE,
         metadata: function (req, file, cb) {
             cb(null, { fieldName: file.fieldname });
         },
         key: function (req, file, cb) {
             const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
 
-            // Logic: Agar PDF hai toh 'documents' folder, baki sab 'images' folder mein
             let folder = "others";
             if (file.mimetype === "application/pdf") {
                 folder = "documents";
