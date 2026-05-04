@@ -2,23 +2,24 @@ const AdminLoginService = require("../services/AdminLoginAndLogoutService");
 const { NODE_ENV, REFRESH_SECRET } = require("../config/serverConfig");
 const jwt = require("jsonwebtoken");
 
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    path: "/",
+};
+
 const AdminLogin = async (req, res) => {
     try {
         const { admin, accessToken, refreshToken } = await AdminLoginService.AdminLogin(req.body);
 
         res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            path: "/",
+            ...cookieOptions,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
         res.cookie("adminToken", accessToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            path: "/",
+            ...cookieOptions,
             maxAge: 15 * 60 * 1000 // 15 minutes
         });
 
@@ -29,7 +30,6 @@ const AdminLogin = async (req, res) => {
                 email: admin.email,
                 role: admin.role
             },
-
             message: "Admin logged in successfully"
         });
 
@@ -48,18 +48,12 @@ const AdminRefreshToken = async (req, res) => {
         const { accessToken, refreshToken: newRefreshToken } = await AdminLoginService.AdminRefreshToken(refreshToken);
 
         res.cookie("refreshToken", newRefreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            path: "/",
+            ...cookieOptions,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
         res.cookie("adminToken", accessToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            path: "/",
+            ...cookieOptions,
             maxAge: 15 * 60 * 1000 // 15 minutes
         });
 
@@ -95,19 +89,8 @@ const AdminLogout = async (req, res) => {
             }
         }
 
-        res.clearCookie("refreshToken", {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            path: "/"
-        });
-
-        res.clearCookie("adminToken", {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            path: "/"
-        });
+        res.clearCookie("refreshToken", { ...cookieOptions });
+        res.clearCookie("adminToken", { ...cookieOptions });
 
         res.status(200).json({
             success: true,
