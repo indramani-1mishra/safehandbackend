@@ -2,10 +2,13 @@ const AdminLoginService = require("../services/AdminLoginAndLogoutService");
 const { NODE_ENV, REFRESH_SECRET } = require("../config/serverConfig");
 const jwt = require("jsonwebtoken");
 
+const isProduction = NODE_ENV === "production";
+
 const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: isProduction,
+    // Use "none" for cross-domain production, "lax" for local development
+    sameSite: isProduction ? "none" : "lax",
     path: "/",
 };
 
