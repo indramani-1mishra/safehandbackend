@@ -7,7 +7,7 @@ const upload = multer({
     storage: multerS3({
         s3: s3,
         bucket: serverConfig.AWS_BUCKET_NAME,
-        acl: "public-read", // Make each uploaded file publicly accessible
+        acl: undefined, // ACLs disabled on bucket - use Bucket Policy for public access
         contentType: multerS3.AUTO_CONTENT_TYPE,
         metadata: function (req, file, cb) {
             cb(null, { fieldName: file.fieldname });
