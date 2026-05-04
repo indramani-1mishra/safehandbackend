@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const clientController = require("../controllers/clientController");
 const upload = require("../middleware/multer");
-const { authMiddleware, isAdmin } = require("../middleware/authmiddleware");
+const { clientAuthMiddleware, isAdmin } = require("../middleware/authmiddleware");
 
 // --- UNIVERSAL AUTH FLOW (Login & Register) ---
 
@@ -15,7 +15,7 @@ router.post("/verify-otp", clientController.verifyOtpController);
 // 3. Complete Profile (Authenticated - for new users)
 router.post(
     "/complete-profile",
-    authMiddleware,
+    clientAuthMiddleware,
     upload.single("image"),
     clientController.completeRegistrationController
 );
@@ -30,9 +30,9 @@ router.post("/logout", clientController.logoutController);
 
 // --- ADMIN / CRUD ---
 
-router.put("/update/:id", authMiddleware, isAdmin, upload.single("image"), clientController.updateClientController);
-router.get("/getall", authMiddleware, isAdmin, clientController.getAllClientsController);
-router.get("/get/:id", authMiddleware, isAdmin, clientController.getClientByIdController);
-router.delete("/delete/:id", authMiddleware, isAdmin, clientController.deleteClientController);
+router.put("/update/:id", clientAuthMiddleware, upload.single("image"), clientController.updateClientController);
+router.get("/getall", clientAuthMiddleware, clientController.getAllClientsController);
+router.get("/get/:id", clientAuthMiddleware, clientController.getClientByIdController);
+router.delete("/delete/:id", clientAuthMiddleware, clientController.deleteClientController);
 
 module.exports = router;

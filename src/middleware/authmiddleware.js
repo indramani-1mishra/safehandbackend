@@ -67,7 +67,7 @@ const allowAnyAuth = (req, res, next) => {
 
 const clientAuthMiddleware = async (req, res, next) => {
     try {
-        const token = req.cookies.clientToken;
+        const token = req.cookies.clientAccessToken;
         if (!token) {
             return res.status(401).json({ success: false, message: "Authentication required. Please login." });
         }
