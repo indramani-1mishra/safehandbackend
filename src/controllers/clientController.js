@@ -1,4 +1,14 @@
 const clientService = require("../services/clientservice");
+const { NODE_ENV } = require("../config/serverConfig");
+
+const isProduction = NODE_ENV === "production";
+
+const getCookieOptions = (maxAge) => ({
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "strict",
+    maxAge
+});
 
 const sendOtpController = async (req, res) => {
     try {
@@ -23,19 +33,8 @@ const verifyOtpController = async (req, res) => {
         const result = await clientService.verifyOtpService(phone, otp);
         const { client, accessToken, refreshToken } = result;
 
-        res.cookie("clientAccessToken", accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 15 * 60 * 1000 
-        });
-
-        res.cookie("clientRefreshToken", refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000 
-        });
+        res.cookie("clientAccessToken", accessToken, getCookieOptions(15 * 60 * 1000));
+        res.cookie("clientRefreshToken", refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000));
 
         res.status(200).json({
             success: true,
@@ -84,24 +83,16 @@ const logoutController = async (req, res) => {
         const refreshToken = req.cookies.clientRefreshToken;
         if (refreshToken) {
             const jwt = require("jsonwebtoken");
+            const { REFRESH_SECRET } = require("../config/serverConfig");
             try {
-                const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
+                const decoded = jwt.verify(refreshToken, REFRESH_SECRET);
                 await clientService.logoutService(decoded.id);
             } catch (err) {}
         }
 
-        res.clearCookie("clientAccessToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            path: "/"
-        });
-        res.clearCookie("clientRefreshToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            path: "/"
-        });
+        const options = { ...getCookieOptions(0), path: "/" };
+        res.clearCookie("clientAccessToken", options);
+        res.clearCookie("clientRefreshToken", options);
 
         res.status(200).json({ success: true, message: "Logged out successfully" });
     } catch (error) {
@@ -118,19 +109,8 @@ const refreshTokenController = async (req, res) => {
 
         const { accessToken, refreshToken } = await clientService.refreshTokenService(oldRefreshToken);
 
-        res.cookie("clientAccessToken", accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 15 * 60 * 1000
-        });
-
-        res.cookie("clientRefreshToken", refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+        res.cookie("clientAccessToken", accessToken, getCookieOptions(15 * 60 * 1000));
+        res.cookie("clientRefreshToken", refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000));
 
         res.status(200).json({ success: true, message: "Token refreshed" });
     } catch (error) {

@@ -2,27 +2,28 @@ const AdminLoginService = require("../services/AdminLoginAndLogoutService");
 const { NODE_ENV, REFRESH_SECRET } = require("../config/serverConfig");
 const jwt = require("jsonwebtoken");
 
+// Use the imported NODE_ENV to ensure it's correctly loaded from config
 const isProduction = NODE_ENV === "production";
 
-const cookieOptions = {
+const getCookieOptions = () => ({
     httpOnly: true,
     secure: isProduction,
-    // Use "none" for cross-domain production, "lax" for local development
     sameSite: isProduction ? "none" : "lax",
     path: "/",
-};
+});
 
 const AdminLogin = async (req, res) => {
     try {
         const { admin, accessToken, refreshToken } = await AdminLoginService.AdminLogin(req.body);
+        const options = getCookieOptions();
 
         res.cookie("refreshToken", refreshToken, {
-            ...cookieOptions,
+            ...options,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
         res.cookie("adminToken", accessToken, {
-            ...cookieOptions,
+            ...options,
             maxAge: 15 * 60 * 1000 // 15 minutes
         });
 
@@ -47,16 +48,16 @@ const AdminLogin = async (req, res) => {
 const AdminRefreshToken = async (req, res) => {
     try {
         const refreshToken = req.cookies.refreshToken;
-
         const { accessToken, refreshToken: newRefreshToken } = await AdminLoginService.AdminRefreshToken(refreshToken);
+        const options = getCookieOptions();
 
         res.cookie("refreshToken", newRefreshToken, {
-            ...cookieOptions,
+            ...options,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
         res.cookie("adminToken", accessToken, {
-            ...cookieOptions,
+            ...options,
             maxAge: 15 * 60 * 1000 // 15 minutes
         });
 
@@ -76,6 +77,7 @@ const AdminRefreshToken = async (req, res) => {
 const AdminLogout = async (req, res) => {
     try {
         const refreshToken = req.cookies.refreshToken;
+        const options = getCookieOptions();
 
         if (refreshToken) {
             let decodedId = null;
@@ -92,8 +94,8 @@ const AdminLogout = async (req, res) => {
             }
         }
 
-        res.clearCookie("refreshToken", { ...cookieOptions });
-        res.clearCookie("adminToken", { ...cookieOptions });
+        res.clearCookie("refreshToken", { ...options });
+        res.clearCookie("adminToken", { ...options });
 
         res.status(200).json({
             success: true,
