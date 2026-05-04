@@ -2,22 +2,19 @@ const ClientRepository = require("../repository/ClientRepository");
 const JobCard = require("../modals/jobcartModel");
 const ClientPayment = require("../modals/clientPayment");
 
-/**
- * Helper to calculate inclusive days (Starts on 1st, Ends on 5th = 5 Days)
- * Using Midnight normalization to avoid hour/timezone issues.
- */
 
 
 const createClientPayment = async (data) => {
     try {
-        const { jobCardId, amount, paymentMethod } = data;
+        const { jobCardId, amount, paymentMethod, proofUrl } = data;
 
         const jobCard = await JobCard.findById(jobCardId);
         if (!jobCard) throw new Error("JobCard not found");
+        if (!proofUrl) throw new Error("Please upload a proof of payment");
 
         // 1. Get the latest status
         const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(jobCardId);
-        
+
         let currentAvailable = latestPayment ? (latestPayment.availableBalance || 0) : 0;
         let currentRemaining = latestPayment ? (latestPayment.remainingAmount || 0) : 0;
 
@@ -49,6 +46,8 @@ const createClientPayment = async (data) => {
             paymentStatus: "paid",
             paymentMethod: paymentMethod || "cash",
             paymentDate: new Date(),
+            proofUrl: proofUrl || "",
+
         };
 
         return await ClientRepository.createClientPayment(clientPaymentData);

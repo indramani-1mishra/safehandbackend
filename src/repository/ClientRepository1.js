@@ -33,6 +33,18 @@ const findClientByPhoneOrEmailRepository = async (phone, email) => {
     return await Client.findOne({ $or: [{ phone }, { email }] });
 }
 
+const saveRefreshToken = async (id, refreshToken) => {
+    return await Client.findByIdAndUpdate(id, { refreshToken }, { new: true });
+}
+
+const findClientByRefreshToken = async (refreshToken) => {
+    return await Client.findOne({ refreshToken });
+}
+
+const removeRefreshToken = async (id) => {
+    return await Client.findByIdAndUpdate(id, { refreshToken: null }, { new: true });
+}
+
 
 module.exports = {
     createClientRepository,
@@ -42,5 +54,8 @@ module.exports = {
     getAllClientsRepository,
     findClientByPhoneRepository,
     findClientByEmailRepository,
-    findClientByPhoneOrEmailRepository
+    findClientByPhoneOrEmailRepository,
+    saveRefreshToken,
+    findClientByRefreshToken,
+    removeRefreshToken
 }

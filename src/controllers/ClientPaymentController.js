@@ -2,6 +2,11 @@ const clientPaymentService = require("../services/clientPayementService");
 
 const createClientPayment = async (req, res) => {
     try {
+        const file = req.file?.location || "";
+
+        req.body.proofUrl = file;
+        console.log(file);
+
         const response = await clientPaymentService.createClientPayment(req.body);
         return res.status(201).json({
             success: true,

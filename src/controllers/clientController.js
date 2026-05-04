@@ -1,60 +1,112 @@
 const clientService = require("../services/clientservice");
 
-const createClientController = async (req, res) => {
+const sendOtpRegistrationController = async (req, res) => {
     try {
-        const { phone, email, password } = req.body;
-        if (req.file) {
-            req.body.image = req.file.location;
+        const { phone } = req.body;
+        if (!phone) {
+            throw new Error("Phone number is required");
         }
-        if (!phone || !email || !password) {
-            throw new Error("phone, email and password are required");
-        }
-
-        const client = await clientService.createClientService(req.body);
-        const { token, refreshToken } = client;
-
-        res.cookie("clientToken", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-        });
-        res.cookie("clientRefreshToken", refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-        });
-
-        res.status(201).json({ 
-            success: true, 
-            message: "Client created successfully", 
-            data: client.client 
-        });
-
+        const result = await clientService.sendOtpRegistrationService(phone);
+        res.status(200).json({ success: true, message: result.message });
     } catch (error) {
         const statusCode = error.message.includes("exists") ? 409 : 400;
         res.status(statusCode).json({ success: false, message: error.message });
     }
 }
 
-const loginClientController = async (req, res) => {
+const verifyOtpRegistrationController = async (req, res) => {
     try {
-        const { email, phone, password } = req.body;
-        if ((!email && !phone) || !password) {
-            throw new Error("Email/Phone and password are required");
+        const { phone, otp } = req.body;
+        if (!phone || !otp) {
+            throw new Error("Phone and OTP are required");
         }
+        const result = await clientService.verifyOtpRegistrationService(phone, otp);
+        const { client, accessToken, refreshToken } = result;
 
-        const result = await clientService.loginClientService({ email, phone, password });
-        const { client, token, refreshToken } = result;
-
-        res.cookie("clientToken", token, {
+        res.cookie("clientAccessToken", accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
+            maxAge: 15 * 60 * 1000 
         });
+
         res.cookie("clientRefreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000 
+        });
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Phone verified successfully. You are now logged in. Please complete your profile.", 
+            data: client 
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+}
+
+const completeRegistrationController = async (req, res) => {
+    try {
+        const { email, name } = req.body;
+        const clientId = req.user.id; // From authMiddleware
+
+        if (req.file) {
+            req.body.image = req.file.location;
+        }
+        if (!email || !name) {
+            throw new Error("email and name are required");
+        }
+
+        const client = await clientService.completeRegistrationService(clientId, req.body);
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Profile completed successfully", 
+            data: client 
+        });
+
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+}
+
+const sendOtpController = async (req, res) => {
+    try {
+        const { phone } = req.body;
+        if (!phone) {
+            throw new Error("Phone number is required");
+        }
+        const result = await clientService.sendOtpService(phone);
+        res.status(200).json({ success: true, message: result.message });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+}
+
+const verifyOtpController = async (req, res) => {
+    try {
+        const { phone, otp } = req.body;
+        if (!phone || !otp) {
+            throw new Error("Phone and OTP are required");
+        }
+
+        const result = await clientService.verifyOtpService(phone, otp);
+        const { client, accessToken, refreshToken } = result;
+
+        res.cookie("clientAccessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000 
+        });
+
+        res.cookie("clientRefreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000 
         });
 
         res.status(200).json({ 
@@ -62,6 +114,79 @@ const loginClientController = async (req, res) => {
             message: "Login successful", 
             data: client 
         });
+    } catch (error) {
+        res.status(401).json({ success: false, message: error.message });
+    }
+}
+
+const resendOtpController = async (req, res) => {
+    try {
+        const { phone } = req.body;
+        if (!phone) {
+            throw new Error("Phone number is required");
+        }
+        const result = await clientService.resendOtpService(phone);
+        res.status(200).json({ success: true, message: result.message });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+}
+
+const logoutController = async (req, res) => {
+    try {
+        const refreshToken = req.cookies.clientRefreshToken;
+        if (refreshToken) {
+            const jwt = require("jsonwebtoken");
+            try {
+                const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
+                await clientService.logoutService(decoded.id);
+            } catch (err) {}
+        }
+
+        res.clearCookie("clientAccessToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            path: "/"
+        });
+        res.clearCookie("clientRefreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            path: "/"
+        });
+
+        res.status(200).json({ success: true, message: "Logged out successfully" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+const refreshTokenController = async (req, res) => {
+    try {
+        const tokenFromCookie = req.cookies.clientRefreshToken;
+        if (!tokenFromCookie) {
+            return res.status(401).json({ success: false, message: "No refresh token provided" });
+        }
+
+        const result = await clientService.refreshTokenService(tokenFromCookie);
+        const { client, accessToken, refreshToken } = result;
+
+        res.cookie("clientAccessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000 
+        });
+
+        res.cookie("clientRefreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000 
+        });
+
+        res.status(200).json({ success: true, data: client });
     } catch (error) {
         res.status(401).json({ success: false, message: error.message });
     }
@@ -107,10 +232,16 @@ const getAllClientsController = async (req, res) => {
 }
 
 module.exports = {
-    createClientController,
-    loginClientController,
+    sendOtpRegistrationController,
+    verifyOtpRegistrationController,
+    completeRegistrationController,
+    sendOtpController,
+    verifyOtpController,
+    resendOtpController,
+    logoutController,
+    refreshTokenController,
     updateClientController,
     deleteClientController,
     getClientByIdController,
     getAllClientsController
-}
+}

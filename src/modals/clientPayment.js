@@ -53,6 +53,10 @@ const ClientPaymentSchema = new mongoose.Schema({
     },
     availableBalance: {
         type: Number,
+    },
+    proofUrl: {
+        type: String,
+
     }
 }, { timestamps: true });
 

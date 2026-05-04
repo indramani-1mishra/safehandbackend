@@ -4,18 +4,66 @@ const clientController = require("../controllers/clientController");
 const upload = require("../middleware/multer");
 const { authMiddleware, isAdmin } = require("../middleware/authmiddleware");
 
-// Login Client
+// --- REGISTRATION FLOW ---
+
+// 1. Send OTP for Registration (Public)
 router.post(
-    "/login",
-    clientController.loginClientController
+    "/register/send-otp",
+    clientController.sendOtpRegistrationController
 );
 
-// Create Client - Public (Password based)
+// 2. Verify OTP for Registration (Public - Returns Tokens)
 router.post(
-    "/create",
-    upload.single("image"),
-    clientController.createClientController
+    "/register/verify-otp",
+    clientController.verifyOtpRegistrationController
 );
+
+// 3. Complete Registration (Authenticated - Uses Access Token)
+router.post(
+    "/register/complete",
+    authMiddleware, // Protect this route
+    upload.single("image"),
+    clientController.completeRegistrationController
+);
+
+
+// --- LOGIN FLOW ---
+
+// Send OTP for Login
+router.post(
+    "/login/send-otp",
+    clientController.sendOtpController
+);
+
+// Verify OTP for Login
+router.post(
+    "/login/verify-otp",
+    clientController.verifyOtpController
+);
+
+
+// --- SESSION MANAGEMENT ---
+
+// Resend OTP
+router.post(
+    "/resend-otp",
+    clientController.resendOtpController
+);
+
+// Refresh Token
+router.post(
+    "/refresh-token",
+    clientController.refreshTokenController
+);
+
+// Logout
+router.post(
+    "/logout",
+    clientController.logoutController
+);
+
+
+// --- ADMIN / CRUD ---
 
 // Update Client
 router.put(

@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const clientPaymentController = require("../controllers/ClientPaymentController");
-
+const upload = require("../middleware/multer");
 // Create payment
-router.post("/", clientPaymentController.createClientPayment);
+router.post("/", upload.single("proofUrl"), clientPaymentController.createClientPayment);
 
 // Get today's due payments (Admin Panel Alert)
 router.get("/due/today", clientPaymentController.getTodayDuePayments);

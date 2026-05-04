@@ -1,0 +1,360 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SafeHand - Client Authentication & Management APIs",
+    "version": "1.0.0",
+    "description": "API documentation for Client registration (multi-step), Login, and Profile Management."
+  },
+  "servers": [
+    {
+      "url": "https://api.safehandlifecare.com",
+      "description": "Local Development Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Client Auth",
+      "description": "Registration, Login, and Session management."
+    },
+    {
+      "name": "Client CRUD",
+      "description": "Profile updates and administrative actions."
+    }
+  ],
+  "paths": {
+    "/api/clients/register/send-otp": {
+      "post": {
+        "summary": "Step 1: Send OTP for Registration",
+        "tags": [
+          "Client Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "phone"
+                ],
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "example": "9876543210"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP sent successfully"
+          },
+          "409": {
+            "description": "Account already exists"
+          }
+        }
+      }
+    },
+    "/api/clients/register/verify-otp": {
+      "post": {
+        "summary": "Step 2: Verify OTP for Registration",
+        "tags": [
+          "Client Auth"
+        ],
+        "description": "Verifies the OTP and issues Access/Refresh tokens via Cookies.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "phone",
+                  "otp"
+                ],
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "example": "9876543210"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "example": "123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phone verified successfully. Tokens set in Cookies."
+          },
+          "400": {
+            "description": "Invalid or expired OTP"
+          }
+        }
+      }
+    },
+    "/api/clients/register/complete": {
+      "post": {
+        "summary": "Step 3: Complete Profile (Authenticated)",
+        "tags": [
+          "Client Auth"
+        ],
+        "description": "Finalizes the registration by adding Name and Email. Requires Access Token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "email"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "john@example.com"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile completed successfully"
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid token"
+          }
+        }
+      }
+    },
+    "/api/clients/login/send-otp": {
+      "post": {
+        "summary": "Login: Send OTP for existing user",
+        "tags": [
+          "Client Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "phone"
+                ],
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "example": "9876543210"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP sent successfully"
+          },
+          "404": {
+            "description": "Client not found"
+          }
+        }
+      }
+    },
+    "/api/clients/login/verify-otp": {
+      "post": {
+        "summary": "Login: Verify OTP and Login",
+        "tags": [
+          "Client Auth"
+        ],
+        "description": "Verifies OTP and issues tokens via Cookies.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "phone",
+                  "otp"
+                ],
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "example": "9876543210"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "example": "123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful. Tokens set in Cookies."
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/clients/logout": {
+      "post": {
+        "summary": "Logout",
+        "tags": [
+          "Client Auth"
+        ],
+        "description": "Clears tokens from database and browser cookies.",
+        "responses": {
+          "200": {
+            "description": "Logged out successfully"
+          }
+        }
+      }
+    },
+    "/api/clients/refresh-token": {
+      "post": {
+        "summary": "Refresh Session",
+        "tags": [
+          "Client Auth"
+        ],
+        "description": "Uses the Refresh Token cookie to issue a new Access Token.",
+        "responses": {
+          "200": {
+            "description": "Session refreshed"
+          },
+          "401": {
+            "description": "Invalid or expired refresh token"
+          }
+        }
+      }
+    },
+    "/api/clients/getall": {
+      "get": {
+        "summary": "Admin: Get All Clients",
+        "tags": [
+          "Client CRUD"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all clients"
+          }
+        }
+      }
+    },
+    "/api/clients/get/{id}": {
+      "get": {
+        "summary": "Get Client by ID",
+        "tags": [
+          "Client CRUD"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Client data"
+          },
+          "404": {
+            "description": "Client not found"
+          }
+        }
+      }
+    },
+    "/api/clients/update/{id}": {
+      "put": {
+        "summary": "Admin: Update Client Profile",
+        "tags": [
+          "Client CRUD"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Client updated successfully"
+          }
+        }
+      }
+    },
+    "/api/clients/delete/{id}": {
+      "delete": {
+        "summary": "Admin: Delete Client",
+        "tags": [
+          "Client CRUD"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Client deleted successfully"
+          }
+        }
+      }
+    }
+  }
+}

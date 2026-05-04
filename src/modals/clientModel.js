@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const ClientSchema = mongoose.Schema({
     name: {
         type: String,
-        required: [true, "Name is required"],
         trim: true
     },
     image: {
@@ -18,16 +17,21 @@ const ClientSchema = mongoose.Schema({
     },
     email: {
         type: String,
-        required: [true, "Email is required"],
         unique: true,
         lowercase: true,
         trim: true,
-        index: true
+        index: true,
+        sparse: true
     },
-    password: {
+    isPhoneVerified: {
+        type: Boolean,
+        default: false
+    },
+    otp: {
         type: String,
-        required: [true, "Password is required"],
-        minlength: [6, "Password must be at least 6 characters long"]
+    },
+    otpExpires: {
+        type: Date,
     },
     address: {
         type: String,
@@ -45,22 +49,11 @@ const ClientSchema = mongoose.Schema({
         type: String,
         default: "India"
     },
+    refreshToken: {
+        type: String,
+    },
+
 }, { timestamps: true });
 
-const bcrypt = require("bcrypt");
-
-ClientSchema.pre("save", async function () {
-    if (!this.isModified("password")) return;
-    try {
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
-    } catch (error) {
-        throw error;
-    }
-});
-
-ClientSchema.methods.comparePassword = async function (candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
-};
 
 module.exports = mongoose.model("Client", ClientSchema);
