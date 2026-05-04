@@ -48,7 +48,7 @@ const verifyOtpController = async (req, res) => {
 
 const completeRegistrationController = async (req, res) => {
     try {
-        const clientId = req.user.id; 
+        const clientId = req.user.id;
         const { email, name } = req.body;
         let image = null;
 
@@ -87,7 +87,7 @@ const logoutController = async (req, res) => {
             try {
                 const decoded = jwt.verify(refreshToken, REFRESH_SECRET);
                 await clientService.logoutService(decoded.id);
-            } catch (err) {}
+            } catch (err) { }
         }
 
         const options = { ...getCookieOptions(0), path: "/" };
