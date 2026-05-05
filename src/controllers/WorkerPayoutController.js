@@ -20,6 +20,9 @@ const getPendingPayoutRequestsController = async (req, res) => {
 
 const createWorkerPayout = async (req, res) => {
     try {
+        if (req.file?.location) {
+            req.body.paymentproof = req.file.location;
+        }
         const payout = await WorkerPayoutService.createWorkerPayoutService(req.body);
         res.status(201).json({ success: true, data: payout });
     } catch (error) {
@@ -67,6 +70,9 @@ const getAdminAllWorkersPayablesController = async (req, res) => {
 
 const approvePayoutRequestController = async (req, res) => {
     try {
+        if (req.file?.location) {
+            req.body.paymentproof = req.file.location;
+        }
         const response = await WorkerPayoutService.approvePayoutRequestService(req.params.id, req.body);
         res.status(200).json(response);
     } catch (error) {

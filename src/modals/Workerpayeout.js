@@ -44,6 +44,9 @@ const WorkerPayoutSchema = new mongoose.Schema({
     remarks: {
         type: String,
         trim: true
+    },
+    paymentproof: {
+        type: String,
     }
 }, { timestamps: true });
 

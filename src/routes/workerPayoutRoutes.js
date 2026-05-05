@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const workerPayoutController = require("../controllers/WorkerPayoutController");
+const upload = require("../middleware/multer");
 const { authMiddleware, isAdmin, workerAuthMiddleware, allowAnyAuth } = require("../middleware/authmiddleware");
 
 /**
@@ -31,10 +32,10 @@ router.get("/admin/summary", authMiddleware, isAdmin, workerPayoutController.get
 router.get("/paid", authMiddleware, isAdmin, workerPayoutController.getPaidPayoutsController);
 
 // 7. Admin: Approve a pending request
-router.put("/approve/:id", authMiddleware, isAdmin, workerPayoutController.approvePayoutRequestController);
+router.put("/approve/:id", authMiddleware, isAdmin, upload.single("paymentproof"), workerPayoutController.approvePayoutRequestController);
 
 // 8. Admin: Mark as paid manually (Create Payout)
-router.post("/", authMiddleware, isAdmin, workerPayoutController.createWorkerPayout);
+router.post("/", authMiddleware, isAdmin, upload.single("paymentproof"), workerPayoutController.createWorkerPayout);
 
 // 9. Admin/Worker: Get due balance (Legacy endpoint)
 router.get("/due", allowAnyAuth, workerPayoutController.getWorkerPayoutDue);
