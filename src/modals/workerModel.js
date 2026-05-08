@@ -17,7 +17,8 @@ const workerSchema = new mongoose.Schema({
 
     photo: {
         type: String,
-        default: ""
+        default: `https://ui-avatars.com/api/?name=${this.name}&background=random&color=fff`
+
     },
 
     phone: {
@@ -29,11 +30,10 @@ const workerSchema = new mongoose.Schema({
 
     email: {
         type: String,
-        required: true,
         unique: true,
+        sparse: true,
         lowercase: true,
-        trim: true,
-        index: true
+        trim: true
     },
 
     age: {
@@ -108,7 +108,16 @@ const workerSchema = new mongoose.Schema({
     ifscCode: { type: String, default: "" },
     accountHolderName: { type: String, default: "" },
     upiId: { type: String, default: "" },
-    scanner: { type: String, default: "" }
+    scanner: { type: String, default: "" },
+    skills: [String],
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Admin"
+    },
+    updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Admin"
+    }
 
 }, { timestamps: true });
 

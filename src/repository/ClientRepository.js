@@ -24,7 +24,7 @@ const getAllClientPayments = async (query = {}) => {
     const { page = 1, limit = 50, search, ...filters } = query;
 
     let mongoQuery = { ...filters };
-    
+
     // If search is present, we first find matching JobCards
     if (search) {
         const JobCard = mongoose.model("JobCard");
@@ -34,7 +34,7 @@ const getAllClientPayments = async (query = {}) => {
                 { "patientDetails.phone": { $regex: search, $options: "i" } }
             ]
         }).select("_id");
-        
+
         const jobIds = matchingJobs.map(j => j._id);
         mongoQuery.jobCardId = { $in: jobIds };
     }
@@ -83,6 +83,42 @@ const getClientwithoverlimit = async () => {
 }
 
 
+const getReceivedPaymentByDate = async ({ startDate, endDate }) => {
+    const receiveData = await ClientPayment.find({
+        paymentDate: { $gte: startDate, $lte: endDate }
+    })
+        .populate({
+            path: 'jobCardId',
+            populate: { path: 'serviceDetails.service' }
+        })
+        .sort({ paymentDate: -1, createdAt: -1 })
+        .lean();
+
+
+    const totalAmount = receiveData.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+
+    return {
+        receiveData,
+        totalAmount,
+        count: receiveData.length
+    };
+}
+
+const pendingClientRemainingAmountbydate = async ({ startDate, endDate }) => {
+    const clientsPendingAmount = await ClientPayment.find({
+        paidUntilDate: { $gte: startDate, $lte: endDate }
+    })
+        .populate({
+            path: 'jobCardId',
+            populate: { path: 'serviceDetails.service' }
+        })
+        .sort({ paymentDate: -1, createdAt: -1 })
+        .lean();
+
+    const totalAmount = clientsPendingAmount.reduce((acc, curr) => acc + curr.remainingAmount, 0);
+    return { clientsPendingAmount, totalAmount, count: clientsPendingAmount.length };
+}
+
 module.exports = {
     createClientPayment,
     updateClientPayment,
@@ -92,5 +128,10 @@ module.exports = {
     getClientPaymentsByJobCardId,
     getLatestClientPaymentByJobCardId,
     getClientwithreachlimit,
-    getClientwithoverlimit
+    getClientwithoverlimit,
+
+    pendingClientRemainingAmountbydate,
+    getReceivedPaymentByDate,
+
+
 }

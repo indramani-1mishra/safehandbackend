@@ -121,6 +121,19 @@ const enquirySchema = new mongoose.Schema({
         enum: ["basic", "advance"],
 
     },
+    requestedSkills: {
+        type: [String],
+        default: []
+    },
+    prefreredReligion: {
+        type: String,
+        default: ""
+    },
+    preferredShift: {
+        type: String,
+        default: ""
+    },
+
 
     // 🔹 Status
     status: {

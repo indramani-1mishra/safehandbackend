@@ -36,6 +36,18 @@ const createClientPayment = async (data) => {
 
         const perDayAmount = jobCard.perDayCustomerCost || 0;
         const daysCovered = perDayAmount > 0 ? Math.floor(amount / perDayAmount) : 0;
+        const oldPaidUntilDate = latestPayment?.paidUntilDate;
+        const baseDate =
+            oldPaidUntilDate && new Date(oldPaidUntilDate) > new Date()
+                ? new Date(oldPaidUntilDate)
+                : new Date();
+
+        baseDate.setDate(
+            baseDate.getDate() + daysCovered
+        );
+
+        const paidUntilDate1 = baseDate;
+
 
         const clientPaymentData = {
             jobCardId,
@@ -47,6 +59,8 @@ const createClientPayment = async (data) => {
             paymentMethod: paymentMethod || "cash",
             paymentDate: new Date(),
             proofUrl: proofUrl || "",
+            paidUntilDate: paidUntilDate1,
+            paidFromDate: new Date(),
 
         };
 
@@ -134,6 +148,24 @@ const getClientPaymentsByJobCardId = async (jobCardId) => {
     return await ClientRepository.getClientPaymentsByJobCardId(jobCardId);
 }
 
+const getReceivedPaymentByDate = async ({ startDate, endDate }) => {
+    try {
+        if (!startDate || !endDate) throw new Error("Start date and end date are required");
+        return await ClientRepository.getReceivedPaymentByDate({ startDate, endDate });
+    } catch (error) {
+        throw error;
+    }
+}
+
+const pendingClientRemainingAmountbydate = async ({ startDate, endDate }) => {
+    try {
+        if (!startDate || !endDate) throw new Error("Start date and end date are required");
+        return await ClientRepository.pendingClientRemainingAmountbydate({ startDate, endDate });
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     createClientPayment,
     updateClientPayment,
@@ -143,5 +175,7 @@ module.exports = {
     getClientPaymentsByJobCardId,
     getClientwithreachlimit,
     getClientwithoverlimit,
-    getTodayDuePayments
+    getTodayDuePayments,
+    getReceivedPaymentByDate,
+    pendingClientRemainingAmountbydate
 }

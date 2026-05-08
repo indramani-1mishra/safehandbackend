@@ -287,6 +287,15 @@ const getPaidPayoutsService = async () => {
     }
 };
 
+const getAllPayoutByDateService = async ({ startDate, endDate }) => {
+    try {
+        if (!startDate || !endDate) throw new Error("Start date and end date are required");
+        return await WorkerPayoutRepository.getAllPayoutByDate({ startDate, endDate });
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
 module.exports = {
     requestPayoutService,
     getPendingPayoutRequestsService,
@@ -296,5 +305,6 @@ module.exports = {
     getWorkerBalanceService,
     getAdminAllWorkersPayablesService,
     approvePayoutRequestService,
-    getPaidPayoutsService
+    getPaidPayoutsService,
+    getAllPayoutByDateService
 };

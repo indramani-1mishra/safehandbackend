@@ -58,10 +58,56 @@ const deleteClientPayment = async (req, res) => {
     }
 };
 
+const getReceivedPaymentByDate = async (req, res) => {
+    try {
+        let startDate, endDate;
+        if (req.query.date) {
+            startDate = new Date(req.query.date);
+            startDate.setUTCHours(0, 0, 0, 0);
+            endDate = new Date(req.query.date);
+            endDate.setUTCHours(23, 59, 59, 999);
+        } else {
+            startDate = req.query.startDate ? new Date(req.query.startDate) : new Date();
+            startDate.setUTCHours(0, 0, 0, 0);
+            endDate = req.query.endDate ? new Date(req.query.endDate) : new Date();
+            endDate.setUTCHours(23, 59, 59, 999);
+        }
+        
+        const response = await clientPaymentService.getReceivedPaymentByDate({ startDate, endDate });
+        return res.status(200).json({ success: true, data: response });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const pendingClientRemainingAmountbydate = async (req, res) => {
+    try {
+        let startDate, endDate;
+        if (req.query.date) {
+            startDate = new Date(req.query.date);
+            startDate.setUTCHours(0, 0, 0, 0);
+            endDate = new Date(req.query.date);
+            endDate.setUTCHours(23, 59, 59, 999);
+        } else {
+            startDate = req.query.startDate ? new Date(req.query.startDate) : new Date();
+            startDate.setUTCHours(0, 0, 0, 0);
+            endDate = req.query.endDate ? new Date(req.query.endDate) : new Date();
+            endDate.setUTCHours(23, 59, 59, 999);
+        }
+        
+        const response = await clientPaymentService.pendingClientRemainingAmountbydate({ startDate, endDate });
+        return res.status(200).json({ success: true, data: response });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     createClientPayment,
     getTodayDuePayments,
     getAllClientPayments,
     getClientPaymentsByJobCardId,
-    deleteClientPayment
+    deleteClientPayment,
+    getReceivedPaymentByDate,
+    pendingClientRemainingAmountbydate
 };

@@ -40,4 +40,7 @@ router.post("/", authMiddleware, isAdmin, upload.single("paymentproof"), workerP
 // 9. Admin/Worker: Get due balance (Legacy endpoint)
 router.get("/due", allowAnyAuth, workerPayoutController.getWorkerPayoutDue);
 
+// 10. Admin: Get all payouts by date
+router.get("/reports/payout-by-date", authMiddleware, isAdmin, workerPayoutController.getAllPayoutByDateController);
+
 module.exports = router;

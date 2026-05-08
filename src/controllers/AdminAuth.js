@@ -14,6 +14,7 @@ const getCookieOptions = () => ({
 
 const AdminLogin = async (req, res) => {
     try {
+        console.log("AdminLogin", req.body);
         const { admin, accessToken, refreshToken } = await AdminLoginService.AdminLogin(req.body);
         const options = getCookieOptions();
 
@@ -38,9 +39,10 @@ const AdminLogin = async (req, res) => {
         });
 
     } catch (error) {
+        console.log("AdminLogin Error", error);
         res.status(401).json({
             success: false,
-            message: error.message
+            message: error.message || error
         });
     }
 };

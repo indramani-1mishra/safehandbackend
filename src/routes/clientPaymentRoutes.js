@@ -17,4 +17,10 @@ router.get("/jobcard/:jobCardId", clientPaymentController.getClientPaymentsByJob
 // Delete payment
 router.delete("/:id", clientPaymentController.deleteClientPayment);
 
+// Get received payment by date
+router.get("/reports/received-by-date", clientPaymentController.getReceivedPaymentByDate);
+
+// Get pending client amount by date
+router.get("/reports/pending-by-date", clientPaymentController.pendingClientRemainingAmountbydate);
+
 module.exports = router;

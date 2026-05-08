@@ -89,6 +89,22 @@ const getPaidPayoutsController = async (req, res) => {
     }
 };
 
+const getAllPayoutByDateController = async (req, res) => {
+    try {
+        let { startDate, endDate } = req.query;
+        startDate = new Date(startDate);
+        startDate.setUTCHours(0, 0, 0, 0);
+        endDate = new Date(endDate);
+        endDate.setUTCHours(23, 59, 59, 999);
+
+
+        const response = await WorkerPayoutService.getAllPayoutByDateService({ startDate, endDate });
+        res.status(200).json({ success: true, data: response });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     requestPayoutController,
     getPendingPayoutRequestsController,
@@ -98,5 +114,6 @@ module.exports = {
     getWorkerBalanceController,
     getAdminAllWorkersPayablesController,
     approvePayoutRequestController,
-    getPaidPayoutsController
+    getPaidPayoutsController,
+    getAllPayoutByDateController
 };

@@ -21,6 +21,15 @@ const getAllPayouts = async () => {
     return await WorkerPayout.find().populate("workerId").populate("jobCardId").sort({ createdAt: -1 });
 }
 
+const getAllPayoutByDate = async ({ startDate, endDate }) => {
+    const payoutData = await WorkerPayout.find({
+        payoutDate: { $gte: startDate, $lte: endDate }
+    }).populate("workerId").populate("jobCardId").sort({ payoutDate: -1, createdAt: -1 });
+
+    const totalAmount = payoutData.reduce((acc, curr) => acc + curr.amount, 0);
+    return { payoutData, totalAmount };
+}
+
 
 
 
@@ -39,5 +48,6 @@ module.exports = {
     getPayoutById,
     getAllPayouts,
     updateWorkerPayout,
-    getWorkerbyPayoutId
+    getWorkerbyPayoutId,
+    getAllPayoutByDate
 }

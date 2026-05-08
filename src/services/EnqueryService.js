@@ -18,7 +18,7 @@ const createEnquiryService = async (data) => {
             throw new Error("Missing required fields for urgent enquiry");
         }
     } else if (data.enquiryType === "serviceEnquery") {
-        if (!data.service || !data.serviceDuration) {
+        if (!data.service || !data.preferredShift) {
             throw new Error("Missing required fields for service enquiry");
         }
     }
