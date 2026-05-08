@@ -14,10 +14,15 @@ const swaggerDocument = require('./swagger/master_swagger.json');
 
 
 const app = express();
-
+const allowedOrigins = [
+    'https://www.safehandlifecare.com',
+    'https://safehandlifecare.com',
+    "http://localhost:3000",
+    "https://safehandwebsite.vercel.app"
+];
 // Middlewares
 app.use(cors({
-    origin: ['https://www.safehandlifecare.com', 'https://safehandlifecare.com', 'http://localhost:3000', 'http://localhost:3001', 'https://safehandwebsite.vercel.app'],
+    origin: allowedOrigins,
     credentials: true
 }));
 app.use(express.json());
@@ -87,7 +92,7 @@ createDefaultAdmin();
 const { startPaymentReminderCron } = require('./services/paymentReminderService');
 //const { startGKQuestionCron } = require('./services/gkQuestionCronService');
 const TESTINGPORT = 5001;
-const mode = "local"
+const mode = "online"
 const CURRENT_PORT = mode === "local" ? TESTINGPORT : PORT;
 
 
