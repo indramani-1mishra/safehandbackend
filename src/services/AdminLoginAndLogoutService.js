@@ -29,9 +29,9 @@ const AdminLogin = async (data) => {
 
     // ✅ Access Token (short life)
     const accessToken = jwt.sign(
-        { id: admin._id, role: admin.role },
+        { id: admin._id, role: admin.role, name: admin.name },
         JWT_SECRET,
-        { expiresIn: "15m" }
+        { expiresIn: "45m" }
     );
 
     // ✅ Refresh Token (long life)

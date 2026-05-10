@@ -7,7 +7,9 @@ const createWorkerSchema = Joi.object({
     email: Joi.string()
         .email()
         .lowercase()
-        .required(),
+        .optional(),
+
+    adminId: Joi.string().optional(),
 
     phone: Joi.string()
         .pattern(/^[0-9]{10}$/)
@@ -35,6 +37,7 @@ const createWorkerSchema = Joi.object({
     accountHolderName: Joi.string().allow("").optional(),
     upiId: Joi.string().allow("").optional(),
     scanner: Joi.string().allow("").optional()
+
 });
 
 
