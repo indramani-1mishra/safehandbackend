@@ -31,7 +31,7 @@ async function addToCart(userId, serviceId, selectionDetails, quantity = 1) {
             "items.city": city
         },
         { $inc: { "items.$.quantity": quantity } },
-        { new: true }
+        { returnDocument: 'after' }
     );
 
     // If item didn't exist with this configuration, push it
@@ -43,7 +43,7 @@ async function addToCart(userId, serviceId, selectionDetails, quantity = 1) {
                     items: { serviceId, city, quantity }
                 }
             },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
     }
 
@@ -57,7 +57,7 @@ async function updateCartItem(userId, itemId, quantity) {
     const cart = await Cart.findOneAndUpdate(
         { userId, "items._id": itemId },
         { $set: { "items.$.quantity": quantity } },
-        { new: true }
+        { returnDocument: 'after' }
     );
 
     if (!cart) {
@@ -74,7 +74,7 @@ async function removeCartItem(userId, itemId) {
     const cart = await Cart.findOneAndUpdate(
         { userId },
         { $pull: { items: { _id: itemId } } },
-        { new: true }
+        { returnDocument: 'after' }
     );
 
     if (!cart) {
@@ -91,7 +91,7 @@ async function clearCart(userId) {
     const cart = await Cart.findOneAndUpdate(
         { userId },
         { $set: { items: [] } },
-        { new: true }
+        { returnDocument: 'after' }
     );
 
     if (!cart) {

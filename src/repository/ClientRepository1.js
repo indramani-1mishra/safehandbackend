@@ -5,7 +5,7 @@ const createClientRepository = async (data) => {
 }
 
 const updateClientRepository = async (id, data) => {
-    return await Client.findByIdAndUpdate(id, data, { new: true });
+    return await Client.findByIdAndUpdate(id, data, { returnDocument: 'after' });
 }
 
 const deleteClientRepository = async (id) => {
@@ -34,7 +34,7 @@ const findClientByPhoneOrEmailRepository = async (phone, email) => {
 }
 
 const saveRefreshToken = async (id, refreshToken) => {
-    return await Client.findByIdAndUpdate(id, { refreshToken }, { new: true });
+    return await Client.findByIdAndUpdate(id, { refreshToken }, { returnDocument: 'after' });
 }
 
 const findClientByRefreshToken = async (refreshToken) => {
@@ -42,7 +42,7 @@ const findClientByRefreshToken = async (refreshToken) => {
 }
 
 const removeRefreshToken = async (id) => {
-    return await Client.findByIdAndUpdate(id, { refreshToken: null }, { new: true });
+    return await Client.findByIdAndUpdate(id, { refreshToken: null }, { returnDocument: 'after' });
 }
 
 

@@ -6,6 +6,7 @@ const createWorkerController = async (req, res) => {
         const workerData = { ...req.body };
 
         const adminId = req?.user?._id;
+        console.log(req?.user, "req?.user from worker controller create");
         if (!adminId) {
             return res.status(401).json({
                 success: false,
@@ -74,6 +75,7 @@ const updateWorkerController = async (req, res) => {
         const { id } = req.params;
         const workerData = { ...req.body };
         const adminId = req?.user?._id;
+        console.log(req?.user, "req?.user from worker controller update")
         if (!adminId) {
             return res.status(401).json({
                 success: false,

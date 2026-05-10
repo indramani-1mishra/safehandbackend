@@ -44,7 +44,7 @@ const deleteWorker = async (id) => {
 };
 
 const getAllWorkers = async (query = {}) => {
-    const { page = 1, limit = 50, search } = query;
+    const { page = 1, limit = 100, search } = query;
 
     let filter = {};
     if (search) {

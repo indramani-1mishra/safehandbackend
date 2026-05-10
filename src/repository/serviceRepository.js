@@ -8,7 +8,7 @@ const updateService = async (id, data) => {
     return await Service.findByIdAndUpdate(
         id,
         { $set: data },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     ).populate("subCategory", "name");
 };
 

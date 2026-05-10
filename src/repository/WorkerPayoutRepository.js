@@ -34,7 +34,7 @@ const getAllPayoutByDate = async ({ startDate, endDate }) => {
 
 
 const updateWorkerPayout = async (id, data) => {
-    return await WorkerPayout.findByIdAndUpdate(id, { $set: data }, { new: true });
+    return await WorkerPayout.findByIdAndUpdate(id, { $set: data }, { returnDocument: 'after' });
 }
 // find worker by payout id
 const getWorkerbyPayoutId = async (id) => {

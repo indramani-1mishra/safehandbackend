@@ -13,7 +13,7 @@ const getAllServiceCategoriesRepository = async () => {
 }
 
 const updateServiceCategoryRepository = async (id, data) => {
-    return await ServiceCategory.findByIdAndUpdate(id, data, { new: true });
+    return await ServiceCategory.findByIdAndUpdate(id, data, { returnDocument: 'after' });
 }
 
 const deleteServiceCategoryRepository = async (id) => {

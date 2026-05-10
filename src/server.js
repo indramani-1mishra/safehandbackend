@@ -92,7 +92,7 @@ createDefaultAdmin();
 const { startPaymentReminderCron } = require('./services/paymentReminderService');
 //const { startGKQuestionCron } = require('./services/gkQuestionCronService');
 const TESTINGPORT = 5001;
-const mode = "online"
+const mode = "dev"
 const CURRENT_PORT = mode === "local" ? TESTINGPORT : PORT;
 
 

@@ -77,7 +77,7 @@ const getAttendanceByWorkerIdAndJobCardIdAndDate = async (workerId, jobCardId, d
 
 const updateAttendance = async (id, data) => {
     try {
-        return await Attendance.findByIdAndUpdate(id, data, { new: true });
+        return await Attendance.findByIdAndUpdate(id, data, { returnDocument: 'after' });
     } catch (error) {
         throw error;
     }
