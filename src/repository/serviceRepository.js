@@ -17,7 +17,7 @@ const deleteService = async (id) => {
 };
 
 const getAllServices = async (query = {}) => {
-    const { page = 1, limit = 10 } = query;
+    const { page = 1, limit = 100 } = query;
     return await Service.find()
         .populate({
             path: "subCategory",
