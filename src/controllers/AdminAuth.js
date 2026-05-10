@@ -25,7 +25,7 @@ const AdminLogin = async (req, res) => {
 
         res.cookie("adminToken", accessToken, {
             ...options,
-            maxAge: 15 * 60 * 1000 // 15 minutes
+            maxAge: 45 * 60 * 1000 // 45 minutes
         });
 
         res.status(200).json({
@@ -60,7 +60,7 @@ const AdminRefreshToken = async (req, res) => {
 
         res.cookie("adminToken", accessToken, {
             ...options,
-            maxAge: 15 * 60 * 1000 // 15 minutes
+            maxAge: 45 * 60 * 1000 // 45 minutes
         });
 
         res.status(200).json({

@@ -5,7 +5,14 @@ const createWorkerController = async (req, res) => {
     try {
         const workerData = { ...req.body };
 
-
+        const adminId = req?.user?._id;
+        if (!adminId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+        workerData.adminId = adminId;
         // Handle uploaded files (Photo & Documents)
         if (req.files) {
             // Check if frontend uses "image" or "photo" as field name
@@ -33,7 +40,18 @@ const createWorkerController = async (req, res) => {
             }
         }
 
+        if (workerData.phone) {
+            const worker = await workerService.findWorkerByPhone(workerData.phone);
+            if (worker) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Worker with this phone number already exists"
+                });
+            }
+        }
+
         const worker = await workerService.createWorker(workerData);
+
 
         return res.status(201).json({
             success: true,
@@ -55,7 +73,14 @@ const updateWorkerController = async (req, res) => {
     try {
         const { id } = req.params;
         const workerData = { ...req.body };
-
+        const adminId = req?.user?._id;
+        if (!adminId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+        workerData.adminId = adminId;
         // Handle uploaded files during update
         if (req.files) {
             if (req.files.image && req.files.image.length > 0) {

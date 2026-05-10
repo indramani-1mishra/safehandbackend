@@ -140,6 +140,10 @@ const enquirySchema = new mongoose.Schema({
         type: String,
         enum: ["pending", "approved", "rejected"],
         default: "pending"
+    },
+    location: {
+        latitude: { type: Number, default: null },
+        longitude: { type: Number, default: null }
     }
 
 }, { timestamps: true }); ``
