@@ -58,6 +58,7 @@ const getAllWorkers = async (query = {}) => {
 
     return await Worker.find(filter)
         .populate({ path: 'services', model: Service })
+        .populate({ path: 'adminId', select: 'name' })
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(Number(limit));
