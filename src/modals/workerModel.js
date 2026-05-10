@@ -117,6 +117,10 @@ const workerSchema = new mongoose.Schema({
     updatedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Admin"
+    },
+    adminId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Admin"
     }
 
 }, { timestamps: true });
