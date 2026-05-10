@@ -7,6 +7,7 @@ const createWorkerSchema = Joi.object({
     email: Joi.string()
         .email()
         .lowercase()
+        .allow("")
         .optional(),
 
     adminId: Joi.string().optional(),
@@ -45,7 +46,7 @@ const createWorkerSchema = Joi.object({
 const updateWorkerSchema = Joi.object({
     name: Joi.string().trim().min(2).max(50),
 
-    email: Joi.string().email().lowercase(),
+    email: Joi.string().email().lowercase().allow("").optional(),
 
     phone: Joi.string().pattern(/^[0-9]{10}$/),
 
