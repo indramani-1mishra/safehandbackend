@@ -15,10 +15,14 @@ const createWorker = async (data) => {
         throw new AppError(error.details[0].message, 400);
     }
 
+    if (value.email === "") {
+        value.email = null;
+    }
+
     const { email, phone } = value;
 
     const [existingEmail, existingPhone] = await Promise.all([
-        workerRepository.findWorkerByEmail(email),
+        email ? workerRepository.findWorkerByEmail(email) : Promise.resolve(null),
         workerRepository.findWorkerByPhone(phone)
     ]);
 
@@ -46,6 +50,10 @@ const updateWorker = async (id, data) => {
 
     if (error) {
         throw new AppError(error.details[0].message, 400);
+    }
+
+    if (value.email === "") {
+        value.email = null;
     }
 
     const worker = await workerRepository.updateWorker(id, value);

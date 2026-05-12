@@ -47,6 +47,7 @@ const updateWorkerSchema = Joi.object({
     name: Joi.string().trim().min(2).max(50),
 
     email: Joi.string().email().lowercase().allow("").optional(),
+    adminId: Joi.string().optional(),
 
     phone: Joi.string().pattern(/^[0-9]{10}$/),
 
