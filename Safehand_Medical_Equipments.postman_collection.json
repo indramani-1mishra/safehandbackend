@@ -1,0 +1,349 @@
+{
+  "info": {
+    "name": "Safehand Medical Equipments",
+    "description": "API Collection for the new Medical Equipments module.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4001/api",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "YOUR_ADMIN_TOKEN_HERE",
+      "type": "string"
+    },
+    {
+      "key": "client_token",
+      "value": "YOUR_CLIENT_TOKEN_HERE",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Admin Auth",
+      "item": [
+        {
+          "name": "Admin Login (Get Token)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@safehand.com\",\n  \"password\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Equipment Categories",
+      "item": [
+        {
+          "name": "Create Category (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Wheelchairs", "type": "text" },
+                { "key": "image", "type": "file", "src": "" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/equipment-categories/create",
+              "host": ["{{base_url}}"],
+              "path": ["equipment-categories", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get All Categories (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/equipment-categories/getall",
+              "host": ["{{base_url}}"],
+              "path": ["equipment-categories", "getall"]
+            }
+          }
+        },
+        {
+          "name": "Update Category (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Premium Wheelchairs", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/equipment-categories/update/:id",
+              "host": ["{{base_url}}"],
+              "path": ["equipment-categories", "update", ":id"],
+              "variable": [
+                { "key": "id", "value": "REPLACE_WITH_CATEGORY_ID" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Category (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/equipment-categories/delete/:id",
+              "host": ["{{base_url}}"],
+              "path": ["equipment-categories", "delete", ":id"],
+              "variable": [
+                { "key": "id", "value": "REPLACE_WITH_CATEGORY_ID" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Equipments",
+      "item": [
+        {
+          "name": "Create Equipment (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Foldable Wheelchair", "type": "text" },
+                { "key": "description", "value": "Lightweight and foldable", "type": "text" },
+                { "key": "rentPricePerMonth", "value": "1500", "type": "text" },
+                { "key": "purchasePrice", "value": "8000", "type": "text" },
+                { "key": "bookingAmount", "value": "500", "type": "text" },
+                { "key": "categoryId", "value": "REPLACE_WITH_CATEGORY_ID", "type": "text" },
+                { "key": "keys", "value": "[\"Foldable\", \"Lightweight\"]", "type": "text" },
+                { "key": "pic", "type": "file", "src": "" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/equipments/create",
+              "host": ["{{base_url}}"],
+              "path": ["equipments", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get All Equipments (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/equipments/getall",
+              "host": ["{{base_url}}"],
+              "path": ["equipments", "getall"]
+            }
+          }
+        },
+        {
+          "name": "Get Equipment By ID (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/equipments/get/:id",
+              "host": ["{{base_url}}"],
+              "path": ["equipments", "get", ":id"],
+              "variable": [
+                { "key": "id", "value": "REPLACE_WITH_EQUIPMENT_ID" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Equipments By Category (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/equipments/getbycategory/:categoryId",
+              "host": ["{{base_url}}"],
+              "path": ["equipments", "getbycategory", ":categoryId"],
+              "variable": [
+                { "key": "categoryId", "value": "REPLACE_WITH_CATEGORY_ID" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Equipment Cart",
+      "item": [
+        {
+          "name": "Add Equipment To Cart (User)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": \"REPLACE_WITH_EQUIPMENT_ID\",\n  \"orderType\": \"rent\",\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/add-equipment",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "add-equipment"]
+            }
+          }
+        },
+        {
+          "name": "Update Equipment Cart Quantity (User)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/update-equipment/:itemId",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "update-equipment", ":itemId"],
+              "variable": [
+                { "key": "itemId", "value": "REPLACE_WITH_CART_ITEM_ID" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove Equipment from Cart (User)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cart/remove-equipment/:itemId",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "remove-equipment", ":itemId"],
+              "variable": [
+                { "key": "itemId", "value": "REPLACE_WITH_CART_ITEM_ID" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Equipment Orders",
+      "item": [
+        {
+          "name": "Book Order (User)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": \"REPLACE_WITH_EQUIPMENT_ID\",\n  \"orderType\": \"rent\",\n  \"shippingAddress\": \"123 Health Street\",\n  \"city\": \"Mumbai\",\n  \"contactNumber\": \"9876543210\",\n  \"bookingAmountPaid\": 500,\n  \"paymentId\": \"pay_test123\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/equipment-orders/book",
+              "host": ["{{base_url}}"],
+              "path": ["equipment-orders", "book"]
+            }
+          }
+        },
+        {
+          "name": "Get My Orders (User)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/equipment-orders/my-orders",
+              "host": ["{{base_url}}"],
+              "path": ["equipment-orders", "my-orders"]
+            }
+          }
+        },
+        {
+          "name": "Get All Orders (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/equipment-orders/all",
+              "host": ["{{base_url}}"],
+              "path": ["equipment-orders", "all"]
+            }
+          }
+        },
+        {
+          "name": "Update Order Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shipped\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/equipment-orders/status/:id",
+              "host": ["{{base_url}}"],
+              "path": ["equipment-orders", "status", ":id"],
+              "variable": [
+                { "key": "id", "value": "REPLACE_WITH_ORDER_ID" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

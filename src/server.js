@@ -45,7 +45,14 @@ const workerPayoutRoutes = require('./routes/workerPayoutRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const cartRoutes = require('./routes/cartRoutes');
-
+const equipmentCategoryRoutes = require('./routes/equipmentCategoryRoutes');
+const equipmentRoutes = require('./routes/equipmentRoutes');
+const equipmentOrderRoutes = require('./routes/equipmentOrderRoutes');
+const checkoutRoutes = require('./routes/checkoutRoutes');
+const productCategoryRoutes = require('./routes/productCategoryRoutes');
+const productSubCategoryRoutes = require('./routes/productSubCategoryRoutes');
+const productRoutes = require('./routes/productRoutes');
+const productOrderRoutes = require('./routes/productOrderRoutes');
 
 // API Routing setup
 app.use('/api/services', serviceRoutes);
@@ -64,7 +71,14 @@ app.use('/api/worker-payouts', workerPayoutRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/cart', cartRoutes);
-
+app.use('/api/equipment-categories', equipmentCategoryRoutes);
+app.use('/api/equipments', equipmentRoutes);
+app.use('/api/equipment-orders', equipmentOrderRoutes);
+app.use('/api/checkout', checkoutRoutes);
+app.use('/api/product-categories', productCategoryRoutes);
+app.use('/api/product-subcategories', productSubCategoryRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/product-orders', productOrderRoutes);
 
 
 // Swagger Documentation

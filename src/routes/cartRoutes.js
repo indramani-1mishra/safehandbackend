@@ -21,4 +21,14 @@ router.delete("/remove/:itemId", cartController.removeCartItemController);
 // Clear Entire Cart
 router.delete("/clear", cartController.clearCartController);
 
+// Equipment cart routes
+router.post("/add-equipment", cartController.addEquipmentToCartController);
+router.put("/update-equipment/:itemId", cartController.updateEquipmentCartItemController);
+router.delete("/remove-equipment/:itemId", cartController.removeEquipmentCartItemController);
+
+// Product cart routes
+router.post("/add-product", cartController.addProductToCartController);
+router.put("/update-product/:itemId", cartController.updateProductCartItemController);
+router.delete("/remove-product/:itemId", cartController.removeProductCartItemController);
+
 module.exports = router;

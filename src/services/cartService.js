@@ -34,7 +34,7 @@ const addToCartService = async (userId, serviceId, selectionDetails, quantity = 
     if (!userId || !serviceId) {
         throw new Error("User ID and Service ID are required");
     }
-    
+
     const { city } = selectionDetails;
     if (!city) {
         throw new Error("City is required for service selection");
@@ -51,11 +51,11 @@ const addToCartService = async (userId, serviceId, selectionDetails, quantity = 
  */
 const updateCartItemService = async (userId, itemId, quantity) => {
     if (quantity < 0) throw new Error("Quantity cannot be negative");
-    
+
     if (quantity === 0) {
         return await cartRepository.removeCartItem(userId, itemId);
     }
-    
+
     return await cartRepository.updateCartItem(userId, itemId, quantity);
 }
 
@@ -73,11 +73,52 @@ const clearCartService = async (userId) => {
     return await cartRepository.clearCart(userId);
 }
 
+const addEquipmentToCartService = async (userId, equipmentId, orderType, quantity = 1) => {
+    if (!userId || !equipmentId || !orderType) {
+        throw new Error("User ID, Equipment ID, and Order Type are required");
+    }
+    return await cartRepository.addEquipmentToCart(userId, equipmentId, orderType, quantity);
+}
+
+const updateEquipmentCartItemService = async (userId, itemId, quantity) => {
+    if (quantity < 0) throw new Error("Quantity cannot be negative");
+    if (quantity === 0) {
+        return await cartRepository.removeEquipmentCartItem(userId, itemId);
+    }
+    return await cartRepository.updateEquipmentCartItem(userId, itemId, quantity);
+}
+
+const removeEquipmentCartItemService = async (userId, itemId) => {
+    return await cartRepository.removeEquipmentCartItem(userId, itemId);
+}
+
+const addProductToCartService = async (userId, productId, quantity) => {
+    return await cartRepository.addProductToCart(userId, productId, quantity);
+}
+
+const updateProductCartItemService = async (userId, itemId, quantity) => {
+    if (quantity < 0) throw new Error("Quantity cannot be negative");
+    if (quantity === 0) {
+        return await cartRepository.removeProductCartItem(userId, itemId);
+    }
+    return await cartRepository.updateProductCartItem(userId, itemId, quantity);
+}
+
+const removeProductCartItemService = async (userId, itemId) => {
+    return await cartRepository.removeProductCartItem(userId, itemId);
+}
+
 module.exports = {
     createCartService,
     getCartByUserIdService,
     addToCartService,
     updateCartItemService,
     removeCartItemService,
-    clearCartService
+    clearCartService,
+    addEquipmentToCartService,
+    updateEquipmentCartItemService,
+    removeEquipmentCartItemService,
+    addProductToCartService,
+    updateProductCartItemService,
+    removeProductCartItemService
 }
