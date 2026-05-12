@@ -3,8 +3,9 @@ const JobCard = require("../modals/jobcartModel");
 const ClientPayment = require("../modals/clientPayment");
 const { generatePdf } = require("../utils/pdfGenerator");
 const { generateServiceInvoiceTemplate } = require("../utils/serviceInvocetemplate");
-const { sendWhatsappPdf } = require("../utils/sendWhatsappPdf");
+//const { sendWhatsappPdf } = require("../utils/sendWhatsappPdf");
 const { uploadPdfToS3 } = require("../utils/s3Upload");
+const { sendWhatsappTemplatePdf } = require("../utils/sendWhatsappTemplatePdf");
 
 const createInvoiceService = async (data) => {
     const { jobcard, clientPayment} = data;
@@ -56,17 +57,21 @@ const createInvoiceService = async (data) => {
     const pdfBuffer = await generatePdf(html);
     const invoiceFileName = `Invoice_${paymentdetails.invoiceNumber || invoiceRecord._id}.pdf`;
     const invoicepdfurl = await uploadPdfToS3(pdfBuffer, invoiceFileName);
+    console.log("Invoice PDF uploaded to S3 at URL:", invoicepdfurl);
 
     await InvoiceRepository.updateInvoice(invoiceRecord._id, { invoicepdf: invoicepdfurl });
 
     if (paymentdetails.clientPhone) {
         try {
-            await sendWhatsappPdf(
+            await sendWhatsappTemplatePdf(
                 paymentdetails.clientPhone,
                 invoicepdfurl,
                 invoiceFileName,
-                "Here is your invoice. Thank you for choosing our healthcare services!"
+                paymentdetails.clientName,
+                "en",
+                "invoice"
             );
+            console.log("Invoice sent via WhatsApp to:", paymentdetails.clientPhone);
         } catch (whatsappError) {
             console.error("Failed to send invoice via WhatsApp:", whatsappError);
         }

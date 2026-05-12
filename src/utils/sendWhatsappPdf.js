@@ -21,7 +21,7 @@ const sendWhatsappPdf = async (phoneNumber, pdfUrl, filename = "job_card.pdf", c
                 },
             }
         );
-        console.log(" WhatsApp PDF sent successfully:", response.data);
+        console.log(" WhatsApp PDF sent successfully :", response.data);
     } catch (error) {
         console.error(" Failed to send WhatsApp PDF:", error.response?.data || error.message);
     }
@@ -29,4 +29,4 @@ const sendWhatsappPdf = async (phoneNumber, pdfUrl, filename = "job_card.pdf", c
 
 module.exports = {
     sendWhatsappPdf
-};
+};
