@@ -1,6 +1,7 @@
 const ClientRepository = require("../repository/ClientRepository");
 const JobCard = require("../modals/jobcartModel");
 const ClientPayment = require("../modals/clientPayment");
+const { createInvoiceService } = require("./invoiceService");
 
 
 
@@ -11,6 +12,7 @@ const createClientPayment = async (data) => {
         const jobCard = await JobCard.findById(jobCardId);
         if (!jobCard) throw new Error("JobCard not found");
         if (!proofUrl) throw new Error("Please upload a proof of payment");
+
 
         // 1. Get the latest status
         const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(jobCardId);
@@ -64,7 +66,13 @@ const createClientPayment = async (data) => {
 
         };
 
-        return await ClientRepository.createClientPayment(clientPaymentData);
+
+        const clientPayment = await ClientRepository.createClientPayment(clientPaymentData);
+        await createInvoiceService({
+            jobcard: jobCardId,
+            clientPayment: clientPayment._id
+        });
+        return clientPayment;
     } catch (error) {
         throw error;
     }
