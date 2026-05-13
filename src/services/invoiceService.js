@@ -120,6 +120,17 @@ const deleteInvoiceService = async (id) => {
     return invoice;
 };
 
+const getInvoiceByDateRangeService = async (startDate, endDate) => {
+    if (!startDate || !endDate) throw new Error("Start date and end date are required");
+    return await InvoiceRepository.getInvoiceByDateRange(startDate, endDate);
+};
+
+const getInvoiceByClientNameOrNumberService = async (query) => {
+    const { clientName, number } = query;
+    if (!clientName && !number) throw new Error("Client name or phone number is required");
+    return await InvoiceRepository.getInvoiceByClientNameOrNumber({ clientName: clientName || "", number: number || "" });
+};
+
 module.exports = {
     createInvoiceService,
     getAllInvoicesService,
@@ -128,5 +139,7 @@ module.exports = {
     getInvoicesByJobCardIdService,
     getInvoicesByClientPaymentIdService,
     updateInvoiceService,
-    deleteInvoiceService
+    deleteInvoiceService,
+    getInvoiceByDateRangeService,
+    getInvoiceByClientNameOrNumberService
 };

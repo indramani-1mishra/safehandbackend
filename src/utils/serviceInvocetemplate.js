@@ -55,8 +55,10 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
             --navy: #112b4e; --slate: #475569; --silver: #f7fbff;
             --white: #ffffff; --border: #d9e8f7; --text: #1e2c43;
         }
-        @page { margin: 10mm; size: A4; }
+        html, body { height: 100%; }
+        @page { margin: 8mm; size: A4 portrait; }
         body {
+            margin: 0;
             font-family: 'DM Sans', sans-serif;
             color: var(--text);
             background: #f4fbff;
@@ -67,7 +69,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
             max-width: 794px; margin: 0 auto;
             background: var(--white); min-height: auto;
             position: relative; overflow: hidden;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.10);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.08);
             page-break-inside: avoid;
         }
         .letterhead-bg { position: absolute; inset: 0; z-index: 0; }
@@ -89,7 +91,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         /* HEADER */
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 45%, var(--accent-dark) 100%);
-            padding: 30px 36px 24px;
+            padding: 22px 28px 18px;
             display: flex; justify-content: space-between; align-items: flex-start;
             position: relative; overflow: hidden;
         }
@@ -101,23 +103,23 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .header-wave  { position: absolute; top: -40px; right: -40px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.10); }
         .header-wave2 { position: absolute; bottom: -60px; left: 26%; width: 180px; height: 180px; border-radius: 50%; background: rgba(122,193,66,0.14); }
         .company-block { color: var(--white); }
-        .company-name  { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.2; }
-        .company-sub   { font-size: 10px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 2.5px; margin-top: 3px; }
-        .company-details { margin-top: 12px; font-size: 11px; color: rgba(255,255,255,0.78); line-height: 1.65; }
+        .company-name  { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.2; }
+        .company-sub   { font-size: 9px; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
+        .company-details { margin-top: 10px; font-size: 10px; color: rgba(255,255,255,0.85); line-height: 1.55; }
         .gstin-badge {
             display: inline-block; background: rgba(255,255,255,0.1); color: #5eead4;
             padding: 2px 10px; border-radius: 4px; font-size: 10px; letter-spacing: 1px; margin-top: 4px;
         }
         .invoice-badge { text-align: right; color: var(--white); }
-        .invoice-tag   { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; letter-spacing: 4px; color: #5eead4; text-transform: uppercase; }
-        .invoice-num   { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; letter-spacing: 1px; }
+        .invoice-tag   { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; letter-spacing: 3px; color: #5eead4; text-transform: uppercase; }
+        .invoice-num   { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; letter-spacing: 1px; }
         .invoice-num span { color: var(--white); font-weight: 600; }
 
         /* STATUS RIBBON */
         .status-ribbon {
             background: var(--accent-light); border-bottom: 1px solid rgba(122,193,66,0.25);
-            padding: 10px 36px; display: flex; justify-content: space-between; align-items: center;
-            font-size: 12px; color: var(--navy);
+            padding: 8px 28px; display: flex; justify-content: space-between; align-items: center;
+            font-size: 11px; color: var(--navy);
         }
         .status-pill {
             display: inline-flex; align-items: center; gap: 6px;
@@ -142,7 +144,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .info-detail { font-size: 12px; color: var(--slate); line-height: 1.7; }
 
         /* DATE CHIPS */
-        .dates-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 22px; }
+        .dates-grid { display: grid; grid-template-columns: repeat(4, minmax(110px, 1fr)); gap: 9px; margin-bottom: 18px; }
         .date-chip  { background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); border: 1px solid rgba(10,102,180,0.18); border-radius: 10px; padding: 10px 12px; text-align: center; }
         .date-chip-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary-dark); font-weight: 600; margin-bottom: 4px; }
         .date-chip-value { font-size: 12.5px; font-weight: 700; color: var(--navy); }
@@ -182,22 +184,23 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .proof-section a { color: var(--primary); font-weight: 600; word-break: break-all; }
 
         /* TERMS */
-        .terms-section { margin-bottom: 20px; }
-        .terms-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
-        .terms-list { list-style: none; padding: 0; }
-        .terms-list li { font-size: 12px; color: var(--slate); line-height: 1.6; margin-bottom: 6px; }
-        .terms-list li:before { content: "•"; color: var(--teal); font-weight: bold; margin-right: 8px; }
+        .terms-section { margin-bottom: 16px; }
+        .terms-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+        .terms-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+        .terms-list li { width: calc(50% - 10px); font-size: 11px; color: var(--slate); line-height: 1.5; margin-bottom: 0; }
+        .terms-list li:before { content: "•"; color: var(--primary); font-weight: bold; display: inline-block; width: 1em; margin-right: 6px; }
 
         /* FOOTER */
         .footer-divider { height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary)); }
-        .invoice-footer { background: linear-gradient(135deg, var(--primary-dark), var(--accent-dark)); padding: 18px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .invoice-footer { background: linear-gradient(135deg, var(--primary-dark), var(--accent-dark)); padding: 16px 26px; display: flex; justify-content: space-between; align-items: center; }
         .footer-brand   { font-family: 'Playfair Display', serif; color: rgba(255,255,255,0.9); font-size: 14px; }
         .footer-note    { font-size: 11px; color: rgba(255,255,255,0.45); text-align: right; line-height: 1.7; }
 
         @media print {
             body { background: white; }
             .invoice-wrapper { box-shadow: none; margin: 0; max-width: 100%; }
-            .invoice-content, .body-section, .totals-section, .table-section { page-break-inside: avoid; }
+            .invoice-content, .header, .status-ribbon, .body-section, .totals-section, .table-section, .terms-section, .invoice-footer { page-break-inside: avoid; }
+            .invoice-content, .invoice-wrapper { page-break-after: auto; }
         }
     </style>
 </head>
