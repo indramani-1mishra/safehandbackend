@@ -1,4 +1,5 @@
 const generateServiceInvoiceTemplate = (paymentdetails) => {
+    // GST is 0% because healthcare services provided by Safehand Lifecare are exempt from GST under Indian tax laws.
     const {
         jobCardId,
         amount,
@@ -13,7 +14,10 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         clientPhone,
         clientAddress,
         serviceName,
-        invoiceNumber
+        invoiceNumber,
+        clientPincode,
+        serviceStartDate
+
     } = paymentdetails;
 
     const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -174,6 +178,13 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .proof-section { background: var(--silver); border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; border: 1px dashed var(--border); font-size: 12px; color: var(--slate); }
         .proof-section a { color: var(--teal); font-weight: 600; word-break: break-all; }
 
+        /* TERMS */
+        .terms-section { margin-bottom: 24px; }
+        .terms-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+        .terms-list { list-style: none; padding: 0; }
+        .terms-list li { font-size: 12px; color: var(--slate); line-height: 1.6; margin-bottom: 6px; }
+        .terms-list li:before { content: "•"; color: var(--teal); font-weight: bold; margin-right: 8px; }
+
         /* FOOTER */
         .footer-divider { height: 3px; background: linear-gradient(90deg, var(--teal), #06b6d4, var(--teal)); }
         .invoice-footer { background: linear-gradient(135deg, var(--navy), #1e3a5f); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
@@ -207,7 +218,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                     &#128222; 0120-6580106 &nbsp;|&nbsp; &#9993; Account@safehandlifecare.com<br>
                     &#127760; www.safehandlifecare.com
                 </div>
-                <div class="gstin-badge">GSTIN: ________ &nbsp;|&nbsp; State: 09 &ndash; Uttar Pradesh</div>
+                <div class="gstin-badge">GSTIN:09ABTCS3294F1ZP&nbsp;|&nbsp; State: 09 &ndash; Uttar Pradesh</div>
             </div>
             <div class="invoice-badge">
                 <div class="invoice-tag">Invoice</div>
@@ -296,11 +307,16 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                     <div class="payment-row"><span>Service From</span><span>${formatDate(paidFromDate)}</span></div>
                     <div class="payment-row"><span>Payment Mode</span><span>${capitalize(paymentMethod)}</span></div>
                     <div class="payment-row"><span>Payment Status</span><span style="color:${statusColor}">${capitalize(paymentStatus)}</span></div>
+                    <div class="payment-row"><span>GST</span><span>0%</span></div>
                 </div>
                 <div class="totals-box">
                     <div class="totals-row">
                         <span class="label">Amount</span>
                         <span class="value">${formatCurrency(amount)}</span>
+                    </div>
+                    <div class="totals-row">
+                        <span class="label">GST</span>
+                        <span class="value">0%</span>
                     </div>
                     <div class="totals-row balance-due">
                         <span class="label">Balance Due</span>
@@ -311,6 +327,19 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                         <span class="value">${formatCurrency(amount)}</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="terms-section">
+                <div class="terms-title">Terms and Conditions</div>
+                <ul class="terms-list">
+                    <li>Payment received successfully.</li>
+                    <li>Service charges are non-refundable.</li>
+                    <li>Replacement subject to availability.</li>
+                    <li>Extra duty/overtime chargeable separately.</li>
+                    <li>Disputes subject to Noida jurisdiction.</li>
+                    <li>We appreciate your trust in Safehand Lifecare Private Limited.</li>
+                </ul>
             </div>
 
             ${proofBlock}

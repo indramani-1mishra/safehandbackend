@@ -35,7 +35,8 @@ const createInvoiceService = async (data) => {
         paymentMethod: paymentExists.paymentMethod,
         paymentStatus: paymentExists.paymentStatus,
         remainingAmount: paymentExists.remainingAmount,
-        paidFromDate: paymentExists.paidFromDate,
+        paidUntilNow: paymentExists.paidUntilDate || "N/A",
+        paidFromDate: paymentExists?.paidFromDate || "N/A",
         proofUrl: paymentExists.proofUrl,
         clientName: jobCardExists.patientDetails?.name || jobCardExists.inquiryId?.patientName || "N/A",
         clientPhone: jobCardExists.patientDetails?.phone || jobCardExists.inquiryId?.patientPhone || "",
@@ -45,12 +46,13 @@ const createInvoiceService = async (data) => {
             jobCardExists.inquiryId?.address ||
             "",
         serviceName:
-            (jobCardExists.serviceDetails?.service && jobCardExists.serviceDetails.service.name) ||
-            jobCardExists.serviceDetails?.service ||
-            "Healthcare Service",
+            (jobCardExists.serviceDetails?.service && jobCardExists.serviceDetails.service.name) || "Healthcare Service",
+           
         plan: jobCardExists.serviceDetails?.plan || "",
         timing: jobCardExists.serviceDetails?.timing || "",
-        invoiceNumber: invoiceRecord.invoiceNumber
+        invoiceNumber: invoiceRecord.invoiceNumber,
+        clientPincode: jobCardExists.patientDetails?.pincode || jobCardExists.inquiryId?.pincode || "",
+        serviceStartDate: jobCardExists.inquiryId?.startDate || "",
     };
 
     const html = generateServiceInvoiceTemplate(paymentdetails);
