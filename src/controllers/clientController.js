@@ -158,6 +158,32 @@ const deleteClientController = async (req, res) => {
     }
 }
 
+const getMyJobCardsController = async (req, res) => {
+    try {
+        const JobCard = require("../modals/jobcartModel");
+        const ClientRepository = require("../repository/ClientRepository1");
+        
+        const client = await ClientRepository.getClientByIdRepository(req.user.id);
+        if (!client) throw new Error("Client not found");
+
+        const phone = client.phone;
+        
+        // Find job cards linked to this phone, hiding nurse costs and interested workers
+        const jobCards = await JobCard.find({ "patientDetails.phone": phone })
+            .select("-perDayNurseCost -nursePaymentCycleDays -workers.interested")
+            .populate({
+                path: "workers.assigned",
+                select: "-phone -email -address -payoutDetails -pan -aadhar -certificates" // Hide sensitive worker data
+            })
+            .populate("serviceDetails.service", "name pic")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ success: true, data: jobCards });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
 module.exports = {
     sendOtpController,
     verifyOtpController,
@@ -168,5 +194,6 @@ module.exports = {
     getAllClientsController,
     getClientByIdController,
     updateClientController,
-    deleteClientController
+    deleteClientController,
+    getMyJobCardsController
 };

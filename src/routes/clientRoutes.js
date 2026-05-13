@@ -35,4 +35,7 @@ router.get("/getall", clientAuthMiddleware, clientController.getAllClientsContro
 router.get("/get/:id", clientAuthMiddleware, clientController.getClientByIdController);
 router.delete("/delete/:id", clientAuthMiddleware, clientController.deleteClientController);
 
+// --- USER DATA FETCHING ---
+router.get("/my-jobcards", clientAuthMiddleware, clientController.getMyJobCardsController);
+
 module.exports = router;

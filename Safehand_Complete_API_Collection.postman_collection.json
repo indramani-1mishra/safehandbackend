@@ -1,0 +1,107 @@
+{
+  "info": {
+    "name": "SafeHand Medical & Services API Complete",
+    "description": "Complete collection of APIs for SafeHand including the Unified Cart, Medical Equipments, Products, and Unified Checkout systems.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.safehandlifecare.com/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Unified Cart",
+      "item": [
+        { "name": "Get User Cart", "request": { "method": "GET", "url": "{{baseUrl}}/cart" } },
+        { "name": "Add Service To Cart", "request": { "method": "POST", "url": "{{baseUrl}}/cart/add", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"serviceId\": \"SERVICE_ID_HERE\",\n  \"selectionDetails\": { \"city\": \"Mumbai\" },\n  \"quantity\": 1\n}" } } },
+        { "name": "Update Service Quantity", "request": { "method": "PUT", "url": "{{baseUrl}}/cart/update/SERVICE_ITEM_ID", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"quantity\": 2\n}" } } },
+        { "name": "Remove Service From Cart", "request": { "method": "DELETE", "url": "{{baseUrl}}/cart/remove/SERVICE_ITEM_ID" } },
+        { "name": "Add Equipment To Cart", "request": { "method": "POST", "url": "{{baseUrl}}/cart/add-equipment", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"equipmentId\": \"EQUIPMENT_ID_HERE\",\n  \"orderType\": \"rent\",\n  \"quantity\": 1\n}" } } },
+        { "name": "Update Equipment Quantity", "request": { "method": "PUT", "url": "{{baseUrl}}/cart/update-equipment/EQUIPMENT_ITEM_ID", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"quantity\": 2\n}" } } },
+        { "name": "Remove Equipment From Cart", "request": { "method": "DELETE", "url": "{{baseUrl}}/cart/remove-equipment/EQUIPMENT_ITEM_ID" } },
+        { "name": "Add Product To Cart", "request": { "method": "POST", "url": "{{baseUrl}}/cart/add-product", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"productId\": \"PRODUCT_ID_HERE\",\n  \"quantity\": 2\n}" } } },
+        { "name": "Update Product Quantity", "request": { "method": "PUT", "url": "{{baseUrl}}/cart/update-product/PRODUCT_ITEM_ID", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"quantity\": 5\n}" } } },
+        { "name": "Remove Product From Cart", "request": { "method": "DELETE", "url": "{{baseUrl}}/cart/remove-product/PRODUCT_ITEM_ID" } },
+        { "name": "Clear Entire Cart", "request": { "method": "DELETE", "url": "{{baseUrl}}/cart/clear" } }
+      ]
+    },
+    {
+      "name": "2. Unified Checkout",
+      "item": [
+        { "name": "Process Unified Cart Checkout", "request": { "method": "POST", "url": "{{baseUrl}}/checkout/process", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"paymentId\": \"pay_razorpay123\",\n  \"shippingAddress\": \"123 Health Street\",\n  \"city\": \"Mumbai\",\n  \"contactNumber\": \"9876543210\",\n  \"servicesData\": {\n    \"SERVICE_ID\": {\n      \"patientDetails\": { \"name\": \"Ravi Kumar\", \"age\": 65, \"gender\": \"male\", \"phone\": \"9876543210\", \"address\": \"123 Health Street\", \"city\": \"Mumbai\" },\n      \"serviceDetails\": { \"plan\": \"basic\", \"timing\": \"12hr\" },\n      \"serviceStart\": \"2026-06-01T10:00:00.000Z\",\n      \"perDayCustomerCost\": 500,\n      \"enquiryFor\": \"Father\"\n    }\n  },\n  \"equipmentsData\": {\n    \"EQUIPMENT_ID\": {\n      \"bookingAmountPaid\": 500\n    }\n  },\n  \"productsData\": {\n    \"PRODUCT_ID\": {}\n  }\n}" } } }
+      ]
+    },
+    {
+      "name": "3. Equipment Orders (Direct)",
+      "item": [
+        { "name": "Direct Equipment Booking", "request": { "method": "POST", "url": "{{baseUrl}}/equipment-orders/book", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"equipmentId\": \"EQUIPMENT_ID_HERE\",\n  \"orderType\": \"rent\",\n  \"bookingAmountPaid\": 500,\n  \"shippingAddress\": \"123 Health St\",\n  \"city\": \"Mumbai\",\n  \"contactNumber\": \"9876543210\",\n  \"paymentId\": \"pay_123\"\n}" } } },
+        { "name": "My Equipment Orders", "request": { "method": "GET", "url": "{{baseUrl}}/equipment-orders/my-orders" } },
+        { "name": "All Equipment Orders (Admin)", "request": { "method": "GET", "url": "{{baseUrl}}/equipment-orders/all" } },
+        { "name": "Get Order By ID (Admin)", "request": { "method": "GET", "url": "{{baseUrl}}/equipment-orders/get/ORDER_ID" } },
+        { "name": "Update Order Status (Admin)", "request": { "method": "PATCH", "url": "{{baseUrl}}/equipment-orders/status/ORDER_ID", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"status\": \"completed\"\n}" } } }
+      ]
+    },
+    {
+      "name": "4. Product Orders (Direct)",
+      "item": [
+        { "name": "Direct Product Buy", "request": { "method": "POST", "url": "{{baseUrl}}/product-orders/direct-buy", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"productId\": \"PRODUCT_ID_HERE\",\n  \"quantity\": 2,\n  \"shippingAddress\": \"123 Health St\",\n  \"city\": \"Mumbai\",\n  \"contactNumber\": \"9876543210\",\n  \"paymentId\": \"pay_123\"\n}" } } },
+        { "name": "My Product Orders", "request": { "method": "GET", "url": "{{baseUrl}}/product-orders/my-orders" } },
+        { "name": "All Product Orders (Admin)", "request": { "method": "GET", "url": "{{baseUrl}}/product-orders/all" } },
+        { "name": "Update Product Order Status (Admin)", "request": { "method": "PATCH", "url": "{{baseUrl}}/product-orders/status/ORDER_ID", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"status\": \"completed\"\n}" } } }
+      ]
+    },
+    {
+      "name": "5. Product Categories (Admin/Public)",
+      "item": [
+        { "name": "Get All Product Categories", "request": { "method": "GET", "url": "{{baseUrl}}/product-categories/all" } },
+        { "name": "Create Product Category", "request": { "method": "POST", "url": "{{baseUrl}}/product-categories/create", "body": { "mode": "formdata", "formdata": [ { "key": "name", "value": "Medicines", "type": "text", "description": "Required" }, { "key": "image", "type": "file", "description": "Required" } ] } } },
+        { "name": "Update Product Category", "request": { "method": "PATCH", "url": "{{baseUrl}}/product-categories/update/CATEGORY_ID", "body": { "mode": "formdata", "formdata": [ { "key": "name", "value": "Updated Medicines", "type": "text", "description": "Optional" }, { "key": "image", "type": "file", "description": "Optional" } ] } } },
+        { "name": "Delete Product Category", "request": { "method": "DELETE", "url": "{{baseUrl}}/product-categories/delete/CATEGORY_ID" } }
+      ]
+    },
+    {
+      "name": "6. Product SubCategories (Admin/Public)",
+      "item": [
+        { "name": "Get All SubCategories", "request": { "method": "GET", "url": "{{baseUrl}}/product-subcategories/all" } },
+        { "name": "Get SubCategories By Category", "request": { "method": "GET", "url": "{{baseUrl}}/product-subcategories/by-category/:categoryId" } },
+        { "name": "Create Product SubCategory", "request": { "method": "POST", "url": "{{baseUrl}}/product-subcategories/create", "body": { "mode": "formdata", "formdata": [ { "key": "categoryId", "value": "CAT_ID", "type": "text", "description": "Required" }, { "key": "name", "value": "Syrups", "type": "text", "description": "Required" }, { "key": "description", "value": "Liquid medicine", "type": "text", "description": "Optional" }, { "key": "image", "type": "file", "description": "Required" } ] } } },
+        { "name": "Update Product SubCategory", "request": { "method": "PATCH", "url": "{{baseUrl}}/product-subcategories/update/SUBCAT_ID", "body": { "mode": "formdata", "formdata": [ { "key": "name", "value": "Updated Syrups", "type": "text", "description": "Optional" }, { "key": "description", "value": "Updated description", "type": "text", "description": "Optional" }, { "key": "image", "type": "file", "description": "Optional" } ] } } },
+        { "name": "Delete Product SubCategory", "request": { "method": "DELETE", "url": "{{baseUrl}}/product-subcategories/delete/SUBCAT_ID" } }
+      ]
+    },
+    {
+      "name": "7. Products (Admin/Public)",
+      "item": [
+        { "name": "Get All Products", "request": { "method": "GET", "url": "{{baseUrl}}/products/all" } },
+        { "name": "Get Products By SubCategory", "request": { "method": "GET", "url": "{{baseUrl}}/products/by-subcategory/:subCategoryId" } },
+        { "name": "Get Single Product", "request": { "method": "GET", "url": "{{baseUrl}}/products/:id" } },
+        { "name": "Create Product", "request": { "method": "POST", "url": "{{baseUrl}}/products/create", "body": { "mode": "formdata", "formdata": [ { "key": "subCategoryId", "value": "SUB_CAT_ID", "type": "text", "description": "Required" }, { "key": "name", "value": "Paracetamol 500mg", "type": "text", "description": "Required" }, { "key": "description", "value": "Fever medicine", "type": "text", "description": "Optional" }, { "key": "price", "value": "100", "type": "text", "description": "Required" }, { "key": "availableQuantity", "value": "50", "type": "text", "description": "Required" }, { "key": "image", "type": "file", "description": "Required" } ] } } },
+        { "name": "Update Product", "request": { "method": "PATCH", "url": "{{baseUrl}}/products/update/PRODUCT_ID", "body": { "mode": "formdata", "formdata": [ { "key": "price", "value": "120", "type": "text", "description": "Optional" }, { "key": "availableQuantity", "value": "40", "type": "text", "description": "Optional" }, { "key": "description", "value": "Updated desc", "type": "text", "description": "Optional" } ] } } },
+        { "name": "Delete Product", "request": { "method": "DELETE", "url": "{{baseUrl}}/products/delete/PRODUCT_ID" } }
+      ]
+    },
+    {
+      "name": "8. Equipment Categories (Admin/Public)",
+      "item": [
+        { "name": "Get All Equipment Categories", "request": { "method": "GET", "url": "{{baseUrl}}/equipment-categories/all" } },
+        { "name": "Create Equipment Category", "request": { "method": "POST", "url": "{{baseUrl}}/equipment-categories/create", "body": { "mode": "formdata", "formdata": [ { "key": "name", "value": "Mobility Aids", "type": "text", "description": "Required" }, { "key": "image", "type": "file", "description": "Required" } ] } } },
+        { "name": "Update Equipment Category", "request": { "method": "PATCH", "url": "{{baseUrl}}/equipment-categories/update/CAT_ID", "body": { "mode": "formdata", "formdata": [ { "key": "name", "value": "Updated Aids", "type": "text", "description": "Optional" }, { "key": "image", "type": "file", "description": "Optional" } ] } } },
+        { "name": "Delete Equipment Category", "request": { "method": "DELETE", "url": "{{baseUrl}}/equipment-categories/delete/CAT_ID" } }
+      ]
+    },
+    {
+      "name": "9. Equipments (Admin/Public)",
+      "item": [
+        { "name": "Get All Equipments", "request": { "method": "GET", "url": "{{baseUrl}}/equipments/all" } },
+        { "name": "Get Equipments By Category", "request": { "method": "GET", "url": "{{baseUrl}}/equipments/by-category/:categoryId" } },
+        { "name": "Get Single Equipment", "request": { "method": "GET", "url": "{{baseUrl}}/equipments/:id" } },
+        { "name": "Create Equipment", "request": { "method": "POST", "url": "{{baseUrl}}/equipments/create", "body": { "mode": "formdata", "formdata": [ { "key": "categoryId", "value": "CAT_ID", "type": "text", "description": "Required" }, { "key": "name", "value": "Standard Wheelchair", "type": "text", "description": "Required" }, { "key": "description", "value": "Lightweight folding wheelchair", "type": "text", "description": "Required" }, { "key": "rentPricePerMonth", "value": "1500", "type": "text", "description": "Required" }, { "key": "purchasePrice", "value": "7500", "type": "text", "description": "Required" }, { "key": "bookingAmount", "value": "500", "type": "text", "description": "Optional (Defaults to 500)" }, { "key": "keys", "value": "Foldable", "type": "text", "description": "Optional (can send multiple keys as array)" }, { "key": "pic", "type": "file", "description": "Required" } ] } } },
+        { "name": "Update Equipment", "request": { "method": "PATCH", "url": "{{baseUrl}}/equipments/update/EQUIP_ID", "body": { "mode": "formdata", "formdata": [ { "key": "rentPricePerMonth", "value": "1800", "type": "text", "description": "Optional" }, { "key": "description", "value": "Updated desc", "type": "text", "description": "Optional" } ] } } },
+        { "name": "Delete Equipment", "request": { "method": "DELETE", "url": "{{baseUrl}}/equipments/delete/EQUIP_ID" } }
+      ]
+    }
+  ]
+}
