@@ -4,7 +4,7 @@ const { generateServiceInvoiceTemplate } = require("./serviceInvocetemplate");
 const paymentdetails = {
     jobCardId: "650000000000000000000000",
     _id: "650000000000000000000001",
-    amount: 2500,
+    amount: 2500, 
     paymentDate: "2026-05-13T10:00:00.000Z",
     createdAt: "2026-05-13T10:00:00.000Z",
     paymentMethod: "upi",

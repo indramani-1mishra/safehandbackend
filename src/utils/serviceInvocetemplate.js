@@ -30,7 +30,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
 
     const bgImg = paymentdetails.backgroundImage
         ? `<img src="${paymentdetails.backgroundImage}" alt="Letterhead Background">`
-        : '';
+        : `<img src="https://www.safehandlifecare.com/opengraph-image.jpg" alt="Safehand Lifecare Logo">`;
 
     const invoiceNo = invoiceNumber || (jobCardId ? jobCardId.toString().slice(-6).toUpperCase() : 'XXXXXX');
     const invoiceRef = jobCardId ? '#' + jobCardId.toString().slice(-8).toUpperCase() : 'N/A';
@@ -50,58 +50,60 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --teal: #0d9488; --teal-light: #ccfbf1; --teal-dark: #0f766e;
-            --navy: #0f172a; --slate: #475569; --silver: #f1f5f9;
-            --white: #ffffff; --border: #e2e8f0; --text: #1e293b;
+            --primary: #0d5ea8; --primary-light: #daf0ff; --primary-dark: #084975;
+            --accent: #7ac142; --accent-light: #def7e1; --accent-dark: #2f7d2e;
+            --navy: #112b4e; --slate: #475569; --silver: #f7fbff;
+            --white: #ffffff; --border: #d9e8f7; --text: #1e2c43;
         }
-        @page { margin: 0; size: A4; }
+        @page { margin: 10mm; size: A4; }
         body {
             font-family: 'DM Sans', sans-serif;
             color: var(--text);
-            background: var(--silver);
+            background: #f4fbff;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
         .invoice-wrapper {
             max-width: 794px; margin: 0 auto;
-            background: var(--white); min-height: 1123px;
+            background: var(--white); min-height: auto;
             position: relative; overflow: hidden;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.10);
+            page-break-inside: avoid;
         }
         .letterhead-bg { position: absolute; inset: 0; z-index: 0; }
-        .letterhead-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.07; }
+        .letterhead-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.08; }
         .corner-tl {
             position: absolute; top: 0; left: 0;
-            width: 200px; height: 200px;
-            background: linear-gradient(135deg, var(--teal) 0%, transparent 60%);
-            opacity: 0.12; z-index: 0;
+            width: 220px; height: 220px;
+            background: linear-gradient(135deg, var(--primary) 0%, rgba(122,193,66,0.12) 70%);
+            opacity: 0.16; z-index: 0;
         }
         .corner-br {
             position: absolute; bottom: 0; right: 0;
-            width: 180px; height: 180px;
-            background: linear-gradient(315deg, var(--teal-dark) 0%, transparent 60%);
-            opacity: 0.1; z-index: 0;
+            width: 200px; height: 200px;
+            background: linear-gradient(315deg, var(--accent-dark) 0%, transparent 65%);
+            opacity: 0.12; z-index: 0;
         }
         .invoice-content { position: relative; z-index: 1; }
 
         /* HEADER */
         .header {
-            background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 50%, var(--teal-dark) 100%);
-            padding: 32px 40px 28px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 45%, var(--accent-dark) 100%);
+            padding: 30px 36px 24px;
             display: flex; justify-content: space-between; align-items: flex-start;
             position: relative; overflow: hidden;
         }
         .header::after {
             content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
             height: 4px;
-            background: linear-gradient(90deg, var(--teal) 0%, #06b6d4 50%, var(--teal) 100%);
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 50%, var(--accent-dark) 100%);
         }
-        .header-wave  { position: absolute; top: -40px; right: -40px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.04); }
-        .header-wave2 { position: absolute; bottom: -60px; left: 30%; width: 160px; height: 160px; border-radius: 50%; background: rgba(13,148,136,0.15); }
+        .header-wave  { position: absolute; top: -40px; right: -40px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.10); }
+        .header-wave2 { position: absolute; bottom: -60px; left: 26%; width: 180px; height: 180px; border-radius: 50%; background: rgba(122,193,66,0.14); }
         .company-block { color: var(--white); }
         .company-name  { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.2; }
         .company-sub   { font-size: 10px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 2.5px; margin-top: 3px; }
-        .company-details { margin-top: 14px; font-size: 11.5px; color: rgba(255,255,255,0.75); line-height: 1.8; }
+        .company-details { margin-top: 12px; font-size: 11px; color: rgba(255,255,255,0.78); line-height: 1.65; }
         .gstin-badge {
             display: inline-block; background: rgba(255,255,255,0.1); color: #5eead4;
             padding: 2px 10px; border-radius: 4px; font-size: 10px; letter-spacing: 1px; margin-top: 4px;
@@ -113,9 +115,9 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
 
         /* STATUS RIBBON */
         .status-ribbon {
-            background: var(--silver); border-bottom: 1px solid var(--border);
-            padding: 10px 40px; display: flex; justify-content: space-between; align-items: center;
-            font-size: 12px; color: var(--slate);
+            background: var(--accent-light); border-bottom: 1px solid rgba(122,193,66,0.25);
+            padding: 10px 36px; display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px; color: var(--navy);
         }
         .status-pill {
             display: inline-flex; align-items: center; gap: 6px;
@@ -125,32 +127,32 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .status-dot { width: 7px; height: 7px; border-radius: 50%; background: ${statusColor}; }
 
         /* BODY */
-        .body-section { padding: 28px 40px; }
-        .parties-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+        .body-section { padding: 18px 26px; }
+        .parties-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
         .info-card {
-            background: var(--silver); border-radius: 12px; padding: 18px 20px;
+            background: var(--silver); border-radius: 12px; padding: 16px 18px;
             border: 1px solid var(--border); position: relative; overflow: hidden;
         }
         .info-card::before {
             content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-            background: linear-gradient(180deg, var(--teal), var(--teal-dark));
+            background: linear-gradient(180deg, var(--primary), var(--accent-dark));
         }
-        .info-label  { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--teal); font-weight: 600; margin-bottom: 8px; }
+        .info-label  { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--primary-dark); font-weight: 600; margin-bottom: 8px; }
         .info-name   { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
         .info-detail { font-size: 12px; color: var(--slate); line-height: 1.7; }
 
         /* DATE CHIPS */
-        .dates-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
-        .date-chip  { background: linear-gradient(135deg, var(--teal-light), #f0fdfa); border: 1px solid #99f6e4; border-radius: 10px; padding: 12px 14px; text-align: center; }
-        .date-chip-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--teal-dark); font-weight: 600; margin-bottom: 4px; }
+        .dates-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 22px; }
+        .date-chip  { background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); border: 1px solid rgba(10,102,180,0.18); border-radius: 10px; padding: 10px 12px; text-align: center; }
+        .date-chip-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary-dark); font-weight: 600; margin-bottom: 4px; }
         .date-chip-value { font-size: 12.5px; font-weight: 700; color: var(--navy); }
 
         /* TABLE */
-        .table-section  { margin-bottom: 28px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
-        .table-header   { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr; background: linear-gradient(90deg, var(--navy), #1e3a5f); padding: 13px 18px; gap: 8px; }
+        .table-section  { margin-bottom: 24px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+        .table-header   { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr; background: linear-gradient(90deg, var(--primary-dark), var(--accent-dark)); padding: 12px 16px; gap: 8px; }
         .th             { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.65); font-weight: 600; }
         .th:not(:first-child) { text-align: right; }
-        .table-row      { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr; padding: 16px 18px; gap: 8px; border-bottom: 1px solid var(--border); background: var(--white); align-items: center; }
+        .table-row      { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr; padding: 14px 16px; gap: 8px; border-bottom: 1px solid var(--border); background: var(--white); align-items: center; }
         .table-row:last-child { border-bottom: none; }
         .td             { font-size: 13px; color: var(--text); }
         .td:not(:first-child) { text-align: right; font-weight: 600; }
@@ -158,7 +160,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .service-sub    { font-size: 11px; color: var(--slate); margin-top: 2px; }
 
         /* TOTALS */
-        .totals-section { display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-bottom: 24px; align-items: start; }
+        .totals-section { display: grid; grid-template-columns: 1fr 260px; gap: 18px; margin-bottom: 22px; align-items: start; }
         .payment-info   { background: var(--silver); border-radius: 12px; padding: 18px 20px; border: 1px solid var(--border); }
         .payment-info-title { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--slate); font-weight: 600; margin-bottom: 12px; }
         .payment-row    { display: flex; justify-content: space-between; font-size: 12px; color: var(--slate); margin-bottom: 7px; }
@@ -176,25 +178,26 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .totals-row.balance-due .value { color: ${statusColor}; }
 
         /* PROOF */
-        .proof-section { background: var(--silver); border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; border: 1px dashed var(--border); font-size: 12px; color: var(--slate); }
-        .proof-section a { color: var(--teal); font-weight: 600; word-break: break-all; }
+        .proof-section { background: var(--silver); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; border: 1px dashed var(--border); font-size: 12px; color: var(--slate); }
+        .proof-section a { color: var(--primary); font-weight: 600; word-break: break-all; }
 
         /* TERMS */
-        .terms-section { margin-bottom: 24px; }
+        .terms-section { margin-bottom: 20px; }
         .terms-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
         .terms-list { list-style: none; padding: 0; }
         .terms-list li { font-size: 12px; color: var(--slate); line-height: 1.6; margin-bottom: 6px; }
         .terms-list li:before { content: "•"; color: var(--teal); font-weight: bold; margin-right: 8px; }
 
         /* FOOTER */
-        .footer-divider { height: 3px; background: linear-gradient(90deg, var(--teal), #06b6d4, var(--teal)); }
-        .invoice-footer { background: linear-gradient(135deg, var(--navy), #1e3a5f); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .footer-divider { height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary)); }
+        .invoice-footer { background: linear-gradient(135deg, var(--primary-dark), var(--accent-dark)); padding: 18px 30px; display: flex; justify-content: space-between; align-items: center; }
         .footer-brand   { font-family: 'Playfair Display', serif; color: rgba(255,255,255,0.9); font-size: 14px; }
         .footer-note    { font-size: 11px; color: rgba(255,255,255,0.45); text-align: right; line-height: 1.7; }
 
         @media print {
             body { background: white; }
             .invoice-wrapper { box-shadow: none; margin: 0; max-width: 100%; }
+            .invoice-content, .body-section, .totals-section, .table-section { page-break-inside: avoid; }
         }
     </style>
 </head>
