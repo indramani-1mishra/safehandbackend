@@ -8,6 +8,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         paymentStatus,
         remainingAmount,
         paidFromDate,
+        paidUntilNow,
         proofUrl,
         createdAt,
         clientName,
@@ -267,12 +268,12 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                     <div class="date-chip-value">${formatDate(paymentDate || createdAt)}</div>
                 </div>
                 <div class="date-chip">
-                    <div class="date-chip-label">Service From</div>
-                    <div class="date-chip-value">${formatDate(paidFromDate)}</div>
+                    <div class="date-chip-label">Service Start</div>
+                    <div class="date-chip-value">${formatDate(serviceStartDate)}</div>
                 </div>
                 <div class="date-chip">
-                    <div class="date-chip-label">Payment Mode</div>
-                    <div class="date-chip-value">${capitalize(paymentMethod)}</div>
+                    <div class="date-chip-label">Paid Until</div>
+                    <div class="date-chip-value">${formatDate(paidUntilNow)}</div>
                 </div>
                 <div class="date-chip">
                     <div class="date-chip-label">Status</div>
@@ -304,7 +305,9 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                 <div class="payment-info">
                     <div class="payment-info-title">Payment Summary</div>
                     <div class="payment-row"><span>Invoice Date</span><span>${formatDate(paymentDate || createdAt)}</span></div>
-                    <div class="payment-row"><span>Service From</span><span>${formatDate(paidFromDate)}</span></div>
+                    <div class="payment-row"><span>Service Start</span><span>${formatDate(serviceStartDate)}</span></div>
+                    <div class="payment-row"><span>Payment From</span><span>${formatDate(paidFromDate)}</span></div>
+                    <div class="payment-row"><span>Paid Until</span><span>${formatDate(paidUntilNow)}</span></div>
                     <div class="payment-row"><span>Payment Mode</span><span>${capitalize(paymentMethod)}</span></div>
                     <div class="payment-row"><span>Payment Status</span><span style="color:${statusColor}">${capitalize(paymentStatus)}</span></div>
                     <div class="payment-row"><span>GST</span><span>0%</span></div>

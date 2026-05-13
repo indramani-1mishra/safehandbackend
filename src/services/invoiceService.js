@@ -13,7 +13,9 @@ const createInvoiceService = async (data) => {
     if (!jobcard) throw new Error("jobcard is required");
     if (!clientPayment) throw new Error("clientPayment is required");
 
-    const jobCardExists = await JobCard.findById(jobcard);
+    const jobCardExists = await JobCard.findById(jobcard)
+        .populate("serviceDetails.service")
+        .populate("inquiryId");
     if (!jobCardExists) throw new Error("JobCard not found");
 
     const paymentExists = await ClientPayment.findById(clientPayment);
@@ -38,21 +40,21 @@ const createInvoiceService = async (data) => {
         paidUntilNow: paymentExists.paidUntilDate || "N/A",
         paidFromDate: paymentExists?.paidFromDate || "N/A",
         proofUrl: paymentExists.proofUrl,
-        clientName: jobCardExists.patientDetails?.name || jobCardExists.inquiryId?.patientName || "N/A",
-        clientPhone: jobCardExists.patientDetails?.phone || jobCardExists.inquiryId?.patientPhone || "",
+        clientName: jobCardExists.patientDetails?.name || jobCardExists.inquiryId?.patientName || jobCardExists.inquiryId?.name || "N/A",
+        clientPhone: jobCardExists.patientDetails?.phone || jobCardExists.inquiryId?.patientPhone || jobCardExists.inquiryId?.phone || "",
         clientAddress:
             jobCardExists.patientDetails?.address ||
             jobCardExists.inquiryId?.patientAddress ||
             jobCardExists.inquiryId?.address ||
             "",
         serviceName:
-            (jobCardExists.serviceDetails?.service && jobCardExists.serviceDetails.service.name) || "Healthcare Service",
-           
+            jobCardExists.serviceDetails?.service?.name || jobCardExists.inquiryId?.serviceName || "Healthcare Service",
+        
         plan: jobCardExists.serviceDetails?.plan || "",
         timing: jobCardExists.serviceDetails?.timing || "",
         invoiceNumber: invoiceRecord.invoiceNumber,
         clientPincode: jobCardExists.patientDetails?.pincode || jobCardExists.inquiryId?.pincode || "",
-        serviceStartDate: jobCardExists.inquiryId?.startDate || "",
+        serviceStartDate: jobCardExists.serviceStart || jobCardExists.inquiryId?.startDate || "",
     };
 
     const html = generateServiceInvoiceTemplate(paymentdetails);
