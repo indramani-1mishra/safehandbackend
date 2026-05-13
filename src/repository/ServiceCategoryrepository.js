@@ -9,7 +9,7 @@ const getServiceCategoryByIdRepository = async (id) => {
 }
 
 const getAllServiceCategoriesRepository = async () => {
-    return await ServiceCategory.find();
+    return await ServiceCategory.find().sort({ createdAt: 1 });
 }
 
 const updateServiceCategoryRepository = async (id, data) => {

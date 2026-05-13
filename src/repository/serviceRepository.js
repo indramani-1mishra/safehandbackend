@@ -24,12 +24,13 @@ const getAllServices = async (query = {}) => {
             select: "name",
             populate: { path: "category", select: "name" } // Deep populate to get category name too
         })
+        .sort({ createdAt: 1 })
         .skip((page - 1) * limit)
         .limit(Number(limit));
 };
 
 const getServiceBySubCategoryId = async (subCategoryId) => {
-    return await Service.find({ subCategory: subCategoryId }).populate("subCategory", "name");
+    return await Service.find({ subCategory: subCategoryId }).populate("subCategory", "name").sort({ createdAt: 1 });
 }
 
 const getServiceById = async (id) => {
@@ -43,7 +44,7 @@ const getServiceById = async (id) => {
 };
 
 const getonlyservicenameandimage = async () => {
-    return await Service.find().select("_id name image description");
+    return await Service.find().select("_id name image description").sort({ createdAt: 1 });
 }
 
 /**
@@ -78,7 +79,7 @@ const getServiceByCityandSubCategoryId = async (city, subCategoryId) => {
             path: 'category',
             select: 'name'
         }
-    });
+    }).sort({ createdAt: 1 });
 }
 
 /**

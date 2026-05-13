@@ -9,11 +9,11 @@ const getServiceSubCategoryByIdRepository = async (id) => {
 }
 
 const getServiceSubCategoryByCategoryIdRepository = async (categoryId) => {
-    return await ServiceSubCategory.find({ category: categoryId }).populate("category", "name");
+    return await ServiceSubCategory.find({ category: categoryId }).populate("category", "name").sort({ createdAt: 1 });
 }
 
 const getAllServiceSubCategoriesRepository = async () => {
-    return await ServiceSubCategory.find().populate("category", "name");
+    return await ServiceSubCategory.find().populate("category", "name").sort({ createdAt: 1 });
 }
 
 const updateServiceSubCategoryRepository = async (id, data) => {
