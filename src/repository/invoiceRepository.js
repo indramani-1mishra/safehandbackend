@@ -7,22 +7,23 @@ const createInvoice = async (data) => {
 const getInvoiceById = async (id) => {
     return await Invoice.findById(id)
         .populate("jobcard")
-        .populate("clientPayment");
+        .populate("clientPayment").sort({ createdAt: -1 });
 };
 
 const getInvoiceByInvoiceNumber = async (invoiceNumber) => {
     return await Invoice.findOne({ invoiceNumber })
         .populate("jobcard")
-        .populate("clientPayment");
+        .populate("clientPayment").sort({ createdAt: -1 });
 };
 
 const getInvoices = async (query = {}) => {
-    const { page = 1, limit = 500, jobCardId, clientPaymentId, invoiceNumber } = query;
+    const { page = 1, limit = 500, jobCardId, clientPaymentId, invoiceNumber, } = query;
     const filter = {};
 
     if (jobCardId) filter.jobcard = jobCardId;
     if (clientPaymentId) filter.clientPayment = clientPaymentId;
     if (invoiceNumber) filter.invoiceNumber = invoiceNumber;
+    
 
     return await Invoice.find(filter)
         .populate("jobcard")
@@ -63,6 +64,39 @@ const deleteInvoice = async (id) => {
     return await Invoice.findByIdAndDelete(id);
 };
 
+const getInvoiceByDateRange = async (startDate, endDate) => {
+    return await Invoice.find({
+        createdAt: {
+            $gte: new Date(startDate),
+            $lte: new Date(endDate)
+        }
+    })
+        .populate("jobcard")
+        .populate("clientPayment")
+        .sort({ createdAt: -1 });
+};
+
+const getInvoiceByClientNameOrNumber = async (query) => {
+    const { clientName, number } = query;
+    
+    // First, find jobcards matching the criteria
+    const JobCard = require("../modals/jobcartModel");
+    const matchingJobCards = await JobCard.find({
+        $or: [
+            { "patientDetails.name": { $regex: clientName, $options: "i" } },
+            { "patientDetails.phone": { $regex: number, $options: "i" } }
+        ]
+    }).select("_id");
+    
+    const jobCardIds = matchingJobCards.map(jc => jc._id);
+    
+    // Then, find invoices with these jobcards
+    return await Invoice.find({ jobcard: { $in: jobCardIds } })
+        .populate("jobcard")
+        .populate("clientPayment")
+        .sort({ createdAt: -1 });
+};
+
 module.exports = {
     createInvoice,
     getInvoiceById,
@@ -72,5 +106,7 @@ module.exports = {
     getInvoicesByClientPaymentId,
     getInvoiceByJobCardAndPayment,
     updateInvoice,
-    deleteInvoice
+    deleteInvoice,
+    getInvoiceByDateRange,
+    getInvoiceByClientNameOrNumber
 };

@@ -72,6 +72,26 @@ const deleteInvoiceController = async (req, res) => {
     }
 };
 
+const getInvoiceByDateRangeController = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        const response = await invoiceService.getInvoiceByDateRangeService(startDate, endDate);
+        return res.status(200).json({ success: true, data: response });
+    } catch (error) {
+        return res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+const getInvoiceByClientNameOrNumberController = async (req, res) => {
+    try {
+        const { clientName, number } = req.query;
+        const response = await invoiceService.getInvoiceByClientNameOrNumberService({ clientName, number });
+        return res.status(200).json({ success: true, data: response });
+    } catch (error) {
+        return res.status(400).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     createInvoiceController,
     getAllInvoicesController,
@@ -80,5 +100,7 @@ module.exports = {
     getInvoicesByJobCardIdController,
     getInvoicesByClientPaymentIdController,
     updateInvoiceController,
-    deleteInvoiceController
+    deleteInvoiceController,
+    getInvoiceByDateRangeController,
+    getInvoiceByClientNameOrNumberController
 };

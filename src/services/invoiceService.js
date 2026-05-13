@@ -13,7 +13,9 @@ const createInvoiceService = async (data) => {
     if (!jobcard) throw new Error("jobcard is required");
     if (!clientPayment) throw new Error("clientPayment is required");
 
-    const jobCardExists = await JobCard.findById(jobcard);
+    const jobCardExists = await JobCard.findById(jobcard)
+        .populate("serviceDetails.service")
+        .populate("inquiryId");
     if (!jobCardExists) throw new Error("JobCard not found");
 
     const paymentExists = await ClientPayment.findById(clientPayment);
@@ -35,22 +37,24 @@ const createInvoiceService = async (data) => {
         paymentMethod: paymentExists.paymentMethod,
         paymentStatus: paymentExists.paymentStatus,
         remainingAmount: paymentExists.remainingAmount,
-        paidFromDate: paymentExists.paidFromDate,
+        paidUntilNow: paymentExists.paidUntilDate || "N/A",
+        paidFromDate: paymentExists?.paidFromDate || "N/A",
         proofUrl: paymentExists.proofUrl,
-        clientName: jobCardExists.patientDetails?.name || jobCardExists.inquiryId?.patientName || "N/A",
-        clientPhone: jobCardExists.patientDetails?.phone || jobCardExists.inquiryId?.patientPhone || "",
+        clientName: jobCardExists.patientDetails?.name || jobCardExists.inquiryId?.patientName || jobCardExists.inquiryId?.name || "N/A",
+        clientPhone: jobCardExists.patientDetails?.phone || jobCardExists.inquiryId?.patientPhone || jobCardExists.inquiryId?.phone || "",
         clientAddress:
             jobCardExists.patientDetails?.address ||
             jobCardExists.inquiryId?.patientAddress ||
             jobCardExists.inquiryId?.address ||
             "",
         serviceName:
-            (jobCardExists.serviceDetails?.service && jobCardExists.serviceDetails.service.name) ||
-            jobCardExists.serviceDetails?.service ||
-            "Healthcare Service",
+            jobCardExists.serviceDetails?.service?.name || jobCardExists.inquiryId?.serviceName || "Healthcare Service",
+        
         plan: jobCardExists.serviceDetails?.plan || "",
         timing: jobCardExists.serviceDetails?.timing || "",
-        invoiceNumber: invoiceRecord.invoiceNumber
+        invoiceNumber: invoiceRecord.invoiceNumber,
+        clientPincode: jobCardExists.patientDetails?.pincode || jobCardExists.inquiryId?.pincode || "",
+        serviceStartDate: jobCardExists.serviceStart || jobCardExists.inquiryId?.startDate || "",
     };
 
     const html = generateServiceInvoiceTemplate(paymentdetails);
@@ -116,6 +120,17 @@ const deleteInvoiceService = async (id) => {
     return invoice;
 };
 
+const getInvoiceByDateRangeService = async (startDate, endDate) => {
+    if (!startDate || !endDate) throw new Error("Start date and end date are required");
+    return await InvoiceRepository.getInvoiceByDateRange(startDate, endDate);
+};
+
+const getInvoiceByClientNameOrNumberService = async (query) => {
+    const { clientName, number } = query;
+    if (!clientName && !number) throw new Error("Client name or phone number is required");
+    return await InvoiceRepository.getInvoiceByClientNameOrNumber({ clientName: clientName || "", number: number || "" });
+};
+
 module.exports = {
     createInvoiceService,
     getAllInvoicesService,
@@ -124,5 +139,7 @@ module.exports = {
     getInvoicesByJobCardIdService,
     getInvoicesByClientPaymentIdService,
     updateInvoiceService,
-    deleteInvoiceService
+    deleteInvoiceService,
+    getInvoiceByDateRangeService,
+    getInvoiceByClientNameOrNumberService
 };
