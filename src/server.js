@@ -53,6 +53,7 @@ const productCategoryRoutes = require('./routes/productCategoryRoutes');
 const productSubCategoryRoutes = require('./routes/productSubCategoryRoutes');
 const productRoutes = require('./routes/productRoutes');
 const productOrderRoutes = require('./routes/productOrderRoutes');
+const invoiceRoutes = require('./routes/invoiceRoutes');
 
 // API Routing setup
 app.use('/api/services', serviceRoutes);
@@ -79,6 +80,7 @@ app.use('/api/product-categories', productCategoryRoutes);
 app.use('/api/product-subcategories', productSubCategoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/product-orders', productOrderRoutes);
+app.use('/api/invoices', invoiceRoutes);
 
 
 // Swagger Documentation
@@ -106,7 +108,7 @@ createDefaultAdmin();
 const { startPaymentReminderCron } = require('./services/paymentReminderService');
 //const { startGKQuestionCron } = require('./services/gkQuestionCronService');
 const TESTINGPORT = 5001;
-const mode = "dev"
+const mode = "dev"; // Change to "production" for production environment
 const CURRENT_PORT = mode === "local" ? TESTINGPORT : PORT;
 
 
