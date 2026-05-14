@@ -26,7 +26,12 @@ const getInvoices = async (query = {}) => {
     
 
     return await Invoice.find(filter)
-        .populate("jobcard")
+         .populate({
+            path: "jobcard",
+            populate: {
+                path: "serviceDetails.service"
+            }
+        })
         .populate("clientPayment")
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
@@ -35,14 +40,24 @@ const getInvoices = async (query = {}) => {
 
 const getInvoicesByJobCardId = async (jobCardId) => {
     return await Invoice.find({ jobcard: jobCardId })
-        .populate("jobcard")
+        .populate({
+            path: "jobcard",
+            populate: {
+                path: "serviceDetails.service"
+            }
+        })
         .populate("clientPayment")
         .sort({ createdAt: -1 });
 };
 
 const getInvoicesByClientPaymentId = async (clientPaymentId) => {
     return await Invoice.find({ clientPayment: clientPaymentId })
-        .populate("jobcard")
+        .populate({
+            path: "jobcard",
+            populate: {
+                path: "serviceDetails.service"
+            }
+        })
         .populate("clientPayment")
         .sort({ createdAt: -1 });
 };
@@ -56,7 +71,12 @@ const updateInvoice = async (id, data) => {
         returnDocument: "after",
         runValidators: true
     })
-        .populate("jobcard")
+        .populate({
+            path: "jobcard",
+            populate: {
+                path: "serviceDetails.service"
+            }
+        })
         .populate("clientPayment");
 };
 
@@ -71,7 +91,12 @@ const getInvoiceByDateRange = async (startDate, endDate) => {
             $lte: new Date(endDate)
         }
     })
-        .populate("jobcard")
+        .populate({
+            path: "jobcard",
+            populate: {
+                path: "serviceDetails.service"
+            }
+        })
         .populate("clientPayment")
         .sort({ createdAt: -1 });
 };
@@ -92,7 +117,12 @@ const getInvoiceByClientNameOrNumber = async (query) => {
     
     // Then, find invoices with these jobcards
     return await Invoice.find({ jobcard: { $in: jobCardIds } })
-        .populate("jobcard")
+        .populate({
+            path: "jobcard",
+            populate: {
+                path: "serviceDetails.service"
+            }
+        })
         .populate("clientPayment")
         .sort({ createdAt: -1 });
 };
