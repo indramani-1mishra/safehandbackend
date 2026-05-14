@@ -37,7 +37,7 @@ const getAllJobCards = async (query = {}) => {
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")
-        .populate("inquiryId")
+        .populate("inquiryId", "-patientName -age -gender -address -pincode -startDate -alternateNumber -landmark -description -requestedSkills -prefreredReligion -preferredShift -name -phone -city")
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(Number(limit));
@@ -49,7 +49,7 @@ const getJobCardsByWorkerId = async (workerId) => {
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")
-        .populate("inquiryId");
+        .populate("inquiryId", "-patientName -age -gender -address -pincode -startDate -alternateNumber -landmark -description -requestedSkills -prefreredReligion -preferredShift -name -phone -city");
 }
 
 const addWorkerToJobCard = async (jobCardId, workerId) => {
@@ -67,7 +67,7 @@ const addWorkerToJobCard = async (jobCardId, workerId) => {
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")
-        .populate("inquiryId");
+        .populate("inquiryId", "-patientName -age -gender -address -pincode -startDate -alternateNumber -landmark -description -requestedSkills -prefreredReligion -preferredShift -name -phone -city");
 }
 
 const removeWorkerFromJobCard = async (jobCardId, workerId) => {
@@ -81,7 +81,7 @@ const removeWorkerFromJobCard = async (jobCardId, workerId) => {
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")
-        .populate("inquiryId");
+        .populate("inquiryId", "-patientName -age -gender -address -pincode -startDate -alternateNumber -landmark -description -requestedSkills -prefreredReligion -preferredShift -name -phone -city");
 }
 
 const assignWorkerToJobCard = async (jobCardId, workerId) => {
@@ -95,7 +95,7 @@ const assignWorkerToJobCard = async (jobCardId, workerId) => {
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")
-        .populate("inquiryId");
+        .populate("inquiryId", "-patientName -age -gender -address -pincode -startDate -alternateNumber -landmark -description -requestedSkills -prefreredReligion -preferredShift -name -phone -city");
 }
 
 const getJobCardById = async (id) => {
@@ -104,7 +104,7 @@ const getJobCardById = async (id) => {
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")
-        .populate("inquiryId");
+        .populate("inquiryId", "-patientName -age -gender -address -pincode -startDate -alternateNumber -landmark -description -requestedSkills -prefreredReligion -preferredShift -name -phone -city");
     if (!jobCard) throw new Error("JobCard not found");
     return jobCard;
 };
@@ -124,7 +124,7 @@ const getJobCardsByStatus = async (status, query = {}) => {
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")
-        .populate("inquiryId")
+        .populate("inquiryId", "-patientName -age -gender -address -pincode -startDate -alternateNumber -landmark -description -requestedSkills -prefreredReligion -preferredShift -name -phone -city")
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(Number(limit));
@@ -138,7 +138,7 @@ const getJobCardsByStatusAndWorkerId = async (status, workerId) => {
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")
-        .populate("inquiryId")
+        .populate("inquiryId", "-patientName -age -gender -address -pincode -startDate -alternateNumber -landmark -description -requestedSkills -prefreredReligion -preferredShift -name -phone -city")
         .sort({ createdAt: -1 });
 }
 const completeJobCard = async (jobCardId) => {
@@ -151,7 +151,7 @@ const completeJobCard = async (jobCardId) => {
         .populate("workers.interested")
         .populate("workers.assigned")
         .populate("serviceDetails.service")
-        .populate("inquiryId");
+        .populate("inquiryId", "-patientName -age -gender -address -pincode -startDate -alternateNumber -landmark -description -requestedSkills -prefreredReligion -preferredShift -name -phone -city");
 }
 
 module.exports = {
