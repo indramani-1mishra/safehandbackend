@@ -85,10 +85,16 @@ const deleteInvoice = async (id) => {
 };
 
 const getInvoiceByDateRange = async (startDate, endDate) => {
+    const start = new Date(startDate);
+    start.setUTCHours(0, 0, 0, 0);
+
+    const end = new Date(endDate);
+    end.setUTCHours(23, 59, 59, 999);
+
     return await Invoice.find({
-        createdAt: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate)
+        invoiceDate: {
+            $gte: start,
+            $lte: end
         }
     })
         .populate({
@@ -98,7 +104,7 @@ const getInvoiceByDateRange = async (startDate, endDate) => {
             }
         })
         .populate("clientPayment")
-        .sort({ createdAt: -1 });
+        .sort({ invoiceDate: -1 });
 };
 
 const getInvoiceByClientNameOrNumber = async (query) => {
