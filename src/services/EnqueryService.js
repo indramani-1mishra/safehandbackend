@@ -1,6 +1,8 @@
 const enqueryRepository = require("../repository/enqueryRepository");
 const { sendMailOnAdmin } = require("../utils/sendmailonAdmin");
 const { sendGreetToCoustomer } = require("../utils/sendGreetToCoustomer");
+const JobCard = require("../modals/jobcartModel");
+
 const createEnquiryService = async (data) => {
     // Validations
     console.log(data);
@@ -38,7 +40,49 @@ const createEnquiryService = async (data) => {
     const issend2 = await sendMailOnAdmin(data);
     console.log(issend, issend2);
 
+    // 🔥 Automatically create a JobCard for direct service bookings (Bypassing Unified Cart)
+    if (data.enquiryType === "serviceEnquery") {
+        try {
+            await JobCard.create({
+                inquiryId: result._id,
+                patientDetails: {
+                    name: data.patientName || data.name || "Patient",
+                    age: data.age || 0,
+                    gender: data.gender || "male",
+                    address: data.address || "",
+                    landmark: data.landmark || "",
+                    city: data.city || "",
+                    pincode: data.pincode || "",
+                    phone: data.phone || "",
+                    alternateNumber: data.alternateNumber || ""
+                },
+                serviceDetails: {
+                    service: data.service,
+                    plan: data.packageType || "basic",
+                    timing: data.preferredShift && data.preferredShift.toLowerCase().includes("24hr") ? "24hr" : "12hr"
+                },
+                serviceStart: data.startDate || new Date(),
+                prefreredReligion: data.prefreredReligion || "",
+                preferredShift: data.preferredShift || "",
+                requestedSkills: data.requestedSkills || [],
+                instruction: data.instruction || data.message || "",
+                patientDescription: data.patientCondition || data.description || "",
+                perDayCustomerCost: 0,
+                customerPaymentCycleDays: 30,
+                perDayNurseCost: 0,
+                nursePaymentCycleDays: 30,
+                status: "pending",
+                isAssigned: false
+            });
 
+            // Auto-approve the enquiry since it's a direct booking
+            await enqueryRepository.updateEnquiryStatus(result._id, "approved");
+            result.status = "approved";
+
+        } catch (error) {
+            console.error("Error auto-creating JobCard from Direct Enquiry:", error);
+        }
+    }
 
     return result;
 };
