@@ -114,8 +114,10 @@ const getInvoiceByClientNameOrNumber = async (query) => {
     const JobCard = require("../modals/jobcartModel");
     const matchingJobCards = await JobCard.find({
         $or: [
-            { "patientDetails.name": { $regex: clientName, $options: "i" } },
-            { "patientDetails.phone": { $regex: number, $options: "i" } }
+            { "patientDetails.name": { $regex: clientName || number || "", $options: "i" } },
+            { "patientDetails.phone": { $regex: clientName || number || "", $options: "i" } },
+            { "inquiryId.patientName": { $regex: clientName || number || "", $options: "i" } },
+            { "inquiryId.patientPhone": { $regex: clientName || number || "", $options: "i" } }
         ]
     }).select("_id");
     
@@ -130,7 +132,7 @@ const getInvoiceByClientNameOrNumber = async (query) => {
             }
         })
         .populate("clientPayment")
-        .sort({ createdAt: -1 });
+        .sort({ invoiceDate: -1 });
 };
 
 module.exports = {
