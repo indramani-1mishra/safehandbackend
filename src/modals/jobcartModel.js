@@ -15,8 +15,11 @@ const jobCardSchema = new mongoose.Schema({
         age: Number,
         gender: { type: String, enum: ["male", "female", "other"] },
         address: String,
+        landmark: String,
         city: String,
-        phone: String
+        pincode: String,
+        phone: String,
+        alternateNumber: String
     },
 
     // 🔹 Service Details
@@ -39,6 +42,12 @@ const jobCardSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
+
+    prefreredReligion: String,
+    preferredShift: String,
+    requestedSkills: [String],
+    instruction: String,
+    patientDescription: String,
 
     perDayCustomerCost: Number,
 
