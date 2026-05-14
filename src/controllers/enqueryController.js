@@ -13,7 +13,7 @@ const {
 
 const createEnquiry = async (req, res) => {
     try {
-        const enquiry = await createEnquiryService(req.body);
+        const enquiry = await createEnquiryService(req.body, req.user);
         res.status(201).json({ success: true, message: "Enquiry created successfully", data: enquiry });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });

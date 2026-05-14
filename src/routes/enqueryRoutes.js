@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isAdmin } = require("../middleware/authmiddleware");
+const { authMiddleware, isAdmin, optionalClientAuthMiddleware } = require("../middleware/authmiddleware");
 const {
     createEnquiry,
     updateEnquiry,
@@ -14,7 +14,7 @@ const {
     convertEnquiryStatus
 } = require("../controllers/enqueryController");
 
-router.post("/", createEnquiry);
+router.post("/", optionalClientAuthMiddleware, createEnquiry);
 router.get("/", authMiddleware, isAdmin, getAllEnquiries);
 router.get("/status/:status", authMiddleware, isAdmin, getEnquiriesByStatus);
 router.get("/type/:type", authMiddleware, isAdmin, getEnquiriesByType);

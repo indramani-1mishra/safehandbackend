@@ -3,7 +3,7 @@ const { sendMailOnAdmin } = require("../utils/sendmailonAdmin");
 const { sendGreetToCoustomer } = require("../utils/sendGreetToCoustomer");
 const JobCard = require("../modals/jobcartModel");
 
-const createEnquiryService = async (data) => {
+const createEnquiryService = async (data, user) => {
     // Validations
     console.log(data);
     if (data.phone && !/^\d{10}$/.test(data.phone)) {
@@ -41,7 +41,7 @@ const createEnquiryService = async (data) => {
     console.log(issend, issend2);
 
     // 🔥 Automatically create a JobCard for direct service bookings (Bypassing Unified Cart)
-    if (data.enquiryType === "serviceEnquery") {
+    if (data.enquiryType === "serviceEnquery" && user) {
         try {
             await JobCard.create({
                 inquiryId: result._id,

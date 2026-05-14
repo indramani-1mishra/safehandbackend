@@ -79,10 +79,28 @@ const clientAuthMiddleware = async (req, res, next) => {
     }
 }
 
+const optionalClientAuthMiddleware = async (req, res, next) => {
+    try {
+        let token = req.cookies?.clientAccessToken;
+        if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+            token = req.headers.authorization.split(" ")[1];
+        }
+        
+        if (token) {
+            const decoded = jwt.verify(token, JWT_SECRET);
+            req.user = decoded;
+        }
+    } catch (error) {
+        // Silently ignore errors (e.g. expired token or no token) to allow public access
+    }
+    next();
+}
+
 module.exports = {
     authMiddleware,
     isAdmin,
     workerAuthMiddleware,
     allowAnyAuth,
-    clientAuthMiddleware
+    clientAuthMiddleware,
+    optionalClientAuthMiddleware
 };
