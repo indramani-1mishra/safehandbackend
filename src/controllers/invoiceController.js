@@ -75,7 +75,19 @@ const deleteInvoiceController = async (req, res) => {
 const getInvoiceByDateRangeController = async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
+        console.log('Fetching invoices by date range:', { startDate, endDate });
         const response = await invoiceService.getInvoiceByDateRangeService(startDate, endDate);
+        return res.status(200).json({ success: true, data: response });
+    } catch (error) {
+        return res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+const getInvoiceByClientNameOrNumberController = async (req, res) => {
+    try {
+        const { clientName, number } = req.query;
+        console.log('Invoice search request received:', { clientName, number });
+        const response = await invoiceService.getInvoiceByClientNameOrNumberService({ clientName, number });
         return res.status(200).json({ success: true, data: response });
     } catch (error) {
         return res.status(400).json({ success: false, message: error.message });
