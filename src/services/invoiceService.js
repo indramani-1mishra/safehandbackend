@@ -9,7 +9,8 @@ const { sendWhatsappTemplatePdf } = require("../utils/sendWhatsappTemplatePdf");
 
 const createInvoiceService = async (data) => {
     const { jobcard, clientPayment} = data;
-
+    const createInvoiceWithoutjobcardOrPayment = !jobcard || !clientPayment;
+    
     if (!jobcard) throw new Error("jobcard is required");
     if (!clientPayment) throw new Error("clientPayment is required");
 
