@@ -1,5 +1,5 @@
 const { generatePdf } = require("./pdfGenerator");
-const { uploadPdfToS3 } = require("./s3Uploader");
+const { uploadPdfToS3 } = require("./s3Upload");
 const { sendWhatsappTemplatePdf } = require("./whatsappService");
 const jobCardRepository = require("../repository/jobcartRepository");
 const { generateWorkerPdfTemplate, generateClientPdfTemplate, generateAdminPdfTemplate } = require("./pdfTemplates");
