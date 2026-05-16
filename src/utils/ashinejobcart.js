@@ -1,6 +1,6 @@
 const { generatePdf } = require("./pdfGenerator");
 const { uploadPdfToS3 } = require("./s3Upload");
-const { sendWhatsappTemplatePdf } = require("./whatsappService");
+const { sendWhatsappTemplatePdf } = require("./sendWhatsappTemplatePdf");
 const jobCardRepository = require("../repository/jobcartRepository");
 const { generateWorkerPdfTemplate, generateClientPdfTemplate, generateAdminPdfTemplate } = require("./pdfTemplates");
 const { DEFAULT_ADMIN_PHONE } = require("../config/serverConfig");
