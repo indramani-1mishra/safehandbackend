@@ -104,7 +104,13 @@ const requestforOtp = async (phone) => {
     
     return {
         success: true,
-        message: "OTP sent successfully"
+        message: "OTP sent successfully",
+        admin: {
+            name: admin.name,
+            role: admin.role,
+            image: admin.image || null,
+            accountStatus: admin.accountStatus
+        }
     };
 };
 
