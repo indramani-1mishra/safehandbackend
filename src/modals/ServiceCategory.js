@@ -6,6 +6,12 @@ const serviceCategorySchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    serviceType: {
+        type: String,
+        enum: ["package", "onetime"],
+        required: true,
+        default: "onetime"
+    },
     image: {
         type: String,
         required: true
