@@ -9,5 +9,7 @@ router.get("/getall", authMiddleware, isAdmin, adminController.getAllAdminsContr
 router.delete("/delete/:id", authMiddleware, isAdmin, adminController.deleteAdminController);
 router.get("/get/:id", authMiddleware, isAdmin, adminController.getAdminByIdController);
 router.post("/makeadmin/:id", authMiddleware, isAdmin, adminController.makeAdminController);
+router.put("/approve/:id", authMiddleware, isAdmin, adminController.approveAdminController);
+router.put("/deactivate/:id", authMiddleware, isAdmin, adminController.deactivateAdminController);
 
 module.exports = router;

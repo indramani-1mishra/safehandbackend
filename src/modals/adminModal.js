@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
 
 const adminSchema = new mongoose.Schema({
 
+    // Basic Info
     name: {
         type: String,
         required: true,
@@ -12,6 +12,7 @@ const adminSchema = new mongoose.Schema({
     phone: {
         type: String,
         required: true,
+        unique: true,
         trim: true
     },
 
@@ -22,20 +23,43 @@ const adminSchema = new mongoose.Schema({
         lowercase: true,
         trim: true
     },
-
-    password: {
-        type: String,
-        required: true,
-        minlength: 6,
-        select: false
-    },
-
+    // Roles
     role: {
         type: String,
-        enum: ["admin", "staff"],
+        enum: [
+            "admin",
+            "hr",
+            "staff"
+        ],
         default: "staff"
     },
 
+    permissions: [
+
+        {
+            module: {
+                type: String,
+                
+            },
+
+            actions: [{
+                type: String,
+                enum: [
+                    "create",
+                    "view",
+                    "edit",
+                    "delete",
+                    "assign",
+                    "approve",
+                    "export"
+                ]
+            }]
+        }
+
+    ],
+
+
+    // Account Status
     isActive: {
         type: Boolean,
         default: true
@@ -46,37 +70,75 @@ const adminSchema = new mongoose.Schema({
         default: false
     },
 
-    lastLogin: {
-        type: Date,
-
+    isPhoneVerified: {
+        type: Boolean,
+        default: false
     },
 
+
+    // OTP
+    otp: {
+        type: String,
+        default: null,
+        select: false
+    },
+
+    otpExpires: {
+        type: Date,
+        default: null
+    },
+
+    lastOtpSentAt: {
+        type: Date,
+        default: null
+    },
+
+
+    // Login Security
     loginAttempts: {
         type: Number,
         default: 0
     },
 
     lockUntil: {
-        type: Date
+        type: Date,
+        default: null
     },
 
+    lastLogin: {
+        type: Date,
+        default: null
+    },
+
+
+    // Tokens
     refreshToken: {
-        type: String
+        type: String,
+        default: null,
+        select: false
+    },
+
+
+    // Tracking
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Admin",
+        default: null
+    },
+
+    updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Admin",
+        default: null
+    },
+    accountStatus: {
+        type: String,
+        enum: ["pending", "active", "deactivated"],
+        default: "pending"
     }
 
 }, { timestamps: true });
 
 
-adminSchema.pre("save", async function () {
-    if (!this.isModified("password")) return;
-
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-});
-
-
-adminSchema.methods.comparePassword = async function (enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
-};
-
-module.exports = mongoose.model("Admin", adminSchema);
+module.exports =
+mongoose.model("Admin", adminSchema);

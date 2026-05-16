@@ -87,9 +87,9 @@ const removeWorkerFromJobCard = async (jobCardId, workerId) => {
 const assignWorkerToJobCard = async (jobCardId, workerId) => {
     const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
     const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;
-    return await JobCard.findOneAndUpdate(
-        { _id: safeJobCardId, isAssigned: false },
-        { $set: { "workers.assigned": safeWorkerId }, status: "assigned", isAssigned: true, },
+    return await JobCard.findByIdAndUpdate(
+        safeJobCardId,
+        { $set: { "workers.assigned": safeWorkerId }, status: "assigned", isAssigned: true },
         { returnDocument: 'after', runValidators: true }
     )
         .populate("workers.interested")

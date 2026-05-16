@@ -6,7 +6,14 @@ const createAdmin = async (data) => {
 };
 
 const findAdminByEmail = async (email) => {
-    return await Admin.findOne({ email }).select("+password");
+    return await Admin.findOne({ email });
+};
+
+const findAdminByPhone = async (phone, includeSensitive = false) => {
+    if (includeSensitive) {
+        return await Admin.findOne({ phone }).select('+otp +refreshToken');
+    }
+    return await Admin.findOne({ phone });
 };
 
 const updateAdmin = async (id, data) => {
@@ -25,13 +32,12 @@ const getAllAdmins = async (query = {}) => {
     const { page = 1, limit = 10 } = query;
 
     return await Admin.find()
-        .select("-password")
         .skip((page - 1) * limit)
         .limit(Number(limit));
 };
 
 const getAdminById = async (id) => {
-    const admin = await Admin.findById(id).select("-password");
+    const admin = await Admin.findById(id);
     if (!admin) throw new Error("Admin not found");
     return admin;
 };
@@ -51,6 +57,7 @@ const findAdminByRefreshToken = async (refreshToken) => {
 module.exports = {
     createAdmin,
     findAdminByEmail,
+    findAdminByPhone,
     updateAdmin,
     deleteAdmin,
     getAllAdmins,

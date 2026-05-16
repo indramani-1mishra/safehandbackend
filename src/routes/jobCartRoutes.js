@@ -10,6 +10,7 @@ const {
     addWorkerToJobCardController,
     removeWorkerFromJobCardController,
     assignWorkerToJobCardController,
+    replaceWorkerInJobCardController,
     getJobCardsByWorkerIdController,
     getJobCardsByStatusController,
     getJobCardsByStatusAndWorkerIdController,
@@ -27,6 +28,7 @@ router.delete("/:id", authMiddleware, isAdmin, deleteJobCardController);
 
 // Admin Action: Finalize one worker for the Job
 router.post("/:id/assign", authMiddleware, isAdmin, assignWorkerToJobCardController);
+router.post("/:id/replace", authMiddleware, isAdmin, replaceWorkerInJobCardController);
 
 router.get("/status/:status", authMiddleware, isAdmin, getJobCardsByStatusController);
 

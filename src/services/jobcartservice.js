@@ -17,6 +17,10 @@ const {
 const { DEFAULT_ADMIN_PHONE } = require("../config/serverConfig");
 const { sendFcmNotification } = require("../utils/fcmService");
 const ClientRepository = require("../repository/ClientRepository");
+const { getLatestClientPaymentByJobCardId, getClientPaymentsByJobCardId } = require("../repository/ClientRepository");
+const { getWorkerById, updateWorker } = require("../repository/workerRepository");
+const ashineJobCardpdf = require("../utils/ashinejobcart");
+
 
 const createJobCardService = async (data) => {
     try {
@@ -190,23 +194,35 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
         if (!jobCard) {
             throw new Error("Job card not found");
         }
+        if (jobCard.status === 'completed') {
+            throw new Error("Cannot assign a worker to a completed job card");
+        }
+
+        const currentAssignedWorker = jobCard.workers?.assigned;
+        const currentAssignedWorkerId = currentAssignedWorker?._id?.toString?.() || (typeof currentAssignedWorker === 'string' ? currentAssignedWorker : null);
+        if (currentAssignedWorkerId === safeWorkerId) {
+            return jobCard;
+        }
+
         const isWorkerBusy = await workerRepository.checkWorkerBusyStatus(safeWorkerId);
         if (isWorkerBusy) {
-            throw new Error("Worker is already busy to take another job ,please select another worker");
+            throw new Error("Worker is already busy to take another job, please select another worker");
         }
+
         const updatedJobCard = await jobcartRepository.assignWorkerToJobCard(safeJobCardId, new mongoose.Types.ObjectId(safeWorkerId));
         if (!updatedJobCard) {
-            throw new Error("Failed to assign worker beacase job card is already assigned");
+            throw new Error("Failed to assign worker to job card");
         }
-        // Populate service details for PDF generation
-        // NOTE: getJobCardById already populates all fields — do NOT call .populate() again or it crashes
-        const fullJobCard = await jobcartRepository.getJobCardById(safeJobCardId);
-        const assignedWorker = await workerRepository.getWorkerById(safeWorkerId);
 
-        // Changed isBusy to isFree: false since isBusy doesn't exist by default in your model!
+        if (currentAssignedWorkerId) {
+            await workerRepository.updateWorker(currentAssignedWorkerId, { isBusy: false });
+        }
+
+        const assignedWorker = await workerRepository.getWorkerById(safeWorkerId);
         await workerRepository.updateWorker(safeWorkerId, { isBusy: true });
         await jobcartRepository.updateJobCard(safeJobCardId, { isAssigned: true, assignedAt: new Date() });
 
+        const fullJobCard = await jobcartRepository.getJobCardById(safeJobCardId);
         const io = socketUtils.getIo();
 
         //  Notify Assigned Worker via Socket
@@ -233,36 +249,7 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
 
         // 📄 PDF Generation & WhatsApp Notification Flow
         try {
-            console.log("Generating PDFs for Worker, Client, and Admin...");
-
-            // 1. Worker PDF
-            const workerHtml = generateWorkerPdfTemplate(fullJobCard, assignedWorker);
-            const workerPdfBuffer = await generatePdf(workerHtml);
-
-            const workerPdfUrl = await uploadPdfToS3(workerPdfBuffer, `worker_jobcard_${safeJobCardId}.pdf`);
-            console.log(workerPdfUrl);
-            // Using template 'contract_message' for worker
-            await sendWhatsappTemplatePdf(`91${assignedWorker.phone}`, workerPdfUrl, "Job_Assignment_Worker.pdf", assignedWorker.name, "en", safeJobCardId);
-
-            // 2. Client PDF
-            const clientHtml = generateClientPdfTemplate(fullJobCard, assignedWorker);
-            const clientPdfBuffer = await generatePdf(clientHtml);
-            const clientPdfUrl = await uploadPdfToS3(clientPdfBuffer, `client_jobcard_${safeJobCardId}.pdf`);
-            // Using template 'contract_message' for client
-            await sendWhatsappTemplatePdf(`91${fullJobCard.patientDetails.phone}`, clientPdfUrl, "Job_Assignment_Client.pdf", fullJobCard.patientDetails.name, "en", safeJobCardId);
-            console.log(clientPdfUrl);
-            // 3. Admin PDF
-            const adminHtml = generateAdminPdfTemplate(fullJobCard, assignedWorker);
-            const adminPdfBuffer = await generatePdf(adminHtml);
-
-            const adminPdfUrl = await uploadPdfToS3(adminPdfBuffer, `admin_jobcard_${safeJobCardId}.pdf`);
-            console.log(adminPdfUrl);
-            if (DEFAULT_ADMIN_PHONE) {
-                // Using template 'contract_message' for admin
-                await sendWhatsappTemplatePdf(`91${DEFAULT_ADMIN_PHONE}`, adminPdfUrl, "Job_Assignment_Admin.pdf", "Admin", "en", safeJobCardId);
-            }
-
-            console.log("All assignment PDFs sent successfully.");
+            await ashineJobCardpdf(fullJobCard, assignedWorker, "assignment");
         } catch (pdfError) {
             console.error("Error in PDF/WhatsApp flow:", pdfError);
             // We don't throw here to avoid failing the assignment if notification fails
@@ -389,20 +376,86 @@ const completeJobCardService = async (jobCardId) => {
             throw new Error("Job card not found");
         }
         const updatedJobCard = await jobcartRepository.completeJobCard(safeJobCardId);
-        const workerId = jobCard.workers.assigned;
+        const workerId = jobCard.workers?.assigned;
 
-        const worker = await workerRepository.getWorkerById(workerId);
-
-        if (!worker) {
-            throw new Error("Worker not found");
+        if (workerId) {
+            const worker = await workerRepository.getWorkerById(workerId);
+            if (worker) {
+                await workerRepository.updateWorker(workerId, { isBusy: false });
+            }
         }
-        await workerRepository.updateWorker(workerId, { isBusy: false });
         return updatedJobCard;
     } catch (error) {
         throw error;
     }
 }
 
+const replaceWorkerInJobCardService = async (jobCardId, newWorkerId) => {
+    try {
+        const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
+        const safeWorkerId = typeof newWorkerId === 'string' ? newWorkerId.trim() : newWorkerId;
+
+        const jobCard = await jobcartRepository.getJobCardById(safeJobCardId);
+        if (!jobCard) {
+            throw new Error("Job card not found");
+        }
+
+        const currentlyAssigned = jobCard.workers?.assigned;
+        const previouslyAssignedWorkerId = currentlyAssigned
+            ? (typeof currentlyAssigned === 'string'
+                ? currentlyAssigned
+                : (currentlyAssigned._id ? currentlyAssigned._id.toString() : currentlyAssigned.toString()))
+            : null;
+
+        if (!previouslyAssignedWorkerId) {
+            throw new Error("No worker is currently assigned to this job card");
+        }
+
+        if (previouslyAssignedWorkerId === safeWorkerId) {
+            throw new Error("The selected worker is already assigned to this job card");
+        }
+
+        const isNewWorkerBusy = await workerRepository.checkWorkerBusyStatus(safeWorkerId);
+        if (isNewWorkerBusy) {
+            throw new Error("Worker is already busy to take another job, please select another worker");
+        }
+
+        const updatedJobCard = await jobcartRepository.updateJobCard(safeJobCardId, {
+            'workers.assigned': new mongoose.Types.ObjectId(safeWorkerId),
+            status: 'assigned',
+            isAssigned: true,
+            assignedAt: new Date(),
+        });
+        if (!updatedJobCard) {
+            throw new Error("Failed to replace worker for this job card");
+        }
+
+        await workerRepository.updateWorker(previouslyAssignedWorkerId, { isBusy: false });
+        await workerRepository.updateWorker(safeWorkerId, { isBusy: true });
+
+        const assignedWorker = await workerRepository.getWorkerById(safeWorkerId);
+        const fullJobCard = await jobcartRepository.getJobCardById(safeJobCardId);
+        await ashineJobCardpdf(fullJobCard, assignedWorker, "replacement");
+
+        const io = socketUtils.getIo();
+        io.to(safeWorkerId).emit("job_assigned", {
+            message: `You have been assigned to Job Card #${safeJobCardId} (Replacement)`,
+            jobDetails: updatedJobCard.patientDetails,
+            serviceDetails: updatedJobCard.serviceDetails,
+            city: updatedJobCard.patientDetails.city,
+        });
+        io.to(previouslyAssignedWorkerId).emit("job_replaced", {
+            message: `Your assignment on Job Card #${safeJobCardId} has been replaced`,
+            jobDetails: updatedJobCard.patientDetails,
+            serviceDetails: updatedJobCard.serviceDetails,
+            city: updatedJobCard.patientDetails.city,
+        });
+
+        return updatedJobCard;
+    } catch (error) {
+        throw error;
+    }
+}
 
 module.exports = {
     createJobCardService,
@@ -416,5 +469,6 @@ module.exports = {
     getJobCardsByWorkerIdService,
     getJobCardsByStatusService,
     getJobCardsByStatusAndWorkerIdService,
-    completeJobCardService
+    completeJobCardService,
+    replaceWorkerInJobCardService
 }

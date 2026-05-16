@@ -1,17 +1,13 @@
 const adminRepository = require("../repository/adminrepository");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/serverConfig");
+
+
 const createAdminService = async (data) => {
     if (!data.email) throw new Error("Email is required");
-    if (!data.password) throw new Error("Password is required");
     if (!data.name) throw new Error("Name is required");
     if (!data.phone) throw new Error("Phone is required");
     if (!data.role) throw new Error("Role is required");
-
-    // ✅ Better validations
-    if (data.password.length < 6) {
-        throw new Error("Password must be at least 6 characters long");
-    }
 
     if (!/^\d{10}$/.test(data.phone)) {
         throw new Error("Phone must be 10 digits");
@@ -25,27 +21,40 @@ const createAdminService = async (data) => {
     if (existingAdmin) {
         throw new Error("Admin already exists");
     }
-
     const admin = await adminRepository.createAdmin(data);
-    if (admin) {
-        const token = jwt.sign({ id: admin._id, role: admin.role }, JWT_SECRET, { expiresIn: "1d" });
-        return {
-            admin,
-            token
-        }
-    }
+    return admin;
 };
 
+const approveAdminService = async (id,adminId) => {
+    const admin = await adminRepository.getAdminById(id);
+    const approver = await adminRepository.getAdminById(adminId);
+    if(approver.role!=="admin"){
+        throw new Error("Only admin can approve");
+    }
+    if (!admin) {
+        throw new Error("Admin not found");
+    }
+    const updatedAdmin = await adminRepository.updateAdmin(id, { accountStatus: "active" });
+    const token = jwt.sign({ id: updatedAdmin._id, email: updatedAdmin.email, role: updatedAdmin.role }, JWT_SECRET, { expiresIn: "7d" });
+    return { admin: updatedAdmin, token };
+};
+
+const deactivateAdminService = async (id,adminId) => {
+    const admin = await adminRepository.getAdminById(id);
+    const deactivator = await adminRepository.getAdminById(adminId);
+    if(deactivator.role!=="admin"){
+        throw new Error("Only admin can deactivate");
+    }
+    if (!admin) {
+        throw new Error("Admin not found");
+    }
+    return await adminRepository.updateAdmin(id, { accountStatus: "deactivated" });
+}
 const updateAdminService = async (id, data) => {
     const admin = await adminRepository.getAdminById(id);
     if (!admin) {
         throw new Error("Admin not found");
     }
-
-    if (data.password) {
-        delete data.password; // Prevent password update via generic update API to avoid storing plain text
-    }
-
     return await adminRepository.updateAdmin(id, data);
 };
 
@@ -62,6 +71,8 @@ const makeAdminService = async (id) => {
     return await adminRepository.updateAdmin(id, { role: "admin" });
 };
 
+
+
 module.exports = {
     createAdminService,
     findAdminByEmailService: adminRepository.findAdminByEmail,
@@ -69,5 +80,7 @@ module.exports = {
     deleteAdminService: adminRepository.deleteAdmin,
     getAllAdminsService,
     getAdminByIdService: adminRepository.getAdminById,
+    approveAdminService,
+    deactivateAdminService,
     makeAdminService
 };

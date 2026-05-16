@@ -1,8 +1,9 @@
 const axios = require("axios");
 const { WHATSAPP_TOKEN, PHONE_NUMBER_ID } = require("../config/serverConfig");
 
-const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientName, languageCode = "en", buttonValue = "job") => {
+const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientName, languageCode = "en", buttonValue = "job", templateName = "contract_message", bodyText) => {
     try {
+        const templateBodyText = bodyText || recipientName;
         const response = await axios.post(
             `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
             {
@@ -10,7 +11,7 @@ const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientN
                 to: phoneNumber,
                 type: "template",
                 template: {
-                    name: "contract_message",
+                    name: templateName,
                     language: {
                         code: languageCode
                     },
@@ -32,7 +33,7 @@ const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientN
                             parameters: [
                                 {
                                     type: "text",
-                                    text: recipientName
+                                    text: templateBodyText
                                 }
                             ]
                         },

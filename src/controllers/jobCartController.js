@@ -78,6 +78,16 @@ const assignWorkerToJobCardController = async (req, res) => {
     }
 }
 
+const replaceWorkerInJobCardController = async (req, res) => {
+    try {
+        if (!req.body.workerId) return res.status(400).json({ success: false, message: "workerId is required" });
+        const jobCard = await jobcartService.replaceWorkerInJobCardService(req.params.id, req.body.workerId);
+        res.status(200).json({ success: true, message: "Worker replaced successfully", data: jobCard });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+}
+
 const getJobCardsByWorkerIdController = async (req, res) => {
     try {
         const jobCards = await jobcartService.getJobCardsByWorkerIdService(req.params.workerId);
@@ -123,6 +133,7 @@ module.exports = {
     addWorkerToJobCardController,
     removeWorkerFromJobCardController,
     assignWorkerToJobCardController,
+    replaceWorkerInJobCardController,
     getJobCardsByWorkerIdController,
     getJobCardsByStatusController,
     getJobCardsByStatusAndWorkerIdController,

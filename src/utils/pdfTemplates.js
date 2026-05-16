@@ -69,7 +69,8 @@ const commonStyles = `
     }
 `;
 
-const generateWorkerPdfTemplate = (jobcart, worker) => {
+const generateWorkerPdfTemplate = (jobcart, worker, mode = 'assignment') => {
+    const workerCopyLabel = mode === 'replacement' ? 'Worker Copy - Replacement' : 'Worker Copy - Assigned';
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -85,7 +86,7 @@ const generateWorkerPdfTemplate = (jobcart, worker) => {
         </div>
         <div class="content-wrapper">
             <div style="margin-bottom: 20px;">
-                <span class="status-badge">Worker Copy - Assigned</span>
+                <span class="status-badge">${workerCopyLabel}</span>
                 <div style="font-size: 12px; color: #64748b;">Date: ${new Date(jobcart.assignedAt || Date.now()).toLocaleDateString()}</div>
             </div>
 
@@ -164,7 +165,11 @@ const generateWorkerPdfTemplate = (jobcart, worker) => {
     `;
 };
 
-const generateClientPdfTemplate = (jobcart, worker) => {
+const generateClientPdfTemplate = (jobcart, worker, mode = 'assignment') => {
+    const clientCopyLabel = mode === 'replacement' ? 'Customer Copy - Worker Replaced' : 'Customer Copy - Job Assigned';
+    const clientMessage = mode === 'replacement'
+        ? 'Your caregiver assignment has changed. Please review the updated details below.'
+        : 'Your caregiver assignment details are below.';
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -190,8 +195,9 @@ const generateClientPdfTemplate = (jobcart, worker) => {
         </div>
         <div class="content-wrapper">
             <div style="text-align: right; margin-bottom: 20px;">
-                <p style="margin: 0; font-weight: 700; color: #6d28d9;">Customer Copy - Job Assigned</p>
+                <p style="margin: 0; font-weight: 700; color: #6d28d9;">${clientCopyLabel}</p>
                 <p style="margin: 2px 0 0; font-size: 11px; color: #64748b">Order ID: #${jobcart._id.toString().slice(-6).toUpperCase()}</p>
+                <p style="margin: 4px 0 0; font-size: 12px; color: #475569;">${clientMessage}</p>
             </div>
 
             <div class="section">
@@ -269,7 +275,11 @@ const generateClientPdfTemplate = (jobcart, worker) => {
     `;
 };
 
-const generateAdminPdfTemplate = (jobcart, worker) => {
+const generateAdminPdfTemplate = (jobcart, worker, mode = 'assignment') => {
+    const adminTitle = mode === 'replacement' ? 'Internal Replacement Report' : 'Internal Assignment Report (Admin)';
+    const adminSubtitle = mode === 'replacement'
+        ? 'A replacement worker has been assigned to this job card.'
+        : 'Details of the assigned worker and financial breakdown.';
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -291,8 +301,8 @@ const generateAdminPdfTemplate = (jobcart, worker) => {
         </div>
         <div class="content-wrapper">
             <div class="admin-header">
-                <div class="admin-title">Internal Assignment Report (Admin)</div>
-                <div style="font-size: 11px; color: #64748b">Job ID: ${jobcart._id} | Date: ${new Date().toLocaleString()}</div>
+                <div class="admin-title">${adminTitle}</div>
+                <div style="font-size: 11px; color: #64748b">${adminSubtitle} Job ID: ${jobcart._id} | Date: ${new Date().toLocaleString()}</div>
             </div>
 
             <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">

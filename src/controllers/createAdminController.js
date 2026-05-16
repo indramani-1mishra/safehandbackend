@@ -1,23 +1,15 @@
 const adminService = require("../services/createAdmin");
-const { NODE_ENV } = require("../config/serverConfig");
 const { findAdminByEmail } = require('../repository/adminrepository')
 
-
-const { DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PASSWORD, DEFAULT_ADMIN_PHONE } = require("../config/serverConfig");
+const { DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PHONE } = require("../config/serverConfig");
 const createAdminController = async (req, res) => {
     try {
         const admin = await adminService.createAdminService(req.body);
 
-
-        return res.status(201).cookie("adminToken", admin.token, {
-            httpOnly: true,
-            secure: NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 24 * 60 * 60 * 1000
-        }).json({
+        return res.status(201).json({
             success: true,
-            data: admin.admin,
-            message: "Admin created successfully"
+            data: admin,
+            message: "Admin created successfully (pending approval)"
         });
     } catch (error) {
         return res.status(500).json({
@@ -117,11 +109,48 @@ const getProfileController = async (req, res) => {
     }
 }
 
+const approveAdminController = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const approverId = req.user.id; // Admin making the approval
+        
+        const admin = await adminService.approveAdminService(id, approverId);
+        return res.status(200).json({
+            success: true,
+            data: admin,
+            message: "Admin account approved successfully"
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+const deactivateAdminController = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deactivatorId = req.user.id;
+        
+        const admin = await adminService.deactivateAdminService(id, deactivatorId);
+        return res.status(200).json({
+            success: true,
+            data: admin,
+            message: "Admin account deactivated successfully"
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
 const createDefaultAdmin = async () => {
     try {
-        console.log(DEFAULT_ADMIN_PASSWORD, DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PHONE);
+        console.log("Checking for default admin...", DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PHONE);
         const existingAdmins = await findAdminByEmail(DEFAULT_ADMIN_EMAIL)
-        //  const hashedpassword = await bcrypt.hash(DEFAULT_ADMIN_PASSWORD, 10);
 
         // ✅ If admin already exists → do nothing
         if (existingAdmins) {
@@ -129,16 +158,16 @@ const createDefaultAdmin = async () => {
             return;
         }
 
-        // ✅ Create default admin
+        // ✅ Create default admin (Phone + OTP auth only)
         const admin = await adminService.createAdminService({
             name: "Admin",
             phone: DEFAULT_ADMIN_PHONE,
             email: DEFAULT_ADMIN_EMAIL,
-            password: DEFAULT_ADMIN_PASSWORD,
-            role: "admin"
+            role: "admin",
+            accountStatus: "active"  // Set to active by default
         });
 
-        console.log("Default Admin Created ✅", admin.email);
+        console.log("Default Admin Created ✅", admin.email, "(Active - No approval needed)");
 
     } catch (error) {
         console.error("Error creating default admin ❌", error);
@@ -154,5 +183,7 @@ module.exports = {
     getAdminByIdController,
     makeAdminController,
     getProfileController,
+    approveAdminController,
+    deactivateAdminController,
     createDefaultAdmin
 }
