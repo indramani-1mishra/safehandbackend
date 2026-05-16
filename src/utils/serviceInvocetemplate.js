@@ -35,6 +35,10 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
     const invoiceNo = invoiceNumber || (jobCardId ? jobCardId.toString().slice(-6).toUpperCase() : 'XXXXXX');
     const invoiceRef = jobCardId ? '#' + jobCardId.toString().slice(-8).toUpperCase() : 'N/A';
     const paymentId = paymentdetails._id ? '#' + paymentdetails._id.toString().slice(-10).toUpperCase() : 'N/A';
+    const comPanyAccountNumber = '4054784947';
+    const comPanyIfsc = 'KKBK0005032';
+    const comPanyBankName = 'Kotak Mahindra Bank';
+    const comPanyBranch = 'Noida Sector 62';
 
     const proofBlock = proofUrl
         ? `<div class="proof-section">&#128206; <strong>Payment Proof:</strong> <a href="${proofUrl}" target="_blank">${proofUrl}</a></div>`
@@ -129,8 +133,8 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .status-dot { width: 7px; height: 7px; border-radius: 50%; background: ${statusColor}; }
 
         /* BODY */
-        .body-section { padding: 18px 26px; }
-        .parties-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .body-section { padding: 14px 26px; }
+        .parties-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
         .info-card {
             background: var(--silver); border-radius: 12px; padding: 16px 18px;
             border: 1px solid var(--border); position: relative; overflow: hidden;
@@ -144,13 +148,13 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .info-detail { font-size: 12px; color: var(--slate); line-height: 1.7; }
 
         /* DATE CHIPS */
-        .dates-grid { display: grid; grid-template-columns: repeat(4, minmax(110px, 1fr)); gap: 9px; margin-bottom: 18px; }
+        .dates-grid { display: grid; grid-template-columns: repeat(4, minmax(110px, 1fr)); gap: 9px; margin-bottom: 12px; }
         .date-chip  { background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); border: 1px solid rgba(10,102,180,0.18); border-radius: 10px; padding: 10px 12px; text-align: center; }
         .date-chip-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary-dark); font-weight: 600; margin-bottom: 4px; }
         .date-chip-value { font-size: 12.5px; font-weight: 700; color: var(--navy); }
 
         /* TABLE */
-        .table-section  { margin-bottom: 24px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+        .table-section  { margin-bottom: 12px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
         .table-header   { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr; background: linear-gradient(90deg, var(--primary-dark), var(--accent-dark)); padding: 12px 16px; gap: 8px; }
         .th             { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.65); font-weight: 600; }
         .th:not(:first-child) { text-align: right; }
@@ -162,11 +166,20 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .service-sub    { font-size: 11px; color: var(--slate); margin-top: 2px; }
 
         /* TOTALS */
-        .totals-section { display: grid; grid-template-columns: 1fr 260px; gap: 18px; margin-bottom: 22px; align-items: start; }
-        .payment-info   { background: var(--silver); border-radius: 12px; padding: 18px 20px; border: 1px solid var(--border); }
-        .payment-info-title { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--slate); font-weight: 600; margin-bottom: 12px; }
-        .payment-row    { display: flex; justify-content: space-between; font-size: 12px; color: var(--slate); margin-bottom: 7px; }
+        .totals-section { display: grid; grid-template-columns: 1fr 260px; gap: 18px; margin-bottom: 12px; align-items: start; }
+        .payment-info   { background: var(--silver); border-radius: 12px; padding: 14px 16px; border: 1px solid var(--border); }
+        .payment-info-title { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--slate); font-weight: 600; margin-bottom: 10px; }
+        .payment-row    { display: flex; justify-content: space-between; font-size: 12px; color: var(--slate); margin-bottom: 6px; }
         .payment-row span:last-child { font-weight: 600; color: var(--navy); }
+        .bank-details   { background: var(--silver); border-radius: 12px; padding: 14px 16px; border: 1px solid var(--border); margin-top: 12px; }
+        .bank-details::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(180deg, var(--accent-dark), var(--primary));
+        }
+        .bank-details { position: relative; }
+        .bank-details-title { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-dark); font-weight: 600; margin-bottom: 10px; }
+        .bank-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--slate); margin-bottom: 5px; }
+        .bank-row span:last-child { font-weight: 700; color: var(--navy); }
         .totals-box     { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(13,148,136,0.08); }
         .totals-row     { display: flex; justify-content: space-between; padding: 11px 18px; border-bottom: 1px solid var(--border); font-size: 13px; background: var(--white); }
         .totals-row:last-child { border-bottom: none; }
@@ -180,19 +193,19 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .totals-row.balance-due .value { color: ${statusColor}; }
 
         /* PROOF */
-        .proof-section { background: var(--silver); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; border: 1px dashed var(--border); font-size: 12px; color: var(--slate); }
+        .proof-section { background: var(--silver); border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; border: 1px dashed var(--border); font-size: 11px; color: var(--slate); }
         .proof-section a { color: var(--primary); font-weight: 600; word-break: break-all; }
 
         /* TERMS */
-        .terms-section { margin-bottom: 16px; }
-        .terms-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
-        .terms-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
-        .terms-list li { width: calc(50% - 10px); font-size: 11px; color: var(--slate); line-height: 1.5; margin-bottom: 0; }
-        .terms-list li:before { content: "•"; color: var(--primary); font-weight: bold; display: inline-block; width: 1em; margin-right: 6px; }
+        .terms-section { margin-bottom: 10px; background: linear-gradient(135deg, rgba(13,94,168,0.05), rgba(122,193,66,0.05)); border-radius: 10px; padding: 12px 14px; border: 1px solid rgba(122,193,66,0.15); }
+        .terms-title { font-size: 11px; font-weight: 700; color: var(--primary-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .terms-list { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
+        .terms-list li { font-size: 10px; color: var(--slate); line-height: 1.4; margin-bottom: 0; }
+        .terms-list li:before { content: "✓"; color: var(--accent); font-weight: bold; display: inline-block; width: 1.2em; margin-right: 4px; }
 
         /* FOOTER */
         .footer-divider { height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary)); }
-        .invoice-footer { background: linear-gradient(135deg, var(--primary-dark), var(--accent-dark)); padding: 16px 26px; display: flex; justify-content: space-between; align-items: center; }
+        .invoice-footer { background: linear-gradient(135deg, var(--primary-dark), var(--accent-dark)); padding: 12px 26px; display: flex; justify-content: space-between; align-items: center; }
         .footer-brand   { font-family: 'Playfair Display', serif; color: rgba(255,255,255,0.9); font-size: 14px; }
         .footer-note    { font-size: 11px; color: rgba(255,255,255,0.45); text-align: right; line-height: 1.7; }
 
@@ -310,7 +323,6 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
             <div class="totals-section">
                 <div class="payment-info">
                     <div class="payment-info-title">Payment Summary</div>
-                    <div class="payment-row"><span>Invoice Date</span><span>${formatDate(paymentDate || createdAt)}</span></div>
                     <div class="payment-row"><span>Service Start</span><span>${formatDate(serviceStartDate)}</span></div>
                     <div class="payment-row"><span>Payment From</span><span>${formatDate(paidFromDate)}</span></div>
                     <div class="payment-row"><span>Paid Until</span><span>${formatDate(paidUntilNow)}</span></div>
@@ -338,16 +350,23 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                 </div>
             </div>
 
+            <!-- Bank Details -->
+            <div class="bank-details">
+                <div class="bank-details-title">Bank Details for Payment</div>
+                <div class="bank-row"><span>Account Number</span><span>${comPanyAccountNumber}</span></div>
+                <div class="bank-row"><span>IFSC Code</span><span>${comPanyIfsc}</span></div>
+                <div class="bank-row"><span>Bank Name</span><span>${comPanyBankName}</span></div>
+                <div class="bank-row"><span>Branch</span><span>${comPanyBranch}</span></div>
+            </div>
+
             <!-- Terms and Conditions -->
             <div class="terms-section">
                 <div class="terms-title">Terms and Conditions</div>
                 <ul class="terms-list">
-                    <li>Payment received successfully.</li>
-                    <li>Service charges are non-refundable.</li>
-                    <li>Replacement subject to availability.</li>
-                    <li>Extra duty/overtime chargeable separately.</li>
-                    <li>Disputes subject to Noida jurisdiction.</li>
-                    <li>We appreciate your trust in Safehand Lifecare Private Limited.</li>
+                    <li>Payment received successfully</li>
+                    <li>Service charges non-refundable</li>
+                    <li>Replacement subject to availability</li>
+                    <li>Extra duty/overtime chargeable separately</li>
                 </ul>
             </div>
 
