@@ -4,7 +4,12 @@ const { findAdminByEmail } = require('../repository/adminrepository')
 const { DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PHONE } = require("../config/serverConfig");
 const createAdminController = async (req, res) => {
     try {
-        const admin = await adminService.createAdminService(req.body);
+        const adminData = { ...req.body };
+        if (req.file) {
+            adminData.image = req.file.location || req.file.path;
+        }
+
+        const admin = await adminService.createAdminService(adminData);
 
         return res.status(201).json({
             success: true,
@@ -21,7 +26,12 @@ const createAdminController = async (req, res) => {
 
 const updateAdminController = async (req, res) => {
     try {
-        const admin = await adminService.updateAdminService(req.params.id, req.body);
+        const updateData = { ...req.body };
+        if (req.file) {
+            updateData.image = req.file.location || req.file.path;
+        }
+
+        const admin = await adminService.updateAdminService(req.params.id, updateData);
         return res.status(200).json({
             success: true,
             data: admin

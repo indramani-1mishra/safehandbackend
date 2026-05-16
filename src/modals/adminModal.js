@@ -131,6 +131,10 @@ const adminSchema = new mongoose.Schema({
         ref: "Admin",
         default: null
     },
+    image: {
+        type: String,
+        default: null
+    },
     accountStatus: {
         type: String,
         enum: ["pending", "active", "deactivated"],
