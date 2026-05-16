@@ -9,8 +9,7 @@ const serviceCategorySchema = new mongoose.Schema({
     serviceType: {
         type: String,
         enum: ["package", "onetime"],
-        required: true,
-        default: "onetime"
+        required: true
     },
     image: {
         type: String,
