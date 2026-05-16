@@ -1,8 +1,8 @@
 const serviceCategoryRepository = require("../repository/ServiceCategoryrepository");
 
 const createServiceCategoryService = async (data) => {
-    if (!data.name || !data.image) {
-        throw new Error("Category name and image are required");
+    if (!data.name || !data.image || !data.serviceType) {
+        throw new Error("Category name, image, and serviceType are required");
     }
     return await serviceCategoryRepository.createServiceCategoryRepository(data);
 };
