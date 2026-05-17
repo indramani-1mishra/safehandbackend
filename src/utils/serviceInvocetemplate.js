@@ -329,6 +329,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                     <div class="payment-row"><span>Payment Mode</span><span>${capitalize(paymentMethod)}</span></div>
                     <div class="payment-row"><span>Payment Status</span><span style="color:${statusColor}">${capitalize(paymentStatus)}</span></div>
                     <div class="payment-row"><span>GST</span><span>0%</span></div>
+                    <div class="payment-row"><span>GST Note</span><span>GST @ 0% – Exempted Healthcare/Nursing Care Services.</span></div>
                 </div>
                 <div class="totals-box">
                     <div class="totals-row">
@@ -355,6 +356,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                 <div class="bank-details-title">Bank Details for Payment</div>
                 <div class="bank-row"><span>Account Number</span><span>${comPanyAccountNumber}</span></div>
                 <div class="bank-row"><span>IFSC Code</span><span>${comPanyIfsc}</span></div>
+                <div class="bank-row"><span>HSN Number</span><span>999314</span></div>
                 <div class="bank-row"><span>Bank Name</span><span>${comPanyBankName}</span></div>
                 <div class="bank-row"><span>Branch</span><span>${comPanyBranch}</span></div>
             </div>
