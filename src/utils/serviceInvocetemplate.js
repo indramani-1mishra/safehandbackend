@@ -59,7 +59,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
             --navy: #112b4e; --slate: #475569; --silver: #f7fbff;
             --white: #ffffff; --border: #d9e8f7; --text: #1e2c43;
         }
-        html, body { height: 100%; }
+        html, body { min-height: 100%; }
         @page { margin: 8mm; size: A4 portrait; }
         body {
             margin: 0;
@@ -75,6 +75,9 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
             position: relative; overflow: hidden;
             box-shadow: 0 20px 45px rgba(0,0,0,0.08);
             page-break-inside: avoid;
+            page-break-before: avoid;
+            page-break-after: auto;
+            break-inside: avoid;
         }
         .letterhead-bg { position: absolute; inset: 0; z-index: 0; }
         .letterhead-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.08; }
