@@ -74,7 +74,9 @@ const createInvoiceService = async (data) => {
                 invoiceFileName,
                 paymentdetails.clientName,
                 "en",
-                "invoice"
+                "invoice",
+                "contract_message",
+                `Hello ${paymentdetails.clientName || "Customer"}, your invoice is attached.`
             );
             console.log("Invoice sent via WhatsApp to:", paymentdetails.clientPhone);
         } catch (whatsappError) {
