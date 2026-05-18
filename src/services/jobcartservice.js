@@ -128,7 +128,11 @@ const updateJobCardService = async (id, data) => {
         if (!jobCard) {
             throw new Error("Job card not found");
         }
-        const updatedJobCard = await jobcartRepository.updateJobCard(id, data);
+        const updateData = { ...data };
+        if (updateData.serviceStart) {
+            updateData.serviceStart = normalizeDateOnly(updateData.serviceStart);
+        }
+        const updatedJobCard = await jobcartRepository.updateJobCard(id, updateData);
         return updatedJobCard;
     } catch (error) {
         throw error;
