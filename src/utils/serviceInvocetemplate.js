@@ -28,9 +28,11 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
     const statusColor = paymentStatus === 'paid' ? '#16a34a' : paymentStatus === 'failed' ? '#dc2626' : '#d97706';
     const statusBg = paymentStatus === 'paid' ? '#dcfce7' : paymentStatus === 'failed' ? '#fee2e2' : '#fef3c7';
 
+    const logoUrl = paymentdetails.logoUrl || 'https://www.safehandlifecare.com/logo.png';
     const bgImg = paymentdetails.backgroundImage
         ? `<img src="${paymentdetails.backgroundImage}" alt="Letterhead Background">`
-        : `<img src="https://www.safehandlifecare.com/opengraph-image.jpg" alt="Safehand Lifecare Logo">`;
+        : `<img src="https://www.safehandlifecare.com/opengraph-image.jpg" alt="Safehand Lifecare Background">`;
+    const logoWatermark = `<img class="logo-watermark" src="${logoUrl}" alt="Safehand Lifecare Logo">`;
 
     const invoiceNo = invoiceNumber || (jobCardId ? jobCardId.toString().slice(-6).toUpperCase() : 'XXXXXX');
     const invoiceRef = jobCardId ? '#' + jobCardId.toString().slice(-8).toUpperCase() : 'N/A';
@@ -79,8 +81,15 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
             page-break-after: auto;
             break-inside: avoid;
         }
-        .letterhead-bg { position: absolute; inset: 0; z-index: 0; }
+        .letterhead-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
         .letterhead-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.08; }
+        .logo-watermark {
+            position: absolute; inset: 0; margin: auto;
+            width: min(420px, 45%); height: auto;
+            opacity: 0.08; object-fit: contain;
+            display: block;
+            pointer-events: none;
+        }
         .corner-tl {
             position: absolute; top: 0; left: 0;
             width: 220px; height: 220px;
@@ -200,11 +209,12 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         .proof-section a { color: var(--primary); font-weight: 600; word-break: break-all; }
 
         /* TERMS */
-        .terms-section { margin-bottom: 10px; background: linear-gradient(135deg, rgba(13,94,168,0.05), rgba(122,193,66,0.05)); border-radius: 10px; padding: 12px 14px; border: 1px solid rgba(122,193,66,0.15); }
+        .terms-section { margin-bottom: 10px; background: linear-gradient(135deg, rgba(13,94,168,0.08), rgba(122,193,66,0.08)); border-radius: 10px; padding: 12px 14px; border: 1px solid rgba(122,193,66,0.18); }
         .terms-title { font-size: 11px; font-weight: 700; color: var(--primary-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
         .terms-list { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
         .terms-list li { font-size: 10px; color: var(--slate); line-height: 1.4; margin-bottom: 0; }
         .terms-list li:before { content: "✓"; color: var(--accent); font-weight: bold; display: inline-block; width: 1.2em; margin-right: 4px; }
+        .signature-note { font-size: 11px; color: var(--slate); text-align: center; margin-bottom: 16px; }
 
         /* FOOTER */
         .footer-divider { height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary)); }
@@ -223,7 +233,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
 <body>
 <div class="invoice-wrapper">
 
-    <div class="letterhead-bg">${bgImg}</div>
+    <div class="letterhead-bg">${bgImg}${logoWatermark}</div>
     <div class="corner-tl"></div>
     <div class="corner-br"></div>
 
@@ -374,6 +384,8 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                     <li>Extra duty/overtime chargeable separately</li>
                 </ul>
             </div>
+
+            <div class="signature-note">This is a system-generated invoice and does not require a signature.</div>
 
             ${proofBlock}
 
