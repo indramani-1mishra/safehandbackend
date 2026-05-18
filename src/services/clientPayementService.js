@@ -32,25 +32,16 @@ const createClientPayment = async (data) => {
         const finalRemaining = currentRemaining > totalAvailable ? currentRemaining - totalAvailable : 0;
         const finalAvailable = amountAfterDebt - amountUsedForDays;
 
-        // Calculate paidFromDate and paidUntilDate from serviceStart
-        const oldPaidUntilDate = latestPayment?.paidUntilDate;
-        const serviceStartDate = jobCard.serviceStart || jobCard.inquiryId?.startDate || new Date();
-        
-        // Determine base date: if there's a previous paid period, continue from there, else start from serviceStart
-        let paidFromDate;
-        let paidUntilDate;
-        
-        if (oldPaidUntilDate && new Date(oldPaidUntilDate) > new Date()) {
-            // Subsequent payment: continue from previous paid until date
-            paidFromDate = new Date(oldPaidUntilDate);
-            paidUntilDate = new Date(oldPaidUntilDate);
-        } else {
-            // First payment: start from service start date
-            paidFromDate = new Date(serviceStartDate);
-            paidUntilDate = new Date(serviceStartDate);
-        }
-        
-        // Add covered days to calculate paidUntilDate
+        const serviceStartDate = new Date(jobCard.serviceStart || jobCard.inquiryId?.startDate || new Date());
+        const previousPaidUntil = latestPayment?.paidUntilDate ? new Date(latestPayment.paidUntilDate) : null;
+
+        // If there is a previous paidUntilDate after the service start date, continue from that date.
+        // Otherwise, begin from the service start date.
+        const paidFromDate = previousPaidUntil && previousPaidUntil > serviceStartDate
+            ? new Date(previousPaidUntil)
+            : new Date(serviceStartDate);
+
+        const paidUntilDate = new Date(paidFromDate);
         paidUntilDate.setDate(paidUntilDate.getDate() + daysCovered);
 
         const clientPaymentData = {
