@@ -18,7 +18,7 @@ const sendTemplatePdfIfPhone = async (phone, url, filename, recipientName, bodyT
             url,
             filename,
             recipientName,
-            "en_US",
+            "en",
             buttonValue,
             templateName,
             bodyText

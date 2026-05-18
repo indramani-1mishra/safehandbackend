@@ -309,7 +309,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
             <div class="table-section">
                 <div class="table-header">
                     <div class="th">Description</div>
-                    <div class="th">Service Date</div>
+                   
                     <div class="th">SAC/HSN</div>
                     <div class="th">Amount</div>
                 </div>
@@ -318,7 +318,6 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                         <div class="service-name">${serviceName || 'Healthcare Service'}</div>
                         <div class="service-sub">Ref: ${invoiceRef}</div>
                     </div>
-                    <div class="td">${formatDate(paidFromDate)}</div>
                     <div class="td">${hsnNumber}</div>
                     <div class="td">${formatCurrency(amount)}</div>
                 </div>
