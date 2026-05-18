@@ -29,10 +29,8 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
     const statusBg = paymentStatus === 'paid' ? '#dcfce7' : paymentStatus === 'failed' ? '#fee2e2' : '#fef3c7';
 
     const logoUrl = paymentdetails.logoUrl || 'https://www.safehandlifecare.com/logo.png';
-    const bgImg = paymentdetails.backgroundImage
-        ? `<img src="${paymentdetails.backgroundImage}" alt="Letterhead Background">`
-        : `<img src="https://www.safehandlifecare.com/opengraph-image.jpg" alt="Safehand Lifecare Background">`;
-    const logoWatermark = `<img class="logo-watermark" src="${logoUrl}" alt="Safehand Lifecare Logo">`;
+    const letterheadBgImage = paymentdetails.backgroundImage || 'https://www.safehandlifecare.com/opengraph-image.jpg';
+    const letterheadBgStyle = `background-image: url('${logoUrl}'), url('${letterheadBgImage}'); background-size: 38%, cover; background-position: center center, center center; background-repeat: no-repeat, no-repeat;`;
 
     const invoiceNo = invoiceNumber || (jobCardId ? jobCardId.toString().slice(-6).toUpperCase() : 'XXXXXX');
     const invoiceRef = jobCardId ? '#' + jobCardId.toString().slice(-8).toUpperCase() : 'N/A';
@@ -76,19 +74,12 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
             background: var(--white); min-height: auto;
             position: relative; overflow: hidden;
             box-shadow: 0 20px 45px rgba(0,0,0,0.08);
-            page-break-inside: avoid;
-            page-break-before: avoid;
-            page-break-after: auto;
-            break-inside: avoid;
         }
-        .letterhead-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
-        .letterhead-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.08; }
-        .logo-watermark {
-            position: absolute; inset: 0; margin: auto;
-            width: min(420px, 45%); height: auto;
-            opacity: 0.08; object-fit: contain;
-            display: block;
-            pointer-events: none;
+        .letterhead-bg {
+            position: absolute; inset: 0; z-index: 0;
+            opacity: 0.08;
+            background-color: #f4fbff;
+            background-blend-mode: lighten;
         }
         .corner-tl {
             position: absolute; top: 0; left: 0;
@@ -225,7 +216,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         @media print {
             body { background: white; }
             .invoice-wrapper { box-shadow: none; margin: 0; max-width: 100%; }
-            .invoice-content, .header, .status-ribbon, .body-section, .totals-section, .table-section, .terms-section, .invoice-footer { page-break-inside: avoid; }
+            .invoice-content, .header, .status-ribbon, .body-section, .totals-section, .table-section, .terms-section, .invoice-footer { page-break-inside: auto; break-inside: auto; }
             .invoice-content, .invoice-wrapper { page-break-after: auto; }
         }
     </style>
@@ -233,7 +224,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
 <body>
 <div class="invoice-wrapper">
 
-    <div class="letterhead-bg">${bgImg}${logoWatermark}</div>
+    <div class="letterhead-bg" style="${letterheadBgStyle}"></div>
     <div class="corner-tl"></div>
     <div class="corner-br"></div>
 
