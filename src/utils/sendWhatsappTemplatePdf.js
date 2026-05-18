@@ -4,32 +4,65 @@ const { sendWhatsappPdf } = require("./sendWhatsappPdf");
 
 const cleanPhoneNumber = (phone) => {
     if (!phone) return "";
+
     let clean = phone.toString().replace(/\D/g, "");
+
+    // Indian number support
     if (clean.length === 10) {
         clean = `91${clean}`;
     }
+
     return clean;
 };
 
-const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientName, languageCode = "en_US", buttonValue = "job", templateName = "contract_message", bodyText) => {
+const sendWhatsappTemplatePdf = async (
+    phoneNumber,
+    pdfUrl,
+    filename,
+    recipientName,
+    languageCode = "en",
+    templateName = "contract_message",
+    bodyText
+) => {
+
     const cleanPhone = cleanPhoneNumber(phoneNumber);
+
     if (!cleanPhone) {
         throw new Error("Invalid phone number provided for WhatsApp template send.");
     }
 
     try {
-        const templateBodyText = bodyText || recipientName || "Please find your attached PDF.";
-        console.log(`Sending WhatsApp template '${templateName}' in '${languageCode}' to ${cleanPhone}`);
+
+        const templateBodyText =
+            bodyText ||
+            recipientName ||
+            "Please find your attached PDF.";
+
+        console.log(
+            `Sending WhatsApp template '${templateName}' in '${languageCode}' to ${cleanPhone}`
+        );
+
+        // IMPORTANT:
+        // This code assumes your WhatsApp template contains:
+        // 1. HEADER -> DOCUMENT
+        // 2. BODY -> TEXT VARIABLE {{1}}
+        // 3. NO BUTTONS
+
         const templatePayload = {
             messaging_product: "whatsapp",
             to: cleanPhone,
             type: "template",
+
             template: {
                 name: templateName,
+
                 language: {
                     code: languageCode
                 },
+
                 components: [
+
+                    // DOCUMENT HEADER
                     {
                         type: "header",
                         parameters: [
@@ -42,6 +75,8 @@ const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientN
                             }
                         ]
                     },
+
+                    // BODY TEXT VARIABLE
                     {
                         type: "body",
                         parameters: [
@@ -51,6 +86,7 @@ const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientN
                             }
                         ]
                     }
+
                 ]
             }
         };
@@ -65,17 +101,49 @@ const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientN
                 },
             }
         );
-        console.log("WhatsApp Template PDF sent successfully:", response.data);
+
+        console.log(
+            "WhatsApp Template PDF sent successfully:",
+            response.data
+        );
+
         return response.data;
+
     } catch (error) {
-        console.error("Failed to send WhatsApp Template PDF:", error.response?.data || error.message);
-        console.log("Attempting fallback to direct WhatsApp document send...");
+
+        console.error(
+            "Failed to send WhatsApp Template PDF:",
+            error.response?.data || error.message
+        );
+
+        console.log(
+            "Attempting fallback to direct WhatsApp document send..."
+        );
+
         try {
-            await sendWhatsappPdf(cleanPhone, pdfUrl, filename, bodyText || "Please find your attached PDF document.");
-            return { fallback: true };
+
+            await sendWhatsappPdf(
+                cleanPhone,
+                pdfUrl,
+                filename,
+                bodyText || "Please find your attached PDF document."
+            );
+
+            return {
+                success: true,
+                fallback: true
+            };
+
         } catch (fallbackError) {
-            console.error("Fallback WhatsApp PDF send failed:", fallbackError.response?.data || fallbackError.message || fallbackError);
-            throw error;
+
+            console.error(
+                "Fallback WhatsApp PDF send failed:",
+                fallbackError.response?.data ||
+                fallbackError.message ||
+                fallbackError
+            );
+
+            throw fallbackError;
         }
     }
 };
