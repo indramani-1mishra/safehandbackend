@@ -17,7 +17,8 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
         serviceName,
         invoiceNumber,
         clientPincode,
-        serviceStartDate
+        serviceStartDate,
+        hsnNumber = '999314'
 
     } = paymentdetails;
 
@@ -309,7 +310,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                 <div class="table-header">
                     <div class="th">Description</div>
                     <div class="th">Service Date</div>
-                    <div class="th">Payment Mode</div>
+                    <div class="th">HSN Number</div>
                     <div class="th">Amount</div>
                 </div>
                 <div class="table-row">
@@ -318,7 +319,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                         <div class="service-sub">Ref: ${invoiceRef}</div>
                     </div>
                     <div class="td">${formatDate(paidFromDate)}</div>
-                    <div class="td">${capitalize(paymentMethod)}</div>
+                    <div class="td">${hsnNumber}</div>
                     <div class="td">${formatCurrency(amount)}</div>
                 </div>
             </div>
@@ -360,7 +361,6 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                 <div class="bank-details-title">Bank Details for Payment</div>
                 <div class="bank-row"><span>Account Number</span><span>${comPanyAccountNumber}</span></div>
                 <div class="bank-row"><span>IFSC Code</span><span>${comPanyIfsc}</span></div>
-                <div class="bank-row"><span>HSN Number</span><span>999314</span></div>
                 <div class="bank-row"><span>Bank Name</span><span>${comPanyBankName}</span></div>
                 <div class="bank-row"><span>Branch</span><span>${comPanyBranch}</span></div>
             </div>
