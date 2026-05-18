@@ -20,53 +20,44 @@ const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientN
     try {
         const templateBodyText = bodyText || recipientName || "Please find your attached PDF.";
         console.log(`Sending WhatsApp template '${templateName}' in '${languageCode}' to ${cleanPhone}`);
+        const templatePayload = {
+            messaging_product: "whatsapp",
+            to: cleanPhone,
+            type: "template",
+            template: {
+                name: templateName,
+                language: {
+                    code: languageCode
+                },
+                components: [
+                    {
+                        type: "header",
+                        parameters: [
+                            {
+                                type: "document",
+                                document: {
+                                    link: pdfUrl,
+                                    filename: filename
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        type: "body",
+                        parameters: [
+                            {
+                                type: "text",
+                                text: templateBodyText
+                            }
+                        ]
+                    }
+                ]
+            }
+        };
+
         const response = await axios.post(
             `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
-            {
-                messaging_product: "whatsapp",
-                to: cleanPhone,
-                type: "template",
-                template: {
-                    name: templateName,
-                    language: {
-                        code: languageCode
-                    },
-                    components: [
-                        {
-                            type: "header",
-                            parameters: [
-                                {
-                                    type: "document",
-                                    document: {
-                                        link: pdfUrl,
-                                        filename: filename
-                                    }
-                                }
-                            ]
-                        },
-                        {
-                            type: "body",
-                            parameters: [
-                                {
-                                    type: "text",
-                                    text: templateBodyText
-                                }
-                            ]
-                        },
-                        {
-                            type: "button",
-                            sub_type: "url",
-                            index: "0",
-                            parameters: [
-                                {
-                                    type: "text",
-                                    text: buttonValue
-                                }
-                            ]
-                        }
-                    ]
-                }
-            },
+            templatePayload,
             {
                 headers: {
                     Authorization: `Bearer ${WHATSAPP_TOKEN}`,
