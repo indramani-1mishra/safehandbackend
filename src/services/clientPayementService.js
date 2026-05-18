@@ -32,19 +32,26 @@ const createClientPayment = async (data) => {
         const finalRemaining = currentRemaining > totalAvailable ? currentRemaining - totalAvailable : 0;
         const finalAvailable = amountAfterDebt - amountUsedForDays;
 
+        // Calculate paidFromDate and paidUntilDate from serviceStart
         const oldPaidUntilDate = latestPayment?.paidUntilDate;
-      //  const serviceStartDate = jobCard.serviceStart || jobCard.inquiryId?.startDate || new Date();
-        const baseDate =
-            oldPaidUntilDate && new Date(oldPaidUntilDate) > new Date()
-                ? new Date(oldPaidUntilDate)
-                : new Date();
-
-        baseDate.setDate(
-            baseDate.getDate() + daysCovered
-        );
-
-        const paidUntilDate1 = baseDate;
-
+        const serviceStartDate = jobCard.serviceStart || jobCard.inquiryId?.startDate || new Date();
+        
+        // Determine base date: if there's a previous paid period, continue from there, else start from serviceStart
+        let paidFromDate;
+        let paidUntilDate;
+        
+        if (oldPaidUntilDate && new Date(oldPaidUntilDate) > new Date()) {
+            // Subsequent payment: continue from previous paid until date
+            paidFromDate = new Date(oldPaidUntilDate);
+            paidUntilDate = new Date(oldPaidUntilDate);
+        } else {
+            // First payment: start from service start date
+            paidFromDate = new Date(serviceStartDate);
+            paidUntilDate = new Date(serviceStartDate);
+        }
+        
+        // Add covered days to calculate paidUntilDate
+        paidUntilDate.setDate(paidUntilDate.getDate() + daysCovered);
 
         const clientPaymentData = {
             jobCardId,
@@ -57,8 +64,8 @@ const createClientPayment = async (data) => {
             paymentMethod: paymentMethod || "cash",
             paymentDate: new Date(),
             proofUrl: proofUrl || "",
-            paidUntilDate: paidUntilDate1,
-            paidFromDate: new Date(),
+            paidUntilDate: paidUntilDate,
+            paidFromDate: paidFromDate,
         };
 
 
