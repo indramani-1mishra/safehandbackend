@@ -5,7 +5,8 @@ const { generatePdf } = require("../utils/pdfGenerator");
 const { generateServiceInvoiceTemplate } = require("../utils/serviceInvocetemplate");
 //const { sendWhatsappPdf } = require("../utils/sendWhatsappPdf");
 const { uploadPdfToS3 } = require("../utils/s3Upload");
-const { sendWhatsappTemplatePdf } = require("../utils/sendWhatsappTemplatePdf");
+//const { sendWhatsappTemplatePdf } = require("../utils/sendWhatsappTemplatePdf");
+const { sendInvoiceOnWhatsapp } = require("../utils/sendInvoiceonwhatsapp");
 
 const createInvoiceService = async (data) => {
     const { jobcard, clientPayment} = data;
@@ -68,15 +69,12 @@ const createInvoiceService = async (data) => {
 
     if (paymentdetails.clientPhone) {
         try {
-            await sendWhatsappTemplatePdf(
+            await sendInvoiceOnWhatsapp(
                 paymentdetails.clientPhone,
                 invoicepdfurl,
                 invoiceFileName,
                 paymentdetails.clientName,
-                "en",
-                "invoice",
-                "contract_message",
-                `Hello ${paymentdetails.clientName || "Customer"}, your invoice is attached.`
+                paymentdetails.serviceName || "Healthcare Service"
             );
             console.log("Invoice sent via WhatsApp to:", paymentdetails.clientPhone);
         } catch (whatsappError) {
