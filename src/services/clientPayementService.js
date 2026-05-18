@@ -21,24 +21,19 @@ const createClientPayment = async (data) => {
         let currentRemaining = latestPayment ? (latestPayment.remainingAmount || 0) : 0;
 
         // 2. Add payment to wallet first
-        let totalAvailable = currentAvailable + Number(amount);
-        let finalRemaining = currentRemaining;
-        let finalAvailable = totalAvailable;
-
-        // 3. Automatically use wallet to pay off existing debt
-        if (currentRemaining > 0) {
-            if (totalAvailable >= currentRemaining) {
-                finalAvailable = totalAvailable - currentRemaining;
-                finalRemaining = 0;
-            } else {
-                finalRemaining = currentRemaining - totalAvailable;
-                finalAvailable = 0;
-            }
-        }
+        const totalAvailable = currentAvailable + Number(amount);
+        const paymentToDebt = currentRemaining > 0 ? Math.min(totalAvailable, currentRemaining) : 0;
+        const amountAfterDebt = totalAvailable - paymentToDebt;
 
         const perDayAmount = jobCard.perDayCustomerCost || 0;
-        const daysCovered = perDayAmount > 0 ? Math.floor(amount / perDayAmount) : 0;
+        const daysCovered = perDayAmount > 0 ? Math.floor(amountAfterDebt / perDayAmount) : 0;
+        const amountUsedForDays = daysCovered * perDayAmount;
+
+        const finalRemaining = currentRemaining > totalAvailable ? currentRemaining - totalAvailable : 0;
+        const finalAvailable = amountAfterDebt - amountUsedForDays;
+
         const oldPaidUntilDate = latestPayment?.paidUntilDate;
+      //  const serviceStartDate = jobCard.serviceStart || jobCard.inquiryId?.startDate || new Date();
         const baseDate =
             oldPaidUntilDate && new Date(oldPaidUntilDate) > new Date()
                 ? new Date(oldPaidUntilDate)
@@ -53,17 +48,17 @@ const createClientPayment = async (data) => {
 
         const clientPaymentData = {
             jobCardId,
-            amount,
+            amount: Number(amount),
             remainingAmount: finalRemaining,
+            remainingDays: perDayAmount > 0 ? Math.ceil(finalRemaining / perDayAmount) : 0,
             availableBalance: finalAvailable,
             dayCovered: daysCovered,
-            paymentStatus: "paid",
+            paymentStatus: finalRemaining > 0 ? "pending" : "paid",
             paymentMethod: paymentMethod || "cash",
             paymentDate: new Date(),
             proofUrl: proofUrl || "",
             paidUntilDate: paidUntilDate1,
             paidFromDate: new Date(),
-
         };
 
 
