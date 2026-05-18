@@ -44,7 +44,7 @@ invoiceSchema.pre("save", async function () {
 
     this.invoiceNumber = lastInvoice
       ? lastInvoice.invoiceNumber + 1
-      : 1;
+      : 101;
   }
 });
 
