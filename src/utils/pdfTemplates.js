@@ -11,6 +11,18 @@ try {
     console.error("Error loading background image for PDF:", error.message);
 }
 
+const safeValue = (value, fallback = '') => (value === undefined || value === null ? fallback : value);
+const formatDate = (value) => value ? new Date(value).toLocaleDateString() : '';
+const formatCurrency = (value) => (value !== undefined && value !== null && value !== '' ? `₹${value}` : '');
+const renderInfoItem = (label, value, extraStyle = '') => {
+    if (value === undefined || value === null || value === '') return '';
+    return `
+        <div class="info-item" style="${extraStyle}">
+            <span class="label">${label}</span>
+            <span class="value">${value}</span>
+        </div>`;
+};
+
 const commonStyles = `
     @page {
         size: A4;
@@ -71,6 +83,12 @@ const commonStyles = `
 
 const generateWorkerPdfTemplate = (jobcart, worker, mode = 'assignment') => {
     const workerCopyLabel = mode === 'replacement' ? 'Worker Copy - Replacement' : 'Worker Copy - Assigned';
+    const patient = jobcart?.patientDetails || {};
+    const serviceName = jobcart?.serviceDetails?.service?.name || 'Healthcare Service';
+    const planTiming = [jobcart?.serviceDetails?.plan, jobcart?.serviceDetails?.timing].filter(Boolean).join(' / ');
+    const ageGender = [patient.age, patient.gender].filter(Boolean).join(' / ');
+    const addressLine = [patient.address, patient.city].filter(Boolean).join(', ');
+    const dateText = formatDate(jobcart?.assignedAt || Date.now());
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -87,21 +105,15 @@ const generateWorkerPdfTemplate = (jobcart, worker, mode = 'assignment') => {
         <div class="content-wrapper">
             <div style="margin-bottom: 20px;">
                 <span class="status-badge">${workerCopyLabel}</span>
-                <div style="font-size: 12px; color: #64748b;">Date: ${new Date(jobcart.assignedAt || Date.now()).toLocaleDateString()}</div>
+                ${renderInfoItem('Date', dateText, 'font-size: 12px; color: #64748b; display: block;')}
             </div>
 
             <div class="section">
                 <div class="section-title">Assignment for Worker</div>
                 <div class="card">
                     <div class="info-grid">
-                        <div class="info-item">
-                            <span class="label">Worker Name</span>
-                            <span class="value">${worker.name}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Worker ID</span>
-                            <span class="value">${worker.workerId}</span>
-                        </div>
+                        ${renderInfoItem('Worker Name', safeValue(worker?.name))}
+                        ${renderInfoItem('Worker ID', safeValue(worker?.workerId))}
                     </div>
                 </div>
             </div>
@@ -110,18 +122,9 @@ const generateWorkerPdfTemplate = (jobcart, worker, mode = 'assignment') => {
                 <div class="section-title">Patient & Location Details</div>
                 <div class="card">
                     <div class="info-grid">
-                        <div class="info-item">
-                            <span class="label">Patient Name</span>
-                            <span class="value">${jobcart.patientDetails.name}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Age / Gender</span>
-                            <span class="value">${jobcart.patientDetails.age} / ${jobcart.patientDetails.gender}</span>
-                        </div>
-                        <div class="info-item" style="grid-column: span 2">
-                            <span class="label">Address</span>
-                            <span class="value">${jobcart.patientDetails.address}, ${jobcart.patientDetails.city}</span>
-                        </div>
+                        ${renderInfoItem('Patient Name', safeValue(patient.name))}
+                        ${renderInfoItem('Age / Gender', ageGender)}
+                        ${renderInfoItem('Address', addressLine, 'grid-column: span 2')}
                     </div>
                 </div>
             </div>
@@ -130,32 +133,12 @@ const generateWorkerPdfTemplate = (jobcart, worker, mode = 'assignment') => {
                 <div class="section-title">Service & Salary Details</div>
                 <div class="card">
                     <div class="info-grid">
-                        <div class="info-item">
-                            <span class="label">Service</span>
-                            <span class="value">${(jobcart.serviceDetails.service && jobcart.serviceDetails.service.name) ? jobcart.serviceDetails.service.name : 'Healthcare Service'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Plan / Timing</span>
-                            <span class="value" style="text-transform: capitalize;">${jobcart.serviceDetails.plan} / ${jobcart.serviceDetails.timing}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Start Date</span>
-                            <span class="value highlight">${new Date(jobcart.serviceStart).toLocaleDateString()}</span>
-                        </div>
-                       
-                       
-                        <div class="info-item">
-                            <span class="label">Payment Cycle</span>
-                            <span class="value">${jobcart.nursePaymentCycleDays} Days</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Per Day Salary</span>
-                            <span class="value">₹${jobcart.perDayNurseCost}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Total Salary</span>
-                            <span class="value highlight">₹${jobcart.totalNurseSalary}</span>
-                        </div>
+                        ${renderInfoItem('Service', serviceName)}
+                        ${renderInfoItem('Plan / Timing', planTiming)}
+                        ${renderInfoItem('Start Date', formatDate(jobcart?.serviceStart))}
+                        ${renderInfoItem('Payment Cycle', jobcart?.nursePaymentCycleDays ? `${jobcart.nursePaymentCycleDays} Days` : '')}
+                        ${renderInfoItem('Per Day Salary', formatCurrency(jobcart?.perDayNurseCost))}
+                        ${renderInfoItem('Total Salary', formatCurrency(jobcart?.totalNurseSalary))}
                     </div>
                 </div>
             </div>
@@ -170,6 +153,13 @@ const generateClientPdfTemplate = (jobcart, worker, mode = 'assignment') => {
     const clientMessage = mode === 'replacement'
         ? 'Your caregiver assignment has changed. Please review the updated details below.'
         : 'Your caregiver assignment details are below.';
+    const serviceName = jobcart?.serviceDetails?.service?.name || 'Healthcare Service';
+    const planTiming = [jobcart?.serviceDetails?.plan, jobcart?.serviceDetails?.timing].filter(Boolean).join(' / ');
+    const startDate = formatDate(jobcart?.serviceStart);
+    const endDate = formatDate(jobcart?.serviceEnd);
+    const totalDays = jobcart?.totalDays ? `${jobcart.totalDays} Days` : '';
+    const paymentCycle = jobcart?.customerPaymentCycleDays ? `${jobcart.customerPaymentCycleDays} Days` : '';
+    const assignedTo = safeValue(jobcart?.patientDetails?.name);
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -196,28 +186,19 @@ const generateClientPdfTemplate = (jobcart, worker, mode = 'assignment') => {
         <div class="content-wrapper">
             <div style="text-align: right; margin-bottom: 20px;">
                 <p style="margin: 0; font-weight: 700; color: #6d28d9;">${clientCopyLabel}</p>
-                <p style="margin: 2px 0 0; font-size: 11px; color: #64748b">Order ID: #${jobcart._id.toString().slice(-6).toUpperCase()}</p>
-                <p style="margin: 4px 0 0; font-size: 12px; color: #475569;">${clientMessage}</p>
+                ${renderInfoItem('Order ID', safeValue(jobcart?._id ? jobcart._id.toString().slice(-6).toUpperCase() : ''))}
+                ${renderInfoItem('', clientMessage, 'margin: 4px 0 0; font-size: 12px; color: #475569;')}
             </div>
 
             <div class="section">
                 <div class="section-title">Your Assigned Caregiver</div>
                 <div class="card">
                     <div class="worker-profile">
-                        <img class="worker-photo" src="${worker.photo || 'https://via.placeholder.com/150'}" alt="Worker Photo">
+                        <img class="worker-photo" src="${worker?.photo || 'https://via.placeholder.com/150'}" alt="Worker Photo">
                         <div class="info-grid">
-                            <div class="info-item">
-                                <span class="label">Name</span>
-                                <span class="value">${worker.name}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">ID</span>
-                                <span class="value">${worker.workerId}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Age / Gender</span>
-                                <span class="value">${worker.age} / ${worker.gender}</span>
-                            </div>
+                            ${renderInfoItem('Name', safeValue(worker?.name))}
+                            ${renderInfoItem('ID', safeValue(worker?.workerId))}
+                            ${renderInfoItem('Age / Gender', [worker?.age, worker?.gender].filter(Boolean).join(' / '))}
                         </div>
                     </div>
                 </div>
@@ -227,48 +208,19 @@ const generateClientPdfTemplate = (jobcart, worker, mode = 'assignment') => {
                 <div class="section-title">Service & Payment Details</div>
                 <div class="card">
                     <div class="info-grid">
-                        <div class="info-item">
-                            <span class="label">Service Name</span>
-                            <span class="value">${(jobcart.serviceDetails.service && jobcart.serviceDetails.service.name) ? jobcart.serviceDetails.service.name : 'Healthcare Service'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Plan / Timing</span>
-                            <span class="value" style="text-transform: capitalize;">${jobcart.serviceDetails.plan} / ${jobcart.serviceDetails.timing}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Start Date</span>
-                            <span class="value">${new Date(jobcart.serviceStart).toLocaleDateString()}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">End Date</span>
-                            <span class="value">${new Date(jobcart.serviceEnd).toLocaleDateString()}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Total Days</span>
-                            <span class="value">${jobcart.totalDays} Days</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Payment Cycle</span>
-                            <span class="value">${jobcart.customerPaymentCycleDays} Days</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Assigned To</span>
-                            <span class="value">${jobcart.patientDetails.name}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Per Day Cost</span>
-                            <span class="value">₹${jobcart.perDayCustomerCost}</span>
-                        </div>
+                        ${renderInfoItem('Service Name', serviceName)}
+                        ${renderInfoItem('Plan / Timing', planTiming)}
+                        ${renderInfoItem('Start Date', startDate)}
+                        ${renderInfoItem('End Date', endDate)}
+                        ${renderInfoItem('Total Days', totalDays)}
+                        ${renderInfoItem('Payment Cycle', paymentCycle)}
+                        ${renderInfoItem('Assigned To', assignedTo)}
+                        ${renderInfoItem('Per Day Cost', formatCurrency(jobcart?.perDayCustomerCost))}
                     </div>
                 </div>
             </div>
 
-            <div style="overflow: hidden; margin-top: 10px;">
-                <div class="price-tag">
-                    <div style="font-size: 10px; opacity: 0.9;">Total Deal Amount</div>
-                    <div style="font-size: 20px; font-weight: 800;">₹${jobcart.totalDealAmount}</div>
-                </div>
-            </div>
+            ${jobcart?.totalDealAmount ? `<div style="overflow: hidden; margin-top: 10px;"><div class="price-tag"><div style="font-size: 10px; opacity: 0.9;">Total Deal Amount</div><div style="font-size: 20px; font-weight: 800;">${formatCurrency(jobcart.totalDealAmount)}</div></div></div>` : ''}
         </div>
     </body>
     </html>
@@ -280,6 +232,19 @@ const generateAdminPdfTemplate = (jobcart, worker, mode = 'assignment') => {
     const adminSubtitle = mode === 'replacement'
         ? 'A replacement worker has been assigned to this job card.'
         : 'Details of the assigned worker and financial breakdown.';
+    const patient = jobcart?.patientDetails || {};
+    const serviceName = jobcart?.serviceDetails?.service?.name || 'Healthcare Service';
+    const ageGender = [patient.age, patient.gender].filter(Boolean).join(' / ');
+    const addressLine = [patient.address, patient.city].filter(Boolean).join(', ');
+    const jobId = safeValue(jobcart?._id ? jobcart._id.toString() : '');
+    const totalClientCost = formatCurrency(jobcart?.perDayCustomerCost);
+    const totalWorkerCost = formatCurrency(jobcart?.perDayNurseCost);
+    const totalRevenue = jobcart?.perDayCustomerCost !== undefined && jobcart?.perDayNurseCost !== undefined ? formatCurrency(jobcart.perDayCustomerCost - jobcart.perDayNurseCost) : '';
+    const totalDeal = formatCurrency(jobcart?.totalDealAmount);
+    const totalSalary = formatCurrency(jobcart?.totalNurseSalary);
+    const netRevenue = (jobcart?.totalDealAmount !== undefined && jobcart?.totalNurseSalary !== undefined)
+        ? formatCurrency(Number(jobcart.totalDealAmount) - Number(jobcart.totalNurseSalary))
+        : '';
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -302,33 +267,33 @@ const generateAdminPdfTemplate = (jobcart, worker, mode = 'assignment') => {
         <div class="content-wrapper">
             <div class="admin-header">
                 <div class="admin-title">${adminTitle}</div>
-                <div style="font-size: 11px; color: #64748b">${adminSubtitle} Job ID: ${jobcart._id} | Date: ${new Date().toLocaleString()}</div>
+                <div style="font-size: 11px; color: #64748b">${adminSubtitle}${jobId ? ` Job ID: ${jobId}` : ''} | Date: ${new Date().toLocaleString()}</div>
             </div>
 
             <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                 <div>
                     <div class="section-title">Patient Details</div>
-                    <div class="info-item"><span class="label">Name</span><span class="value">${jobcart.patientDetails.name}</span></div>
-                    <div class="info-item"><span class="label">Phone</span><span class="value">${jobcart.patientDetails.phone}</span></div>
-                    <div class="info-item"><span class="label">Age / Gender</span><span class="value">${jobcart.patientDetails.age} / ${jobcart.patientDetails.gender}</span></div>
-                    <div class="info-item"><span class="label">Address</span><span class="value">${jobcart.patientDetails.address}, ${jobcart.patientDetails.city}</span></div>
+                    ${renderInfoItem('Name', safeValue(patient.name))}
+                    ${renderInfoItem('Phone', safeValue(patient.phone))}
+                    ${renderInfoItem('Age / Gender', ageGender)}
+                    ${renderInfoItem('Address', addressLine)}
                 </div>
                 <div>
                     <div class="section-title">Worker Details</div>
-                    <div class="info-item"><span class="label">Name</span><span class="value">${worker.name}</span></div>
-                    <div class="info-item"><span class="label">ID</span><span class="value">${worker.workerId}</span></div>
-                    <div class="info-item"><span class="label">Phone</span><span class="value">${worker.phone}</span></div>
-                    <div class="info-item"><span class="label">Email</span><span class="value">${worker.email}</span></div>
+                    ${renderInfoItem('Name', safeValue(worker?.name))}
+                    ${renderInfoItem('ID', safeValue(worker?.workerId))}
+                    ${renderInfoItem('Phone', safeValue(worker?.phone))}
+                    ${renderInfoItem('Email', safeValue(worker?.email))}
                 </div>
             </div>
 
             <div class="section-title">Job & Service Breakdown</div>
             <div class="card" style="margin-bottom: 20px;">
                 <div class="info-grid">
-                    <div class="info-item"><span class="label">Service</span><span class="value">${(jobcart.serviceDetails.service && jobcart.serviceDetails.service.name) ? jobcart.serviceDetails.service.name : 'Healthcare Service'}</span></div>
-                    <div class="info-item"><span class="label">Total Days</span><span class="value">${jobcart.totalDays}</span></div>
-                    <div class="info-item"><span class="label">Start Date</span><span class="value">${new Date(jobcart.serviceStart).toLocaleDateString()}</span></div>
-                    <div class="info-item"><span class="label">End Date</span><span class="value">${new Date(jobcart.serviceEnd).toLocaleDateString()}</span></div>
+                    ${renderInfoItem('Service', serviceName)}
+                    ${renderInfoItem('Total Days', safeValue(jobcart?.totalDays ? `${jobcart.totalDays}` : ''))}
+                    ${renderInfoItem('Start Date', formatDate(jobcart?.serviceStart))}
+                    ${renderInfoItem('End Date', formatDate(jobcart?.serviceEnd))}
                 </div>
             </div>
 
@@ -345,29 +310,26 @@ const generateAdminPdfTemplate = (jobcart, worker, mode = 'assignment') => {
                 <tbody>
                     <tr>
                         <td>Per Day Cost</td>
-                        <td>${jobcart.perDayCustomerCost}</td>
-                        <td>${jobcart.perDayNurseCost}</td>
-                        <td>${jobcart.perDayCustomerCost - jobcart.perDayNurseCost}</td>
+                        <td>${totalClientCost}</td>
+                        <td>${totalWorkerCost}</td>
+                        <td>${totalRevenue}</td>
                     </tr>
                     <tr>
                         <td>Payment Cycle</td>
-                        <td>${jobcart.customerPaymentCycleDays} Days</td>
-                        <td>${jobcart.nursePaymentCycleDays} Days</td>
+                        <td>${safeValue(jobcart?.customerPaymentCycleDays ? `${jobcart.customerPaymentCycleDays} Days` : '')}</td>
+                        <td>${safeValue(jobcart?.nursePaymentCycleDays ? `${jobcart.nursePaymentCycleDays} Days` : '')}</td>
                         <td>-</td>
                     </tr>
                     <tr style="font-weight: bold; background: #f8fafc;">
                         <td>Total Amount</td>
-                        <td>${jobcart.totalDealAmount}</td>
-                        <td>${jobcart.totalNurseSalary}</td>
-                        <td>${jobcart.totalDealAmount - jobcart.totalNurseSalary}</td>
+                        <td>${totalDeal}</td>
+                        <td>${totalSalary}</td>
+                        <td>${netRevenue}</td>
                     </tr>
                 </tbody>
             </table>
 
-            <div class="profit-box">
-                <div style="font-size: 10px; opacity: 0.8">Net Revenue for SafeHand</div>
-                <div style="font-size: 20px; font-weight: 900">₹${Number(jobcart.totalDealAmount) - Number(jobcart.totalNurseSalary)}</div>
-            </div>
+            ${netRevenue ? `<div class="profit-box"><div style="font-size: 10px; opacity: 0.8">Net Revenue for SafeHand</div><div style="font-size: 20px; font-weight: 900">${netRevenue}</div></div>` : ''}
         </div>
     </body>
     </html>
