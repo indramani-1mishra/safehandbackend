@@ -14,11 +14,11 @@ const sendTemplatePdfIfPhone = async (phone, url, filename, recipientName, bodyT
 
     try {
         await sendWhatsappTemplatePdf(
-            `91${phone}`,
+            phone,
             url,
             filename,
             recipientName,
-            "en",
+            "en_US",
             buttonValue,
             templateName,
             bodyText
@@ -36,7 +36,7 @@ const ashineJobCardpdf = async (jobCard, assignedWorker, mode = "assignment") =>
         const safeJobCardId = jobCard._id
             .toString()
             .replace(/[^a-zA-Z0-9]/g, "_");
-        const whatsappTemplateName = "ashind_template";
+        const whatsappTemplateName = "contract_message";
         const whatsappButtonValue = safeJobCardId;
 
         const fullJobCard = await jobCardRepository.getJobCardById(jobCard._id);

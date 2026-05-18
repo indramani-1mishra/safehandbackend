@@ -11,7 +11,7 @@ const cleanPhoneNumber = (phone) => {
     return clean;
 };
 
-const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientName, languageCode = "en", buttonValue = "job", templateName = "contract_message", bodyText) => {
+const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientName, languageCode = "en_US", buttonValue = "job", templateName = "contract_message", bodyText) => {
     const cleanPhone = cleanPhoneNumber(phoneNumber);
     if (!cleanPhone) {
         throw new Error("Invalid phone number provided for WhatsApp template send.");
@@ -19,6 +19,7 @@ const sendWhatsappTemplatePdf = async (phoneNumber, pdfUrl, filename, recipientN
 
     try {
         const templateBodyText = bodyText || recipientName || "Please find your attached PDF.";
+        console.log(`Sending WhatsApp template '${templateName}' in '${languageCode}' to ${cleanPhone}`);
         const response = await axios.post(
             `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
             {

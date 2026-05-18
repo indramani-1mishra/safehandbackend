@@ -73,7 +73,7 @@ const createInvoiceService = async (data) => {
                 invoicepdfurl,
                 invoiceFileName,
                 paymentdetails.clientName,
-                "en",
+                "en_US",
                 "invoice",
                 "contract_message",
                 `Hello ${paymentdetails.clientName || "Customer"}, your invoice is attached.`
