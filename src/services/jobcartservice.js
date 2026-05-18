@@ -22,6 +22,18 @@ const { getWorkerById, updateWorker } = require("../repository/workerRepository"
 const ashineJobCardpdf = require("../utils/ashinejobcart");
 
 
+const normalizeDateOnly = (value) => {
+    if (!value) return new Date();
+    if (typeof value === "string") {
+        const datePart = value.split("T")[0];
+        const [year, month, day] = datePart.split("-");
+        if (year && month && day) {
+            return new Date(Number(year), Number(month) - 1, Number(day));
+        }
+    }
+    return new Date(value);
+};
+
 const createJobCardService = async (data) => {
     try {
         // Extract fields according to the nested payload format
@@ -55,7 +67,13 @@ const createJobCardService = async (data) => {
                 throw new Error("Worker not found in DB");
             }
         }
-        const jobCard = await jobcartRepository.createJobCard(data);
+        const normalizedServiceStart = normalizeDateOnly(data.serviceStart || data.startDate);
+        const createData = {
+            ...data,
+            serviceStart: normalizedServiceStart
+        };
+
+        const jobCard = await jobcartRepository.createJobCard(createData);
 
         //  Skip Matchmaking notifications if it's a Direct Assignment
         if (data.isDirectAssignWorker && data.assignedWorkerId) {

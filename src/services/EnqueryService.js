@@ -3,6 +3,18 @@ const { sendMailOnAdmin } = require("../utils/sendmailonAdmin");
 const { sendGreetToCoustomer } = require("../utils/sendGreetToCoustomer");
 const JobCard = require("../modals/jobcartModel");
 
+const normalizeDateOnly = (value) => {
+    if (!value) return new Date();
+    if (typeof value === "string") {
+        const datePart = value.split("T")[0];
+        const [year, month, day] = datePart.split("-");
+        if (year && month && day) {
+            return new Date(Number(year), Number(month) - 1, Number(day));
+        }
+    }
+    return new Date(value);
+};
+
 const createEnquiryService = async (data, user) => {
     // Validations
     console.log(data);
@@ -61,7 +73,7 @@ const createEnquiryService = async (data, user) => {
                     plan: data.packageType || "basic",
                     timing: data.preferredShift && data.preferredShift.toLowerCase().includes("24hr") ? "24hr" : "12hr"
                 },
-                serviceStart: data.startDate || new Date(),
+                serviceStart: normalizeDateOnly(data.startDate) || new Date(),
                 prefreredReligion: data.prefreredReligion || "",
                 preferredShift: data.preferredShift || "",
                 requestedSkills: data.requestedSkills || [],

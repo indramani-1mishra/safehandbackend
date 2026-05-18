@@ -5,6 +5,18 @@ const EquipmentOrder = require("../modals/EquipmentOrder");
 const Service = require("../modals/serviceModel");
 const ProductOrder = require("../modals/ProductOrder");
 
+const normalizeDateOnly = (value) => {
+    if (!value) return new Date();
+    if (typeof value === "string") {
+        const datePart = value.split("T")[0];
+        const [year, month, day] = datePart.split("-");
+        if (year && month && day) {
+            return new Date(Number(year), Number(month) - 1, Number(day));
+        }
+    }
+    return new Date(value);
+};
+
 const processCheckoutService = async (userId, checkoutData) => {
     try {
         const {
@@ -93,7 +105,7 @@ const processCheckoutService = async (userId, checkoutData) => {
                     plan: data.serviceDetails?.plan || "basic",
                     timing: data.serviceDetails?.timing || "12hr"
                 },
-                serviceStart: data.serviceStart || new Date(),
+                serviceStart: normalizeDateOnly(data.serviceStart) || new Date(),
                 prefreredReligion: data.prefreredReligion || "",
                 preferredShift: data.serviceDetails?.timing === "12hr" ? (data.preferredShift || "") : "",
                 requestedSkills: data.requestedSkills || [],
