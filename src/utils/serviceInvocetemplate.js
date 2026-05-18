@@ -310,7 +310,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                 <div class="table-header">
                     <div class="th">Description</div>
                     <div class="th">Service Date</div>
-                    <div class="th">HSN Number</div>
+                    <div class="th">SAC/HSN</div>
                     <div class="th">Amount</div>
                 </div>
                 <div class="table-row">
@@ -333,7 +333,7 @@ const generateServiceInvoiceTemplate = (paymentdetails) => {
                     <div class="payment-row"><span>Paid Until</span><span>${formatDate(paidUntilNow)}</span></div>
                     <div class="payment-row"><span>Payment Mode</span><span>${capitalize(paymentMethod)}</span></div>
                     <div class="payment-row"><span>Payment Status</span><span style="color:${statusColor}">${capitalize(paymentStatus)}</span></div>
-                    <div class="payment-row"><span>GST</span><span>0%</span></div>
+                    <div class="payment-row"><span>Quantity</span><span>1</span></div>
                     <div class="payment-row"><span>GST Note</span><span>GST @ 0% – Exempted Healthcare/Nursing Care Services.</span></div>
                 </div>
                 <div class="totals-box">
