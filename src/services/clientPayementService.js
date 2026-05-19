@@ -10,67 +10,152 @@ const createClientPayment = async (data) => {
         const { jobCardId, amount, paymentMethod, proofUrl } = data;
 
         const jobCard = await JobCard.findById(jobCardId);
-        if (!jobCard) throw new Error("JobCard not found");
-        if (!proofUrl) throw new Error("Please upload a proof of payment");
 
+        if (!jobCard) {
+            throw new Error("JobCard not found");
+        }
 
-        // 1. Get the latest status
-        const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(jobCardId);
+        if (!proofUrl) {
+            throw new Error("Please upload a proof of payment");
+        }
 
-        let currentAvailable = latestPayment ? (latestPayment.availableBalance || 0) : 0;
-        let currentRemaining = latestPayment ? (latestPayment.remainingAmount || 0) : 0;
+        // Get latest payment status
+        const latestPayment =
+            await ClientRepository.getLatestClientPaymentByJobCardId(jobCardId);
 
-        // 2. Add payment to wallet first
-        const totalAvailable = currentAvailable + Number(amount);
-        const paymentToDebt = currentRemaining > 0 ? Math.min(totalAvailable, currentRemaining) : 0;
-        const amountAfterDebt = totalAvailable - paymentToDebt;
+        // Previous balances
+        const currentAvailable =
+            latestPayment?.availableBalance || 0;
 
-        const perDayAmount = jobCard.perDayCustomerCost || 0;
-        const daysCovered = perDayAmount > 0 ? Math.floor(amountAfterDebt / perDayAmount) : 0;
-        const amountUsedForDays = daysCovered * perDayAmount;
+        const currentRemaining =
+            latestPayment?.remainingAmount || 0;
 
-        const finalRemaining = currentRemaining > totalAvailable ? currentRemaining - totalAvailable : 0;
-        const finalAvailable = amountAfterDebt - amountUsedForDays;
+        // Add new payment to wallet
+        const totalAvailable =
+            currentAvailable + Number(amount);
 
-        const serviceStartDate = new Date(jobCard.serviceStart || jobCard.inquiryId?.startDate || new Date());
-        const previousPaidUntil = latestPayment?.paidUntilDate ? new Date(latestPayment.paidUntilDate) : null;
+        // Clear previous debt first
+        const paymentToDebt =
+            currentRemaining > 0
+                ? Math.min(totalAvailable, currentRemaining)
+                : 0;
 
-        // If there is a previous paidUntilDate after the service start date, continue from that date.
-        // Otherwise, begin from the service start date.
-        const paidFromDate = previousPaidUntil && previousPaidUntil > serviceStartDate
-            ? new Date(previousPaidUntil)
-            : new Date(serviceStartDate);
+        // Remaining amount after debt clearance
+        const amountAfterDebt =
+            totalAvailable - paymentToDebt;
 
+        // Per day cost
+        const perDayAmount =
+            jobCard.perDayCustomerCost || 0;
+
+        // Calculate service days covered
+        const daysCovered =
+            perDayAmount > 0
+                ? Math.floor(amountAfterDebt / perDayAmount)
+                : 0;
+
+        // Money used for covered days
+        const amountUsedForDays =
+            daysCovered * perDayAmount;
+
+        // Remaining due amount
+        const finalRemaining =
+            currentRemaining > totalAvailable
+                ? currentRemaining - totalAvailable
+                : 0;
+
+        // Remaining wallet balance
+        const finalAvailable =
+            amountAfterDebt - amountUsedForDays;
+
+        // Service start date
+        const serviceStartDate = new Date(
+            jobCard.serviceStart ||
+            jobCard.inquiryId?.startDate ||
+            new Date()
+        );
+
+        // Previous paid until date
+        const previousPaidUntil =
+            latestPayment?.paidUntilDate
+                ? new Date(latestPayment.paidUntilDate)
+                : null;
+
+        // Determine payment start date
+        let paidFromDate;
+
+        if (previousPaidUntil) {
+            paidFromDate = new Date(previousPaidUntil);
+
+            // Start from next day after previous payment end
+            paidFromDate.setDate(
+                paidFromDate.getDate() + 1
+            );
+        } else {
+            paidFromDate = new Date(serviceStartDate);
+        }
+
+        // Calculate paid until date
         const paidUntilDate = new Date(paidFromDate);
-        paidUntilDate.setDate(paidUntilDate.getDate() + daysCovered);
 
+        if (daysCovered > 0) {
+            paidUntilDate.setDate(
+                paidUntilDate.getDate() + (daysCovered - 1)
+            );
+        }
+
+        // Payment status
+        const paymentStatus =
+            finalRemaining > 0 ? "pending" : "paid";
+
+        // Create payment object
         const clientPaymentData = {
             jobCardId,
+
             amount: Number(amount),
+
             remainingAmount: finalRemaining,
-            remainingDays: perDayAmount > 0 ? Math.ceil(finalRemaining / perDayAmount) : 0,
+
+            remainingDays:
+                perDayAmount > 0
+                    ? Math.ceil(finalRemaining / perDayAmount)
+                    : 0,
+
             availableBalance: finalAvailable,
+
             dayCovered: daysCovered,
-            paymentStatus: finalRemaining > 0 ? "pending" : "paid",
+
+            paymentStatus,
+
             paymentMethod: paymentMethod || "cash",
+
             paymentDate: new Date(),
+
             proofUrl: proofUrl || "",
-            paidUntilDate: paidUntilDate,
-            paidFromDate: paidFromDate,
+
+            paidFromDate,
+
+            paidUntilDate,
         };
 
+        // Save payment
+        const clientPayment =
+            await ClientRepository.createClientPayment(
+                clientPaymentData
+            );
 
-        const clientPayment = await ClientRepository.createClientPayment(clientPaymentData);
+        // Generate invoice
         await createInvoiceService({
             jobcard: jobCardId,
             clientPayment: clientPayment._id
         });
+
         return clientPayment;
+
     } catch (error) {
         throw error;
     }
-}
-
+};
 
 const getTodayDuePayments = async () => {
     try {

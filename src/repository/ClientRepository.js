@@ -32,7 +32,7 @@ const getAllClientPayments = async (query = {}) => {
             $or: [
                 { "patientDetails.name": { $regex: search, $options: "i" } },
                 { "patientDetails.phone": { $regex: search, $options: "i" } }
-            ]
+            ] 
         }).select("_id");
 
         const jobIds = matchingJobs.map(j => j._id);

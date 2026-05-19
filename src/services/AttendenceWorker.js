@@ -101,7 +101,8 @@ const verifyAttendanceOtpService = async (data) => {
 
 
         if (attendance) {
-            // Update Client Payment Logic: Use wallet (availableBalance) first, then debt (remainingAmount)
+          /**
+           *   // Update Client Payment Logic: Use wallet (availableBalance) first, then debt (remainingAmount)
             const perDayCost = jobCard.perDayCustomerCost || 0;
             const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(jobCardId);
 
@@ -139,6 +140,9 @@ const verifyAttendanceOtpService = async (data) => {
                 remarks: `Auto-generated from attendance. ${overLimit ? "STATUS: OVERDUE" : ""}`
             });
 
+           * 
+           * 
+           */
             await sendFcmNotification(worker.fcmToken, {
                 title: "Job Attendance Verified",
                 body: `Your attendance has been marked successfully for job card #${jobCard?.patientDetails?.name} . `,
