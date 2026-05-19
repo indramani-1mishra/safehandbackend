@@ -7,14 +7,18 @@ const sendOtpThroughWhatsapp = require("../utils/sendOtpThroughWhatsapp");
 
 
 const AdminLogout = async (adminId) => {
-  const admin = await adminRepository.findAdminById(adminId);
+  const admin = await adminRepository.getAdminById(adminId);
   if (!admin) {
     throw new Error("Admin not found");
   }
-    return {
-        success: true,
-        message: "Logged out successfully"
-    };
+  
+  // Remove refresh token to invalidate it
+  await adminRepository.removeRefreshToken(adminId);
+  
+  return {
+    success: true,
+    message: "Logged out successfully"
+  };
 };
 
 const AdminRefreshToken = async (refreshToken) => {
@@ -33,7 +37,7 @@ const AdminRefreshToken = async (refreshToken) => {
         const accessToken = jwt.sign(
             { id: admin._id, role: admin.role },
             JWT_SECRET,
-            { expiresIn: "15m" }
+            { expiresIn: "45m" }
         );
 
         const newRefreshToken = jwt.sign(

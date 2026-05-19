@@ -2,6 +2,7 @@ require("dotenv").config();
 
 
 const PORT = process.env.PORT || 3000;
+const LOCAL_MONGO_URL = process.env.LOCAL_MONGO_URL;
 const MONGO_URL = process.env.MONGO_URL;
 const COMPASS_URL = process.env.COMPASS_URL;
 const AWS_S3_ACCESS_KEY = process.env.AWS_S3_ACCESS_KEY;
@@ -28,6 +29,7 @@ const WHAT_MESSAGE_SECRET = process.env.WHAT_MESSAGE_SECRET;
 module.exports = {
     PORT,
     MONGO_URL,
+    LOCAL_MONGO_URL,
     COMPASS_URL,
     AWS_S3_ACCESS_KEY,
     AWS_S3_SECRET_KEY,
