@@ -74,8 +74,8 @@ const sendInvoiceOnWhatsapp = async (
             }
         );
 
-        console.log("WhatsApp PDF sent successfully");
-        console.log(response.data);
+        // console.log("WhatsApp PDF sent successfully");
+        // console.log(response.data);
 
     } catch (error) {
 

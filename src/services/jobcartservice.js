@@ -5,21 +5,14 @@ const workerRepository = require("../repository/workerRepository");
 const enquiryRepository = require("../repository/enqueryRepository");
 const { default: mongoose } = require("mongoose");
 const socketUtils = require("../utils/socket");
-const { generatePdf } = require("../utils/pdfGenerator");
-const { uploadPdfToS3 } = require("../utils/s3Upload");
-const { sendWhatsappPdf } = require("../utils/sendWhatsappPdf");
-const { sendWhatsappTemplatePdf } = require("../utils/sendWhatsappTemplatePdf");
-const {
-    generateWorkerPdfTemplate,
-    generateClientPdfTemplate,
-    generateAdminPdfTemplate
-} = require("../utils/pdfTemplates");
+
 const { DEFAULT_ADMIN_PHONE } = require("../config/serverConfig");
 const { sendFcmNotification } = require("../utils/fcmService");
 const ClientRepository = require("../repository/ClientRepository");
 const { getLatestClientPaymentByJobCardId, getClientPaymentsByJobCardId } = require("../repository/ClientRepository");
 const { getWorkerById, updateWorker } = require("../repository/workerRepository");
 const ashineJobCardpdf = require("../utils/ashinejobcart");
+const { sendWhatsappPdf } = require("../utils/sendjobassignment");
 
 
 const normalizeDateOnly = (value) => {
@@ -272,6 +265,7 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
         // 📄 PDF Generation & WhatsApp Notification Flow
         try {
             await ashineJobCardpdf(fullJobCard, assignedWorker, "assignment");
+
         } catch (pdfError) {
             console.error("Error in PDF/WhatsApp flow:", pdfError);
             // We don't throw here to avoid failing the assignment if notification fails
@@ -327,10 +321,22 @@ const getAllJobCardsService = async (query) => {
         const enhancedJobCards = await Promise.all(jobCards.map(async (job) => {
             const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(job._id);
             const totalPaid = (await ClientRepository.getClientPaymentsByJobCardId(job._id))
-                                .reduce((sum, p) => sum + p.amount, 0);
+                .reduce((sum, p) => sum + p.amount, 0);
 
             const remainingAmount = latestPayment ? latestPayment.remainingAmount : 0;
             const isOverdue = latestPayment ? latestPayment.overLimit : false;
+
+            const paidUntilDate = latestPayment ? latestPayment.paidUntilDate : null;
+            let paymentValidity = 'invalid';
+            if (paidUntilDate) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const validityDate = new Date(paidUntilDate);
+                validityDate.setHours(0, 0, 0, 0);
+                if (validityDate >= today) {
+                    paymentValidity = 'valid';
+                }
+            }
 
             return {
                 ...job._doc,
@@ -340,7 +346,9 @@ const getAllJobCardsService = async (query) => {
                     availableBalance: latestPayment ? (latestPayment.availableBalance || 0) : 0,
                     isOverdue,
                     perDayCost: job.perDayCustomerCost || 0,
-                    cycleDays: job.customerPaymentCycleDays || 7
+                    cycleDays: job.customerPaymentCycleDays || 7,
+                    paidUntilDate,
+                    paymentValidity
                 }
             };
         }));

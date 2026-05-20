@@ -119,7 +119,7 @@ createDefaultAdmin();
 const { startPaymentReminderCron } = require('./services/paymentReminderService');
 //const { startGKQuestionCron } = require('./services/gkQuestionCronService');
 const TESTINGPORT = 5001;
-const mode = "pro"; // Change to "production" for production environment
+const mode = "dev"; // Change to "production" for production environment
 const CURRENT_PORT = mode === "local" ? TESTINGPORT : PORT;
 
 
@@ -130,5 +130,5 @@ server.listen(CURRENT_PORT, async () => {
     // Start background job for payment reminders
     startPaymentReminderCron();
 
-  
+
 });
