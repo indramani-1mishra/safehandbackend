@@ -1,27 +1,76 @@
 const adminRepository = require("../repository/adminrepository");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/serverConfig");
+const { createAdminPermission, updatePermissionByAdminId } = require("../repository/adminPermissionRepository");
 
 
 const createAdminService = async (data) => {
-    if (!data.email) throw new Error("Email is required");
-    if (!data.name) throw new Error("Name is required");
-    if (!data.phone) throw new Error("Phone is required");
-    if (!data.role) throw new Error("Role is required");
 
+    if (!data.email) {
+        throw new Error("Email is required");
+    }
+
+    if (!data.name) {
+        throw new Error("Name is required");
+    }
+
+    if (!data.phone) {
+        throw new Error("Phone is required");
+    }
+
+    if (!data.role) {
+        throw new Error("Role is required");
+    }
+
+
+    // Phone Validation
     if (!/^\d{10}$/.test(data.phone)) {
         throw new Error("Phone must be 10 digits");
     }
 
+
+    // Email Validation
     if (!/^\S+@\S+\.\S+$/.test(data.email)) {
         throw new Error("Invalid email");
     }
 
-    const existingAdmin = await adminRepository.findAdminByEmail(data.email);
+
+    // Check Existing Admin
+    const existingAdmin =
+    await adminRepository.findAdminByEmail(data.email);
+
     if (existingAdmin) {
         throw new Error("Admin already exists");
     }
-    const admin = await adminRepository.createAdmin(data);
+
+
+    // Create Admin
+    const admin =
+    await adminRepository.createAdmin(data);
+
+
+    // Create Permissions For HR
+    if (data.role === "hr") {
+
+        if (
+            !data.permissions ||
+            !Array.isArray(data.permissions)
+        ) {
+            throw new Error(
+                "Permissions are required for HR"
+            );
+        }
+
+        await createAdminPermission({
+
+            adminId: admin._id,
+
+            permissions: data.permissions
+
+        });
+    }
+
+
     return admin;
 };
 
@@ -55,7 +104,14 @@ const updateAdminService = async (id, data) => {
     if (!admin) {
         throw new Error("Admin not found");
     }
-    return await adminRepository.updateAdmin(id, data);
+   
+   const updateData =  await adminRepository.updateAdmin(id, data);
+   if(admin.role==="hr"){
+    await updatePermissionByAdminId(id,data.permissions)
+
+   }
+ return updateData;
+
 };
 
 const getAllAdminsService = async (query) => {

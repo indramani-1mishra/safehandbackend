@@ -13,4 +13,7 @@ router.post("/makeadmin/:id", authMiddleware, isAdmin, adminController.makeAdmin
 router.put("/approve/:id", authMiddleware, isAdmin, adminController.approveAdminController);
 router.put("/deactivate/:id", authMiddleware, isAdmin, adminController.deactivateAdminController);
 
+// Permission config for frontend dynamic permission UI
+router.get("/permissions/config", adminController.getPermissionConfigController);
+
 module.exports = router;

@@ -1,5 +1,6 @@
 const adminService = require("../services/createAdmin");
-const { findAdminByEmail } = require('../repository/adminrepository')
+const { findAdminByEmail } = require('../repository/adminrepository');
+const { PERMISSIONS  } = require("../config/moduleActionPermissionConfigFile");
 
 const { DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PHONE } = require("../config/serverConfig");
 const createAdminController = async (req, res) => {
@@ -185,6 +186,20 @@ const createDefaultAdmin = async () => {
 };
 
 
+const getPermissionConfigController = async (req, res) => {
+    try {
+        return res.status(200).json({
+            success: true,
+            data: PERMISSIONS,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
 module.exports = {
     createAdminController,
     updateAdminController,
@@ -195,5 +210,6 @@ module.exports = {
     getProfileController,
     approveAdminController,
     deactivateAdminController,
-    createDefaultAdmin
-}
+    createDefaultAdmin,
+    getPermissionConfigController,
+};

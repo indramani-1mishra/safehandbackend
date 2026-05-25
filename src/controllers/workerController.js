@@ -239,6 +239,63 @@ const getFreeWorkersController = async (req, res) => {
     }
 };
 
+const getWorkersByAdminIdController = async (req, res) => {
+    try {
+        const { adminId } = req.params;
+        const workers = await workerService.getWorkersByAdminId(adminId);
+
+        return res.status(200).json({
+            success: true,
+            count: workers.length,
+            data: workers,
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+const getWorkersByBusyStatusController = async (req, res) => {
+    try {
+        const { status } = req.params;
+        const workers = await workerService.getWorkersByBusyStatus(status);
+
+        return res.status(200).json({
+            success: true,
+            count: workers.length,
+            data: workers,
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+const getWorkersByDateRangeController = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        const workers = await workerService.getWorkersByDateRange(startDate, endDate);
+
+        return res.status(200).json({
+            success: true,
+            count: workers.length,
+            data: workers,
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
 module.exports = {
     createWorkerController,
     updateWorkerController,
@@ -247,5 +304,8 @@ module.exports = {
     deleteWorkerController,
     getWorkerByPhoneController,
     getWorkerByEmailController,
-    getFreeWorkersController
+    getFreeWorkersController,
+    getWorkersByAdminIdController,
+    getWorkersByBusyStatusController,
+    getWorkersByDateRangeController,
 };

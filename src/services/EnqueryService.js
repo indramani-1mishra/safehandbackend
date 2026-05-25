@@ -32,7 +32,7 @@ const createEnquiryService = async (data, user) => {
             throw new Error("Missing required fields for urgent enquiry");
         }
     } else if (data.enquiryType === "serviceEnquery") {
-        if (!data.service || !data.preferredShift) {
+        if (!data.service) {
             throw new Error("Missing required fields for service enquiry");
         }
     }
@@ -66,7 +66,17 @@ const createEnquiryService = async (data, user) => {
                     city: data.city || "",
                     pincode: data.pincode || "",
                     phone: data.phone || "",
-                    alternateNumber: data.alternateNumber || ""
+                    alternateNumber: data.alternateNumber || "",
+                    email: data.email || "",
+                    contactPersonName: data.contactPersonName || "",
+                    height: data.height || undefined,
+                    weight: data.weight || undefined,
+                    preferredStaff: data.preferredStaff || "",
+                    surgeryHistory: data.surgeryHistory || "",
+                    confirmSlot: data.confirmSlot || "",
+                    doctorPrescription: data.doctorPrescription || "",
+                    patientCondition: data.patientCondition || "",
+                    feedback: data.feedback || ""
                 },
                 serviceDetails: {
                     service: data.service,

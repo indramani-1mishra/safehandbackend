@@ -43,4 +43,14 @@ router.get("/get/:id", allowAnyAuth, workerController.getWorkerByIdController);
 router.delete("/delete/:id", authMiddleware, isAdmin, workerController.deleteWorkerController);
 
 router.get("/free", authMiddleware, isAdmin, workerController.getFreeWorkersController);
+
+// Filter workers by admin who created them
+router.get("/by-admin/:adminId", authMiddleware, isAdmin, workerController.getWorkersByAdminIdController);
+
+// Filter workers by busy status: "busy" or "free"
+router.get("/by-status/:status", authMiddleware, isAdmin, workerController.getWorkersByBusyStatusController);
+
+// Filter workers by createdAt date range
+router.get("/by-date", authMiddleware, isAdmin, workerController.getWorkersByDateRangeController);
+
 module.exports = router;

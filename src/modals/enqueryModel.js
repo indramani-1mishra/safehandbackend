@@ -29,12 +29,16 @@ const enquirySchema = new mongoose.Schema({
             return this.enquiryType === "urgentEnquery";
         }
     },
+    height:{
+        type: Number,
+    },
+    weight:{
+        type: Number,
+    },
     gender: {
         type: String,
         enum: ["Male", "male", "Female", "female", "Other", "other"],
-        required: function () {
-            return this.enquiryType === "urgentEnquery";
-        }
+       
     },
     address: {
         type: String,
@@ -60,12 +64,7 @@ const enquirySchema = new mongoose.Schema({
             return this.enquiryType === "urgentEnquery";
         }
     },
-    preferredStaff: {
-        type: String,
-        required: function () {
-            return this.enquiryType === "urgentEnquery";
-        }
-    },
+  
     paymentMode: {
         type: String,
         required: function () {
@@ -130,6 +129,26 @@ const enquirySchema = new mongoose.Schema({
         default: ""
     },
     preferredShift: {
+        type: String,
+        default: ""
+    },
+    preferredStaff: {
+        type: String,
+        default: ""
+    },
+    surgeryHistory: {
+        type: String,
+        default: ""
+    },
+    confirmSlot: {
+        type: String,
+        default: ""
+    },
+    doctorPrescription: {
+        type: String,
+        default: ""
+    },
+    feedback: {
         type: String,
         default: ""
     },

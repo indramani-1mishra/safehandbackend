@@ -11,6 +11,7 @@ const socketUtils = require('./utils/socket');
 const attendanceRoutes = require('./routes/AttendenceRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger/master_swagger.json');
+const { NODE_ENV } = require('./config/serverConfig')
 
 
 const app = express();
@@ -119,12 +120,14 @@ createDefaultAdmin();
 const { startPaymentReminderCron } = require('./services/paymentReminderService');
 //const { startGKQuestionCron } = require('./services/gkQuestionCronService');
 const TESTINGPORT = 5001;
-const mode = "dev"; // Change to "production" for production environment
-const CURRENT_PORT = mode === "local" ? TESTINGPORT : PORT;
+// Change to "production" for production environment
+
+console.log(NODE_ENV)
+const CURRENT_PORT = NODE_ENV === "local" ? TESTINGPORT : PORT;
 
 
 server.listen(CURRENT_PORT, async () => {
-    console.log(`Server is running on port ${CURRENT_PORT}`);
+    console.log(`${NODE_ENV} Server is running on port ${CURRENT_PORT}`);
     await connectToDatabase();
 
     // Start background job for payment reminders

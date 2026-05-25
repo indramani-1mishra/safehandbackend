@@ -1,5 +1,5 @@
 const Worker = require("../modals/workerModel");
-const Service = require("../modals/serviceModel"); // Explicitly import Service model
+const Service = require("../modals/serviceModel");
 
 
 
@@ -51,7 +51,9 @@ const getAllWorkers = async (query = {}) => {
         filter = {
             $or: [
                 { name: { $regex: search, $options: "i" } },
-                { phone: { $regex: search, $options: "i" } }
+                { phone: { $regex: search, $options: "i" } },
+                {city:{ $regex: search, $options: "i" }},
+                {gender:{ $regex: search, $options: "i" }}
             ]
         };
     }
@@ -87,6 +89,41 @@ const removeRefreshToken = async (id) => {
 const findWorkerByRefreshToken = async (refreshToken) => {
     return await Worker.findOne({ refreshToken });
 }
+
+const workerPopulateOptions = [
+    { path: "services", model: Service },
+    { path: "adminId", select: "name email" },
+];
+
+const findWorkersByAdminId = async (adminId) => {
+    return await Worker.find({ adminId })
+        .populate(workerPopulateOptions)
+        .sort({ createdAt: -1 });
+};
+
+const findWorkersByBusyStatus = async (status) => {
+    const normalizedStatus = String(status).toLowerCase();
+    const isBusy = normalizedStatus === "busy";
+
+    return await Worker.find({ isBusy })
+        .populate(workerPopulateOptions)
+        .sort({ createdAt: -1 });
+};
+
+const findWorkersByDateRange = async (startDate, endDate) => {
+    const rangeStart = new Date(startDate);
+    const rangeEnd = new Date(endDate);
+
+    rangeStart.setUTCHours(0, 0, 0, 0);
+    rangeEnd.setUTCHours(23, 59, 59, 999);
+
+    return await Worker.find({
+        createdAt: { $gte: rangeStart, $lte: rangeEnd },
+    })
+        .populate(workerPopulateOptions)
+        .sort({ createdAt: -1 });
+};
+
 module.exports = {
     createWorker,
     findWorkerByEmail,
@@ -100,5 +137,8 @@ module.exports = {
     removeRefreshToken,
     findWorkerByRefreshToken,
     findFreeWorkers,
-    checkWorkerBusyStatus
+    checkWorkerBusyStatus,
+    findWorkersByAdminId,
+    findWorkersByBusyStatus,
+    findWorkersByDateRange,
 };

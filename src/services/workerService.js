@@ -116,13 +116,48 @@ const findWorkerByPhone = async (phone) => {
 };
 
 const findFreeWorkersService = async () => {
-    try {
-        const freeWorkers = await workerRepository.findFreeWorkers();
-        return freeWorkers;
-    } catch (error) {
-        throw error;
+    return await workerRepository.findFreeWorkers();
+};
+
+const getWorkersByAdminId = async (adminId) => {
+    if (!adminId) {
+        throw new AppError("Admin ID is required", 400);
     }
-}
+
+    return await workerRepository.findWorkersByAdminId(adminId);
+};
+
+const getWorkersByBusyStatus = async (status) => {
+    if (!status) {
+        throw new AppError('Status is required. Use "busy" or "free"', 400);
+    }
+
+    const normalizedStatus = String(status).toLowerCase();
+    if (normalizedStatus !== "busy" && normalizedStatus !== "free") {
+        throw new AppError('Status must be "busy" or "free"', 400);
+    }
+
+    return await workerRepository.findWorkersByBusyStatus(normalizedStatus);
+};
+
+const getWorkersByDateRange = async (startDate, endDate) => {
+    if (!startDate || !endDate) {
+        throw new AppError("Start date and end date are required", 400);
+    }
+
+    const rangeStart = new Date(startDate);
+    const rangeEnd = new Date(endDate);
+
+    if (Number.isNaN(rangeStart.getTime()) || Number.isNaN(rangeEnd.getTime())) {
+        throw new AppError("Invalid date format", 400);
+    }
+
+    if (rangeStart > rangeEnd) {
+        throw new AppError("Start date cannot be after end date", 400);
+    }
+
+    return await workerRepository.findWorkersByDateRange(startDate, endDate);
+};
 
 module.exports = {
     createWorker,
@@ -132,5 +167,8 @@ module.exports = {
     getWorkerById,
     findWorkerByEmail,
     findWorkerByPhone,
-    findFreeWorkersService
+    findFreeWorkersService,
+    getWorkersByAdminId,
+    getWorkersByBusyStatus,
+    getWorkersByDateRange,
 };

@@ -19,7 +19,17 @@ const jobCardSchema = new mongoose.Schema({
         city: String,
         pincode: String,
         phone: String,
-        alternateNumber: String
+        alternateNumber: String,
+        email: String,
+        contactPersonName: String,
+        height: Number,
+        weight: Number,
+        preferredStaff: String,
+        surgeryHistory: String,
+        confirmSlot: String,
+        doctorPrescription: String,
+        patientCondition: String,
+        feedback: String
     },
 
     // 🔹 Service Details
