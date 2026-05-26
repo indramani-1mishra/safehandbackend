@@ -4,6 +4,62 @@ const attendenceWorkerRepository = require("../repository/attendenceWorker");
 const workerRepository = require("../repository/workerRepository");
 const mongoose = require("mongoose");
 const { sendFcmNotification } = require("../utils/fcmService");
+const JobCard = require("../modals/jobcartModel");
+const Attendance = require("../modals/attendanceModel");
+const WorkerPayout = require("../modals/Workerpayeout");
+
+/**
+ * Recalculates the worker's global available balance across all jobs and updates the Worker document in MongoDB.
+ */
+const updateWorkerGlobalBalance = async (workerId) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(workerId)) {
+            throw new Error("Invalid Worker ID");
+        }
+
+        const workerObjectId = new mongoose.Types.ObjectId(workerId);
+
+        const jobCardIds = new Set();
+
+        const assignedJobs = await JobCard.find({ "workers.assigned": workerObjectId });
+        assignedJobs.forEach(job => jobCardIds.add(job._id.toString()));
+
+        const attendanceRecords = await Attendance.find({ workerId: workerObjectId });
+        attendanceRecords.forEach(att => jobCardIds.add(att.jobCardId.toString()));
+
+        const payouts = await WorkerPayout.find({ workerId: workerObjectId });
+        payouts.forEach(p => jobCardIds.add(p.jobCardId.toString()));
+
+        // 2. Calculate Total Earned across all these job cards
+        let totalEarned = 0;
+        for (const jobCardId of jobCardIds) {
+            const jobCard = await JobCard.findById(jobCardId);
+            if (!jobCard) continue;
+
+            const jobAttendance = attendanceRecords.filter(
+                att => att.jobCardId.toString() === jobCardId && att.status === "present"
+            );
+            const presentDays = jobAttendance.length;
+            const perDayCost = jobCard.perDayNurseCost || 0;
+            totalEarned += presentDays * perDayCost;
+        }
+
+        // 3. Calculate Total already Paid or Pending payouts across all jobs
+        const totalPayouts = payouts
+            .filter(p => p.status !== "failed")
+            .reduce((sum, p) => sum + p.amount, 0);
+
+        const globalAvailableBalance = totalEarned - totalPayouts;
+
+        // 4. Update the Worker record in database
+        await workerRepository.updateWorker(workerId, { availableBalance: globalAvailableBalance });
+
+        return globalAvailableBalance;
+    } catch (error) {
+        console.error("Error updating worker global balance:", error);
+        throw error;
+    }
+};
 
 /**
  * Worker requests a payout. Validates balance before creating a pending request.
@@ -24,7 +80,7 @@ const requestPayoutService = async (data) => {
         const presentDays = attendanceRecords.filter(att => att.status === "present").length;
         const perDayCost = jobCard.perDayNurseCost || 0;
         const totalEarned = presentDays * perDayCost;
-
+        // totalEarned = 111
         // Calculate Total already Paid or Pending (to prevent over-requesting)
         const existingPayouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);
         const totalPayouts = existingPayouts.reduce((sum, p) => {
@@ -44,6 +100,9 @@ const requestPayoutService = async (data) => {
             status: "pending",
             remarks: "Worker requested payment"
         });
+
+        // Recalculate and update the worker's global available balance in MongoDB
+        await updateWorkerGlobalBalance(workerId);
 
         const worker = await workerRepository.getWorkerById(workerId);
         const workerDevice = worker?.fcmToken;
@@ -108,7 +167,11 @@ const getWorkerPayoutDue = async (workerId, jobCardId) => {
 };
 
 const createWorkerPayoutService = async (data) => {
-    return await WorkerPayoutRepository.createWorkerPayout(data);
+    const payout = await WorkerPayoutRepository.createWorkerPayout(data);
+    if (data.workerId) {
+        await updateWorkerGlobalBalance(data.workerId);
+    }
+    return payout;
 };
 
 const getWorkerBalanceService = async (workerId, jobCardId) => {
@@ -140,6 +203,9 @@ const getWorkerBalanceService = async (workerId, jobCardId) => {
         const totalDeductions = paidAmount + pendingAmount;
         const availableBalance = totalEarned - totalDeductions;
 
+        // Recalculate and update the worker's global available balance in MongoDB
+        const globalAvailableBalance = await updateWorkerGlobalBalance(workerId);
+
         return {
             success: true,
             data: {
@@ -153,6 +219,7 @@ const getWorkerBalanceService = async (workerId, jobCardId) => {
                 paidAmount,
                 pendingAmount,
                 availableBalance,
+                globalAvailableBalance,
                 paymentCycleDays: jobCard.nursePaymentCycleDays || 0,
                 status: jobCard.status
             }
@@ -187,7 +254,7 @@ const getAdminAllWorkersPayablesService = async (filters = {}) => {
         // 2. Apply Dynamic Filters
         if (filters.search) {
             const s = filters.search.toLowerCase();
-            summaryList = summaryList.filter(item => 
+            summaryList = summaryList.filter(item =>
                 (item.workerName && item.workerName.toLowerCase().includes(s)) ||
                 (item.patientName && item.patientName.toLowerCase().includes(s))
             );
@@ -250,6 +317,9 @@ const approvePayoutRequestService = async (payoutId, updateData) => {
             payoutDate: new Date()
         });
 
+        // Recalculate and update the worker's global available balance in MongoDB
+        await updateWorkerGlobalBalance(updatedPayout.workerId);
+
         const payoutWithDetails = await WorkerPayoutRepository.getWorkerbyPayoutId(payoutId);
         const workerDevice = payoutWithDetails?.workerId?.fcmToken;
         const patientName = payoutWithDetails?.jobCardId?.patientDetails?.name || "your job";
@@ -306,5 +376,6 @@ module.exports = {
     getAdminAllWorkersPayablesService,
     approvePayoutRequestService,
     getPaidPayoutsService,
-    getAllPayoutByDateService
+    getAllPayoutByDateService,
+    updateWorkerGlobalBalance
 };

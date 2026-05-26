@@ -101,6 +101,21 @@ const deleteAttendance = async (id) => {
         throw error;
     }
 }
+const updateAttendanceStatus = async (jobCardId, workerId, date, data) => {
+    try {
+        return await Attendance.findOneAndUpdate({ jobCardId, workerId, date }, data, { returnDocument: 'after' });
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getAttendanceByJobCardIdAndWorkerIdAndDate = async (jobCardId, workerId, date) => {
+    try {
+        return await Attendance.findOne({ jobCardId, workerId, date });
+    } catch (error) {
+        throw error;
+    }
+}
 
 module.exports = {
     createAttendance,
@@ -114,5 +129,7 @@ module.exports = {
     getAttendanceByWorkerIdAndJobCardIdAndDate,
     updateAttendance,
     deleteAttendance,
-    getAllWorkersAttendance
+    getAllWorkersAttendance,
+    updateAttendanceStatus,
+    getAttendanceByJobCardIdAndWorkerIdAndDate
 }

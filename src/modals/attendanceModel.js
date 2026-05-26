@@ -17,6 +17,17 @@ const attendanceSchema = new mongoose.Schema({
         required: true,
         //  index: true
     },
+    // optional  if worker is not abale to mark attendance then admin will mark it
+    adminId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Admin",
+    },
+    // optional  
+    markedBy: {
+        type: String,
+        enum: ["worker", "admin"],
+        default: "worker"
+    },
 
     // 🔹 Aaj ki Date (YYYY-MM-DD format mein, taaki search easy rahe)
     date: {

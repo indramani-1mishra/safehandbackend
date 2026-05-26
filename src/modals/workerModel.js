@@ -121,7 +121,12 @@ const workerSchema = new mongoose.Schema({
     adminId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Admin"
-    }
+    },
+    availableBalance: {
+        type: Number,
+        default: 0
+    },
+
 
 }, { timestamps: true });
 

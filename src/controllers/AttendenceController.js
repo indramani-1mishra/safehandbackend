@@ -11,6 +11,9 @@ const requestAttendanceOtpController = async (req, res) => {
 
 const verifyAttendanceOtpController = async (req, res) => {
     try {
+        if (req.admin && req.admin.id && !req.body.adminId) {
+            req.body.adminId = req.admin.id;
+        }
         const response = await attendenceWorkerService.verifyAttendanceOtpService(req.body);
         res.status(201).json(response);
     } catch (error) {

@@ -24,6 +24,10 @@ const serviceSchema = new mongoose.Schema({
         type: [String],
         default: []
     },
+    serviceType: {
+        type: String,
+        enum: ["12 hour", "24 hour", "one time"]
+    },
     //  City-wise Pricing
     cityAndPrice: [
         {
@@ -31,6 +35,7 @@ const serviceSchema = new mongoose.Schema({
             price: { type: Number, required: true }
         }
     ]
+
 
 }, { timestamps: true });
 

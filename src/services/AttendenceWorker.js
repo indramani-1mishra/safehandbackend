@@ -3,6 +3,7 @@ const attendenceWorkerRepository = require("../repository/attendenceWorker");
 const jobCardRepository = require("../repository/jobcartRepository");
 const workerRepository = require("../repository/workerRepository");
 const ClientRepository = require("../repository/ClientRepository");
+const { updateWorkerGlobalBalance } = require("./WorkerPayoutService");
 const { generateSecureOtp, hashOtp, verifyOtp } = require('../utils/jenratesixdigitOtp');
 const sendOtpThroughWhatsapp = require('../utils/sendOtpThroughWhatsapp');
 const getdate = require("../utils/getCurrentDate");
@@ -61,93 +62,180 @@ const requestAttendanceOtpService = async (data) => {
 
 const verifyAttendanceOtpService = async (data) => {
     try {
-        const { jobCardId, workerId, otp } = data;
 
+        const {
+            jobCardId,
+            workerId,
+            otp,
+            adminId,
+            status,
+            date
+        } = data;
+
+        // Common normalized date
+        const attendanceDate = date || getdate();
+
+        // Check Job Card
         const jobCard = await jobCardRepository.getJobCardById(jobCardId);
+
         if (!jobCard) {
             throw new Error("Job card not found");
         }
 
-        const today = getdate();
-        const existingAttendance = await attendenceWorkerRepository.getAttendanceByWorkerIdAndJobCardIdAndDate(workerId, jobCardId, today);
-        if (existingAttendance) {
-            throw new Error("Attendance already marked for today for this job");
+        if (jobCard.status === "completed") {
+            throw new Error("Job card is already completed");
         }
 
-        const worker = await workerRepository.findWorkerById(workerId);
+        /**
+         * =========================================================
+         * ADMIN ATTENDANCE FLOW
+         * =========================================================
+         */
+        if (adminId && status) {
+            const normalizedStatus = status.toLowerCase();
+            if (!["present", "absent", "pending"].includes(normalizedStatus)) {
+                throw new Error("Invalid status value. Must be present, absent, or pending.");
+            }
+
+            const existingAttendance =
+                await attendenceWorkerRepository
+                    .getAttendanceByJobCardIdAndWorkerIdAndDate(
+                        jobCardId,
+                        workerId,
+                        attendanceDate
+                    );
+
+            // UPDATE EXISTING ATTENDANCE
+            if (existingAttendance) {
+                // Prevent unnecessary update
+                if (existingAttendance.status === normalizedStatus) {
+                    return {
+                        success: true,
+                        message: `Attendance already marked as ${normalizedStatus}`,
+                        data: existingAttendance
+                    };
+                }
+
+                const updatedAttendance =
+                    await attendenceWorkerRepository
+                        .updateAttendanceStatus(
+                            jobCardId,
+                            workerId,
+                            attendanceDate,
+                            {
+                                adminId,
+                                status: normalizedStatus,
+                                markedBy: "admin"
+                            }
+                        );
+
+                // Recalculate global balance
+                await updateWorkerGlobalBalance(workerId);
+
+                return {
+                    success: true,
+                    message: "Attendance updated successfully",
+                    data: updatedAttendance
+                };
+            }
+
+            // CREATE NEW ATTENDANCE
+            const createdAttendance =
+                await attendenceWorkerRepository.createAttendance({
+                    jobCardId,
+                    workerId,
+                    adminId,
+                    date: attendanceDate,
+                    status: normalizedStatus,
+                    markedBy: "admin"
+                });
+
+            // Recalculate global balance
+            await updateWorkerGlobalBalance(workerId);
+
+            return {
+                success: true,
+                message: "Attendance created successfully",
+                data: createdAttendance
+            };
+        }
+
+        /**
+         * =========================================================
+         * WORKER OTP ATTENDANCE FLOW
+         * =========================================================
+         */
+
+        const existingAttendance =
+            await attendenceWorkerRepository
+                .getAttendanceByWorkerIdAndJobCardIdAndDate(
+                    workerId,
+                    jobCardId,
+                    attendanceDate
+                );
+
+        if (existingAttendance) {
+            throw new Error(
+                "Attendance already marked for today for this job"
+            );
+        }
+
+        // Check Worker
+        const worker =
+            await workerRepository.findWorkerById(workerId);
+
         if (!worker) {
             throw new Error("Worker not found");
         }
 
-        if (!worker.otp || !worker.otpExpires || worker.otpExpires < Date.now()) {
-            throw new Error("OTP expired or not found. Please request a new one.");
+        // Validate OTP
+        if (
+            !worker.otp ||
+            !worker.otpExpires ||
+            worker.otpExpires < Date.now()
+        ) {
+            throw new Error(
+                "OTP expired or not found. Please request a new one."
+            );
         }
 
         const verifyOtp1 = await verifyOtp(otp, worker.otp);
+
         if (!verifyOtp1) {
             throw new Error("Invalid OTP");
         }
 
+        // Clear OTP
         await workerRepository.updateWorker(workerId, {
             otp: null,
             otpExpires: null
         });
-        const attendance = await attendenceWorkerRepository.createAttendance({
-            jobCardId,
-            workerId,
-            date: getdate(),
-            status: "present"
-        });
 
-
-        if (attendance) {
-          /**
-           *   // Update Client Payment Logic: Use wallet (availableBalance) first, then debt (remainingAmount)
-            const perDayCost = jobCard.perDayCustomerCost || 0;
-            const latestPayment = await ClientRepository.getLatestClientPaymentByJobCardId(jobCardId);
-
-            let currentAvailable = latestPayment ? (latestPayment.availableBalance || 0) : 0;
-            let currentRemaining = latestPayment ? (latestPayment.remainingAmount || 0) : 0;
-
-            let finalAvailable = currentAvailable;
-            let finalRemaining = currentRemaining;
-
-            if (currentAvailable >= perDayCost) {
-                finalAvailable = currentAvailable - perDayCost;
-
-
-            } else {
-                const remainderToPay = perDayCost - currentAvailable;
-                finalAvailable = 0;
-                finalRemaining = currentRemaining + remainderToPay;
-            }
-
-            const cycleDays = jobCard.customerPaymentCycleDays || 1;
-            const cycleThreshold = perDayCost * cycleDays;
-            const overLimit = finalRemaining >= cycleThreshold;
-            const reachLimit = finalRemaining >= (cycleThreshold * 0.8);
-
-            await ClientRepository.createClientPayment({
+        // Create Attendance
+        const attendance =
+            await attendenceWorkerRepository.createAttendance({
                 jobCardId,
-                amount: 0,
-                remainingAmount: finalRemaining,
-                availableBalance: finalAvailable,
-                paymentStatus: "pending",
-                paymentMethod: "cash",
-                paymentDate: new Date(),
-                overLimit,
-                reachLimit,
-                remarks: `Auto-generated from attendance. ${overLimit ? "STATUS: OVERDUE" : ""}`
+                workerId,
+                date: attendanceDate,
+                status: "present",
+                markedBy: "Worker"
             });
 
-           * 
-           * 
-           */
+        // Recalculate worker global balance
+        await updateWorkerGlobalBalance(workerId);
+
+        /**
+         * =========================================================
+         * SEND FCM NOTIFICATION
+         * =========================================================
+         */
+        if (attendance && worker.fcmToken) {
+
             await sendFcmNotification(worker.fcmToken, {
                 title: "Job Attendance Verified",
-                body: `Your attendance has been marked successfully for job card #${jobCard?.patientDetails?.name} . `,
+                body: `Your attendance has been marked successfully for patient ${jobCard?.patientDetails?.name}.`,
                 data: {
-                    jobId: jobCardId,
+                    jobId: jobCardId.toString(),
                     type: "attendance_verified"
                 }
             });
@@ -155,17 +243,27 @@ const verifyAttendanceOtpService = async (data) => {
 
         return {
             success: true,
-            message: "Attendance verified and created successfully",
+            message: "Attendance verified successfully",
             data: attendance
         };
+
     } catch (error) {
-        if (error.code === 11000 || error.message.includes("E11000 duplicate key error")) {
-            throw new Error("Attendance is already marked for today!");
+
+        // Mongo Duplicate Key Error
+        if (
+            error.code === 11000 ||
+            error.message.includes("E11000 duplicate key error")
+        ) {
+            throw new Error(
+                "Attendance is already marked for today!"
+            );
         }
-        throw new Error(error.message || "Failed to verify attendance");
+
+        throw new Error(
+            error.message || "Failed to verify attendance"
+        );
     }
 };
-
 // ✅ Get Attendance by WorkerId (with pagination)
 const getAttendanceByWorkerIdService = async (workerId, page = 1, limit = 10) => {
     try {
