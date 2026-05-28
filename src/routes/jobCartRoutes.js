@@ -14,7 +14,8 @@ const {
     getJobCardsByWorkerIdController,
     getJobCardsByStatusController,
     getJobCardsByStatusAndWorkerIdController,
-    completeJobCardController
+    completeJobCardController,
+    updateTrackingStatusController
 } = require("../controllers/jobCartController");
 
 // ----------------------------------------------------
@@ -47,5 +48,6 @@ router.post("/:id/not-interested", removeWorkerFromJobCardController);
 router.get("/worker/:workerId", getJobCardsByWorkerIdController);
 router.get("/status/:status/worker/:workerId", getJobCardsByStatusAndWorkerIdController);
 router.put("/:id/complete", completeJobCardController);
+router.put("/:id/tracking-status", updateTrackingStatusController);
 
 module.exports = router;

@@ -250,6 +250,12 @@ const verifyAttendanceOtpService = async (data) => {
             throw new Error("Job card is already completed");
         }
 
+        const resolvedServiceType = serviceType || jobCard.serviceDetails?.timing || jobCard.serviceDetails?.service?.serviceType || "24 hour";
+        const normalizedType = (resolvedServiceType || "").toLowerCase().trim();
+        const isOneTime = normalizedType.includes("one") || normalizedType.includes("1-time");
+        const is12Hour = normalizedType.includes("12") || normalizedType.includes("12hr") || normalizedType.includes("12 hour");
+        const is24Hour = normalizedType.includes("24") || normalizedType.includes("24hr") || normalizedType.includes("24 hour") || (!isOneTime && !is12Hour);
+
         /**
          * =========================================================
          * ADMIN ATTENDANCE FLOW
@@ -301,6 +307,17 @@ const verifyAttendanceOtpService = async (data) => {
                 // Recalculate global balance
                 await updateWorkerGlobalBalance(workerId);
 
+                if (isOneTime && normalizedStatus === "present") {
+                    await jobCardRepository.updateJobCard(jobCardId, {
+                        ontimeTrackingstatus: 'jobcompleted',
+                        status: 'completed',
+                        completedAt: new Date()
+                    });
+                    await workerRepository.updateWorker(workerId, {
+                        isBusy: false
+                    });
+                }
+
                 return {
                     success: true,
                     message: "Attendance updated successfully",
@@ -327,6 +344,17 @@ const verifyAttendanceOtpService = async (data) => {
             // Recalculate global balance
             await updateWorkerGlobalBalance(workerId);
 
+            if (isOneTime && normalizedStatus === "present") {
+                await jobCardRepository.updateJobCard(jobCardId, {
+                    ontimeTrackingstatus: 'jobcompleted',
+                    status: 'completed',
+                    completedAt: new Date()
+                });
+                await workerRepository.updateWorker(workerId, {
+                    isBusy: false
+                });
+            }
+
             return {
                 success: true,
                 message: "Attendance created successfully",
@@ -340,11 +368,7 @@ const verifyAttendanceOtpService = async (data) => {
          * =========================================================
          */
 
-        const resolvedServiceType = serviceType || jobCard.serviceDetails?.timing || jobCard.serviceDetails?.service?.serviceType || "24 hour";
-        const normalizedType = (resolvedServiceType || "").toLowerCase().trim();
-        const isOneTime = normalizedType.includes("one") || normalizedType.includes("1-time");
-        const is12Hour = normalizedType.includes("12") || normalizedType.includes("12hr") || normalizedType.includes("12 hour");
-        const is24Hour = normalizedType.includes("24") || normalizedType.includes("24hr") || normalizedType.includes("24 hour") || (!isOneTime && !is12Hour);
+        // (variables resolved at top of service)
 
         let searchDate = attendanceDate;
         if (is12Hour && type && type.toLowerCase() === "checkout") {
@@ -414,6 +438,17 @@ const verifyAttendanceOtpService = async (data) => {
                 markedBy: "Worker",
                 checkInTime: new Date(),
                 todaySalary: jobCard.perDayNurseCost || 0
+            });
+
+            // Automatically transition tracking status to jobcompleted, mark job completed, and release worker
+            await jobCardRepository.updateJobCard(jobCardId, {
+                ontimeTrackingstatus: 'jobcompleted',
+                status: 'completed',
+                completedAt: new Date()
+            });
+
+            await workerRepository.updateWorker(workerId, {
+                isBusy: false
             });
         } else if (is12Hour) {
             if (!type || !["checkin", "checkout"].includes(type.toLowerCase())) {

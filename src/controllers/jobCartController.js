@@ -124,6 +124,19 @@ const completeJobCardController = async (req, res) => {
     }
 }
 
+const updateTrackingStatusController = async (req, res) => {
+    try {
+        const { workerId, status } = req.body;
+        if (!workerId) return res.status(400).json({ success: false, message: "workerId is required" });
+        if (!status) return res.status(400).json({ success: false, message: "status is required" });
+
+        const jobCard = await jobcartService.updateTrackingStatusService(req.params.id, workerId, status);
+        res.status(200).json({ success: true, message: "Tracking status updated successfully", data: jobCard });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+}
+
 module.exports = {
     createJobCardController,
     updateJobCardController,
@@ -137,5 +150,6 @@ module.exports = {
     getJobCardsByWorkerIdController,
     getJobCardsByStatusController,
     getJobCardsByStatusAndWorkerIdController,
-    completeJobCardController
+    completeJobCardController,
+    updateTrackingStatusController
 }

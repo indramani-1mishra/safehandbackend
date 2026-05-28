@@ -304,7 +304,15 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
 
         const assignedWorker = await workerRepository.getWorkerById(safeWorkerId);
         await workerRepository.updateWorker(safeWorkerId, { isBusy: true });
-        await jobcartRepository.updateJobCard(safeJobCardId, { isAssigned: true, assignedAt: new Date() });
+
+        const timing = jobCard.serviceDetails?.timing || jobCard.serviceDetails?.service?.serviceType || '';
+        const isOneTime = timing.toLowerCase().includes("one") || timing.toLowerCase().includes("1-time");
+
+        const updateFields = { isAssigned: true, assignedAt: new Date() };
+        if (isOneTime) {
+            updateFields.ontimeTrackingstatus = 'assigned';
+        }
+        await jobcartRepository.updateJobCard(safeJobCardId, updateFields);
 
         const fullJobCard = await jobcartRepository.getJobCardById(safeJobCardId);
         const io = socketUtils.getIo();
@@ -519,12 +527,20 @@ const replaceWorkerInJobCardService = async (jobCardId, newWorkerId) => {
             throw new Error("Worker is already busy to take another job, please select another worker");
         }
 
-        const updatedJobCard = await jobcartRepository.updateJobCard(safeJobCardId, {
+        const timing = jobCard.serviceDetails?.timing || jobCard.serviceDetails?.service?.serviceType || '';
+        const isOneTime = timing.toLowerCase().includes("one") || timing.toLowerCase().includes("1-time");
+
+        const updateFields = {
             'workers.assigned': new mongoose.Types.ObjectId(safeWorkerId),
             status: 'assigned',
             isAssigned: true,
             assignedAt: new Date(),
-        });
+        };
+        if (isOneTime) {
+            updateFields.ontimeTrackingstatus = 'assigned';
+        }
+
+        const updatedJobCard = await jobcartRepository.updateJobCard(safeJobCardId, updateFields);
         if (!updatedJobCard) {
             throw new Error("Failed to replace worker for this job card");
         }
@@ -556,6 +572,62 @@ const replaceWorkerInJobCardService = async (jobCardId, newWorkerId) => {
     }
 }
 
+const updateTrackingStatusService = async (jobCardId, workerId, targetStatus) => {
+    const safeJobCardId = jobCardId ? jobCardId.toString().trim() : '';
+    const safeWorkerId = workerId ? workerId.toString().trim() : '';
+
+    const jobCard = await jobcartRepository.getJobCardById(safeJobCardId);
+    if (!jobCard) {
+        throw new Error("Job card not found");
+    }
+
+    const timing = jobCard.serviceDetails?.timing || jobCard.serviceDetails?.service?.serviceType || '';
+    const isOneTime = timing.toLowerCase().includes("one") || timing.toLowerCase().includes("1-time");
+    if (!isOneTime) {
+        throw new Error("Tracking status is only applicable for One-Time services");
+    }
+
+    const currentWorker = jobCard.workers?.assigned;
+    const currentWorkerId = currentWorker?._id?.toString() || (typeof currentWorker === 'string' ? currentWorker : null);
+    if (currentWorkerId !== safeWorkerId) {
+        throw new Error("Unauthorized: You are not assigned to this job card");
+    }
+
+    const currentStatus = jobCard.ontimeTrackingstatus || 'booked';
+    const allowedStatuses = ['booked', 'assigned', 'ontheway', 'reached', 'jobstart', 'jobcompleted'];
+    if (!allowedStatuses.includes(targetStatus)) {
+        throw new Error(`Invalid target status: ${targetStatus}`);
+    }
+
+    if (targetStatus === 'booked' || targetStatus === 'assigned') {
+        throw new Error(`Worker cannot set tracking status to ${targetStatus}`);
+    }
+
+    if (targetStatus === 'jobcompleted') {
+        throw new Error("Please first verify attendance to complete the job");
+    }
+
+    // Sequential Transition Logic:
+    let isValid = false;
+    if (currentStatus === 'assigned' && targetStatus === 'ontheway') {
+        isValid = true;
+    } else if (currentStatus === 'ontheway' && targetStatus === 'reached') {
+        isValid = true;
+    } else if (currentStatus === 'reached' && targetStatus === 'jobstart') {
+        isValid = true;
+    }
+
+    if (!isValid) {
+        throw new Error(`Invalid status transition from '${currentStatus}' to '${targetStatus}'`);
+    }
+
+    const updatedJobCard = await jobcartRepository.updateJobCard(safeJobCardId, {
+        ontimeTrackingstatus: targetStatus
+    });
+
+    return updatedJobCard;
+};
+
 module.exports = {
     createJobCardService,
     updateJobCardService,
@@ -569,5 +641,6 @@ module.exports = {
     getJobCardsByStatusService,
     getJobCardsByStatusAndWorkerIdService,
     completeJobCardService,
-    replaceWorkerInJobCardService
+    replaceWorkerInJobCardService,
+    updateTrackingStatusService
 }

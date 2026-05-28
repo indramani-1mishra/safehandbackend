@@ -118,8 +118,14 @@ const jobCardSchema = new mongoose.Schema({
 
 
     assignedAt: Date,
-    completedAt: Date
+    completedAt: Date,
 
+    // 🔹 For One-Time service tracking status
+    ontimeTrackingstatus: {
+        type: String,
+        enum: ['booked', 'assigned', 'ontheway', 'reached', 'jobstart', 'jobcompleted'],
+        default: 'booked'
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model("JobCard", jobCardSchema);
