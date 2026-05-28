@@ -13,7 +13,7 @@ const createAttendance = async (data) => {
 
 const getAttendanceByWorkerId = async (workerId) => {
     try {
-        return await Attendance.find({ workerId });
+        return await Attendance.find({ workerId }).populate('adminId', 'name');
     } catch (error) {
         throw error;
     }
@@ -29,7 +29,7 @@ const getAttendanceByJobCardId = async (jobCardId) => {
 
 const getAttendanceByJobCardIdAndWorkerId = async (jobCardId, workerId) => {
     try {
-        return await Attendance.find({ jobCardId, workerId });
+        return await Attendance.find({ jobCardId, workerId }).populate('adminId', 'name');
     } catch (error) {
         throw error;
     }

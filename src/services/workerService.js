@@ -4,6 +4,9 @@ const {
     updateWorkerSchema
 } = require("../validations/workerValidation");
 const AppError = require("../utils/AppError");
+const Attendance = require("../modals/attendanceModel");
+const JobCard = require("../modals/jobcartModel");
+const getdate = require("../utils/getCurrentDate");
 
 
 //  CREATE WORKER
@@ -86,7 +89,39 @@ const deleteWorker = async (id) => {
 // 🔥 GET ALL WORKERS
 const getAllWorkers = async (query) => {
     const workers = await workerRepository.getAllWorkers(query);
-    return workers;
+    try {
+        const todayStr = getdate();
+        // Fetch all present attendance records for today
+        const attendances = await Attendance.find({ date: todayStr, status: "present" }).populate("jobCardId");
+        
+        // Map workerId -> today's earnings
+        const todayEarningsMap = {};
+        for (const att of attendances) {
+            if (!att.workerId) continue;
+            const workerIdStr = att.workerId.toString();
+            let earned = 0;
+            if (att.jobCardId && att.jobCardId.status === "completed") {
+                earned = 0;
+            } else if (att.todaySalary !== undefined && att.todaySalary !== null) {
+                earned = att.todaySalary;
+            } else if (att.jobCardId) {
+                earned = att.jobCardId.perDayNurseCost || 0;
+            }
+            todayEarningsMap[workerIdStr] = (todayEarningsMap[workerIdStr] || 0) + earned;
+        }
+
+        // Add todayEarnings to each worker object
+        const workersList = workers.map(w => {
+            const obj = w.toObject ? w.toObject() : w;
+            obj.todayEarnings = todayEarningsMap[obj._id.toString()] || 0;
+            return obj;
+        });
+
+        return workersList;
+    } catch (err) {
+        console.error("Error calculating today's earnings in getAllWorkers service:", err);
+        return workers;
+    }
 };
 
 

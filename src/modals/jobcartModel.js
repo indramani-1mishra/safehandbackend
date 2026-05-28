@@ -107,7 +107,14 @@ const jobCardSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
-
+    checkInTime: {
+        type: Date,
+        default: null
+    },
+    checkOutTime: {
+        type: Date,
+        default: null
+    },
 
 
     assignedAt: Date,

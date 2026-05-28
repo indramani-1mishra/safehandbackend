@@ -3,3 +3,4 @@ node_modules/
 .env.example
 safehand.pem
 safehandlifecarenotification-firebase-adminsdk-fbsvc-5565ef50c6.json
+scripts/

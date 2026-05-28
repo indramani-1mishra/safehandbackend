@@ -39,9 +39,13 @@ const updateWorkerGlobalBalance = async (workerId) => {
             const jobAttendance = attendanceRecords.filter(
                 att => att.jobCardId.toString() === jobCardId && att.status === "present"
             );
-            const presentDays = jobAttendance.length;
-            const perDayCost = jobCard.perDayNurseCost || 0;
-            totalEarned += presentDays * perDayCost;
+            for (const att of jobAttendance) {
+                if (att.todaySalary !== undefined && att.todaySalary !== null) {
+                    totalEarned += att.todaySalary;
+                } else {
+                    totalEarned += jobCard.perDayNurseCost || 0;
+                }
+            }
         }
 
         // 3. Calculate Total already Paid or Pending payouts across all jobs
@@ -77,10 +81,15 @@ const requestPayoutService = async (data) => {
 
         // Calculate Total Earned (Present Days * Per Day Nurse Cost)
         const attendanceRecords = await attendenceWorkerRepository.getAttendanceByJobCardIdAndWorkerId(jobCardId, workerId);
-        const presentDays = attendanceRecords.filter(att => att.status === "present").length;
-        const perDayCost = jobCard.perDayNurseCost || 0;
-        const totalEarned = presentDays * perDayCost;
-        // totalEarned = 111
+        const presentAttendance = attendanceRecords.filter(att => att.status === "present");
+        let totalEarned = 0;
+        for (const att of presentAttendance) {
+            if (att.todaySalary !== undefined && att.todaySalary !== null) {
+                totalEarned += att.todaySalary;
+            } else {
+                totalEarned += jobCard.perDayNurseCost || 0;
+            }
+        }
         // Calculate Total already Paid or Pending (to prevent over-requesting)
         const existingPayouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);
         const totalPayouts = existingPayouts.reduce((sum, p) => {
@@ -153,8 +162,15 @@ const getWorkerPayoutDue = async (workerId, jobCardId) => {
     if (!jobCard) return { remainingDue: 0 };
 
     const attendance = await attendenceWorkerRepository.getAttendanceByJobCardIdAndWorkerId(jobCardId, workerId);
-    const presentDays = attendance.filter(a => a.status === 'present').length;
-    const totalEarned = presentDays * (jobCard.perDayNurseCost || 0);
+    const presentAttendance = attendance.filter(a => a.status === 'present');
+    let totalEarned = 0;
+    for (const att of presentAttendance) {
+        if (att.todaySalary !== undefined && att.todaySalary !== null) {
+            totalEarned += att.todaySalary;
+        } else {
+            totalEarned += jobCard.perDayNurseCost || 0;
+        }
+    }
 
     const payouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);
     const totalPaid = payouts.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
@@ -183,11 +199,19 @@ const getWorkerBalanceService = async (workerId, jobCardId) => {
         const jobCard = await jobCardRepository.getJobCardById(jobCardId);
         if (!jobCard) throw new Error("Job card not found");
 
-        // 1. Calculate Total Earned (Present Days * Per Day Nurse Cost)
+        // 1. Calculate Total Earned
         const attendanceRecords = await attendenceWorkerRepository.getAttendanceByJobCardIdAndWorkerId(jobCardId, workerId);
-        const presentDays = attendanceRecords.filter(att => att.status === "present").length;
+        const presentAttendance = attendanceRecords.filter(att => att.status === "present");
+        const presentDays = presentAttendance.length;
         const perDayCost = jobCard.perDayNurseCost || 0;
-        const totalEarned = presentDays * perDayCost;
+        let totalEarned = 0;
+        for (const att of presentAttendance) {
+            if (att.todaySalary !== undefined && att.todaySalary !== null) {
+                totalEarned += att.todaySalary;
+            } else {
+                totalEarned += perDayCost;
+            }
+        }
 
         // 2. Calculate Total already Paid or Pending
         const existingPayouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);

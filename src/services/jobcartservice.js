@@ -27,6 +27,44 @@ const normalizeDateOnly = (value) => {
     return new Date(value);
 };
 
+const normalizeTimeToDate = (timeStr, baseDate = new Date()) => {
+    if (!timeStr) return null;
+    if (timeStr instanceof Date) return timeStr;
+    if (typeof timeStr === "string" && timeStr.includes("T")) {
+        const date = new Date(timeStr);
+        if (!isNaN(date.getTime())) return date;
+    }
+    if (typeof timeStr === "string") {
+        const cleanStr = timeStr.trim().toLowerCase();
+        let isPM = cleanStr.includes("pm");
+        let isAM = cleanStr.includes("am");
+
+        const match = cleanStr.match(/(\d+)(?::(\d+))?/);
+        if (match) {
+            let hours = parseInt(match[1], 10);
+            let minutes = match[2] ? parseInt(match[2], 10) : 0;
+
+            if (!isNaN(hours) && !isNaN(minutes)) {
+                if (isPM && hours < 12) {
+                    hours += 12;
+                }
+                if (isAM && hours === 12) {
+                    hours = 0;
+                }
+
+                const year = baseDate.getFullYear();
+                const month = baseDate.getMonth();
+                const dateVal = baseDate.getDate();
+
+                const isoString = `${year}-${String(month + 1).padStart(2, '0')}-${String(dateVal).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00.000+05:30`;
+                return new Date(isoString);
+            }
+        }
+    }
+    const fallbackDate = new Date(timeStr);
+    return isNaN(fallbackDate.getTime()) ? null : fallbackDate;
+};
+
 const createJobCardService = async (data) => {
     try {
         // Extract fields according to the nested payload format
@@ -61,9 +99,18 @@ const createJobCardService = async (data) => {
             }
         }
         const normalizedServiceStart = normalizeDateOnly(data.serviceStart || data.startDate);
+        const normalizedCheckIn = data.checkInTime ? normalizeTimeToDate(data.checkInTime, normalizedServiceStart) : null;
+        let normalizedCheckOut = data.checkOutTime ? normalizeTimeToDate(data.checkOutTime, normalizedServiceStart) : null;
+
+        if (normalizedCheckIn && normalizedCheckOut && normalizedCheckOut < normalizedCheckIn) {
+            normalizedCheckOut.setDate(normalizedCheckOut.getDate() + 1);
+        }
+
         const createData = {
             ...data,
-            serviceStart: normalizedServiceStart
+            serviceStart: normalizedServiceStart,
+            checkInTime: normalizedCheckIn,
+            checkOutTime: normalizedCheckOut
         };
 
         const jobCard = await jobcartRepository.createJobCard(createData);
@@ -122,9 +169,31 @@ const updateJobCardService = async (id, data) => {
             throw new Error("Job card not found");
         }
         const updateData = { ...data };
+        const baseDate = updateData.serviceStart ? normalizeDateOnly(updateData.serviceStart) : (jobCard.serviceStart || new Date());
         if (updateData.serviceStart) {
-            updateData.serviceStart = normalizeDateOnly(updateData.serviceStart);
+            updateData.serviceStart = baseDate;
         }
+        if (updateData.checkInTime !== undefined) {
+            updateData.checkInTime = normalizeTimeToDate(updateData.checkInTime, baseDate);
+        }
+        if (updateData.checkOutTime !== undefined) {
+            updateData.checkOutTime = normalizeTimeToDate(updateData.checkOutTime, baseDate);
+        }
+
+        const checkIn = updateData.checkInTime !== undefined ? updateData.checkInTime : jobCard.checkInTime;
+        const checkOut = updateData.checkOutTime !== undefined ? updateData.checkOutTime : jobCard.checkOutTime;
+
+        if (checkIn && checkOut && checkOut < checkIn) {
+            if (updateData.checkOutTime !== undefined) {
+                updateData.checkOutTime.setDate(updateData.checkOutTime.getDate() + 1);
+            } else {
+                const newCheckOut = new Date(jobCard.checkOutTime);
+                newCheckOut.setDate(newCheckOut.getDate() + 1);
+                updateData.checkOutTime = newCheckOut;
+            }
+        }
+
+        console.log(updateData, "updateData");
         const updatedJobCard = await jobcartRepository.updateJobCard(id, updateData);
         return updatedJobCard;
     } catch (error) {

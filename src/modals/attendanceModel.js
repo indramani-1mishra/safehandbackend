@@ -25,7 +25,7 @@ const attendanceSchema = new mongoose.Schema({
     // optional  
     markedBy: {
         type: String,
-        enum: ["worker", "admin"],
+        enum: ["worker", "admin", 'Worker'],
         default: "worker"
     },
 
@@ -45,7 +45,24 @@ const attendanceSchema = new mongoose.Schema({
     // 🔹 Check-In Time (Actual verification timestamp)
     checkInTime: {
         type: Date,
-        default: Date.now
+        default: null
+    },
+    // 🔹 Check-Out Time (Actual verification timestamp)
+    checkOutTime: {
+        type: Date,
+        default: null
+    },
+    actualHours: {
+        type: Number,
+        default: 0
+    },
+    billableHours: {
+        type: Number,
+        default: 0
+    },
+    todaySalary: {
+        type: Number,
+        default: null
     },
 
     // 🔹 OTP Verification Status
