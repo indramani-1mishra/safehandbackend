@@ -126,6 +126,44 @@ const workerSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    workerBookingSlot: {
+        type: [
+            {
+                from: {
+                    type: Number,
+                    default: 0,
+                },
+
+                to: {
+                    type: Number,
+                    default: 0,
+                },
+
+                jobCardId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "JobCard",
+                },
+
+                status: {
+                    type: String,
+                    enum: ["pending", "ontheway", "working", "rejected"],
+                    default: "pending",
+                },
+
+                preCheckInNotified: {
+                    type: Boolean,
+                    default: false,
+                },
+
+                lastNotifiedDate: {
+                    type: String,
+                    default: "",
+                }
+            },
+        ],
+
+        default: [],
+    },
 
 
 

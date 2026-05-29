@@ -83,7 +83,21 @@ const createJobCardService = async (data) => {
         if (!enquiry) {
             throw new Error("Enquiry not found in DB");
         }
-        const matchedWorkers = await matchUsers(serviceId, city);
+        const serviceType = service.serviceType || "";
+        const is12Hour = serviceType.toLowerCase().includes("12 hour");
+        const normalizedServiceStart = normalizeDateOnly(data.serviceStart || data.startDate);
+        const normalizedCheckIn = data.checkInTime ? normalizeTimeToDate(data.checkInTime, normalizedServiceStart) : null;
+        let normalizedCheckOut = data.checkOutTime ? normalizeTimeToDate(data.checkOutTime, normalizedServiceStart) : null;
+
+        if (normalizedCheckIn && normalizedCheckOut && normalizedCheckOut < normalizedCheckIn) {
+            normalizedCheckOut.setDate(normalizedCheckOut.getDate() + 1);
+        }
+
+        if (is12Hour && (!data.checkInTime || !data.checkOutTime)) {
+            throw new Error("Check-in and Check-out times are required for 12-hour services");
+        }
+
+        const matchedWorkers = await matchUsers(serviceId, city, is12Hour, normalizedCheckIn, normalizedCheckOut);
         if (!data.isDirectAssignWorker) {
             if (matchedWorkers.length === 0) {
                 throw new Error(`No workers found for service: ${service.name || serviceId} in city: ${city}`);
@@ -97,13 +111,15 @@ const createJobCardService = async (data) => {
             if (!worker) {
                 throw new Error("Worker not found in DB");
             }
-        }
-        const normalizedServiceStart = normalizeDateOnly(data.serviceStart || data.startDate);
-        const normalizedCheckIn = data.checkInTime ? normalizeTimeToDate(data.checkInTime, normalizedServiceStart) : null;
-        let normalizedCheckOut = data.checkOutTime ? normalizeTimeToDate(data.checkOutTime, normalizedServiceStart) : null;
-
-        if (normalizedCheckIn && normalizedCheckOut && normalizedCheckOut < normalizedCheckIn) {
-            normalizedCheckOut.setDate(normalizedCheckOut.getDate() + 1);
+            const isWorkerBusy = await workerRepository.checkWorkerBusyStatus(
+                data.assignedWorkerId,
+                is12Hour,
+                normalizedCheckIn,
+                normalizedCheckOut
+            );
+            if (isWorkerBusy) {
+                throw new Error("Worker is already busy to take another job, please select another worker");
+            }
         }
 
         const createData = {
@@ -274,6 +290,11 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
         const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
         const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;
         const jobCard = await jobcartRepository.getJobCardById(safeJobCardId);
+        const serviceType = jobCard.serviceDetails.service.serviceType || " ";
+        const is12Hour = serviceType.toLowerCase().includes("12 hour");
+        const checkInDate = jobCard.checkInTime;
+        const checkOutDate = jobCard.checkOutTime;
+
 
         if (!jobCard) {
             throw new Error("Job card not found");
@@ -288,10 +309,11 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
             return jobCard;
         }
 
-        const isWorkerBusy = await workerRepository.checkWorkerBusyStatus(safeWorkerId);
+        const isWorkerBusy = await workerRepository.checkWorkerBusyStatus(safeWorkerId, is12Hour, checkInDate, checkOutDate);
         if (isWorkerBusy) {
             throw new Error("Worker is already busy to take another job, please select another worker");
         }
+
 
         const updatedJobCard = await jobcartRepository.assignWorkerToJobCard(safeJobCardId, new mongoose.Types.ObjectId(safeWorkerId));
         if (!updatedJobCard) {
@@ -301,9 +323,23 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
         if (currentAssignedWorkerId) {
             await workerRepository.updateWorker(currentAssignedWorkerId, { isBusy: false });
         }
+        if (is12Hour && currentAssignedWorkerId) {
+            await workerRepository.removeWorkerBusySlot(currentAssignedWorkerId, safeJobCardId)
+        }
+
+
 
         const assignedWorker = await workerRepository.getWorkerById(safeWorkerId);
-        await workerRepository.updateWorker(safeWorkerId, { isBusy: true });
+        if (is12Hour) {
+            await workerRepository.addworkerBookingSlot(safeWorkerId, {
+                checkInDate: checkInDate,
+                checkOutDate: checkOutDate,
+                safeJobCardId: safeJobCardId
+            })
+        }
+        else {
+            await workerRepository.updateWorker(safeWorkerId, { isBusy: true });
+        }
 
         const timing = jobCard.serviceDetails?.timing || jobCard.serviceDetails?.service?.serviceType || '';
         const isOneTime = timing.toLowerCase().includes("one") || timing.toLowerCase().includes("1-time");
@@ -488,7 +524,14 @@ const completeJobCardService = async (jobCardId) => {
         if (workerId) {
             const worker = await workerRepository.getWorkerById(workerId);
             if (worker) {
-                await workerRepository.updateWorker(workerId, { isBusy: false });
+                const serviceType = jobCard.serviceDetails.service.serviceType || " ";
+                const is12Hour = serviceType.toLowerCase().includes("12 hour");
+                if (is12Hour) {
+                    await workerRepository.removeWorkerBusySlot(workerId, safeJobCardId);
+                } else {
+                    await workerRepository.updateWorker(workerId, { isBusy: false });
+                }
+
             }
         }
         return updatedJobCard;
@@ -507,6 +550,11 @@ const replaceWorkerInJobCardService = async (jobCardId, newWorkerId) => {
             throw new Error("Job card not found");
         }
 
+        const serviceType = jobCard.serviceDetails?.service?.serviceType || " ";
+        const is12Hour = serviceType.toLowerCase().includes("12 hour");
+        const checkInDate = jobCard.checkInTime;
+        const checkOutDate = jobCard.checkOutTime;
+
         const currentlyAssigned = jobCard.workers?.assigned;
         const previouslyAssignedWorkerId = currentlyAssigned
             ? (typeof currentlyAssigned === 'string'
@@ -522,7 +570,12 @@ const replaceWorkerInJobCardService = async (jobCardId, newWorkerId) => {
             throw new Error("The selected worker is already assigned to this job card");
         }
 
-        const isNewWorkerBusy = await workerRepository.checkWorkerBusyStatus(safeWorkerId);
+        const isNewWorkerBusy = await workerRepository.checkWorkerBusyStatus(
+            safeWorkerId,
+            is12Hour,
+            checkInDate,
+            checkOutDate
+        );
         if (isNewWorkerBusy) {
             throw new Error("Worker is already busy to take another job, please select another worker");
         }
@@ -545,8 +598,21 @@ const replaceWorkerInJobCardService = async (jobCardId, newWorkerId) => {
             throw new Error("Failed to replace worker for this job card");
         }
 
-        await workerRepository.updateWorker(previouslyAssignedWorkerId, { isBusy: false });
-        await workerRepository.updateWorker(safeWorkerId, { isBusy: true });
+        if (is12Hour) {
+            if (previouslyAssignedWorkerId) {
+                await workerRepository.removeWorkerBusySlot(previouslyAssignedWorkerId, safeJobCardId);
+            }
+            await workerRepository.addworkerBookingSlot(safeWorkerId, {
+                checkInDate: checkInDate,
+                checkOutDate: checkOutDate,
+                safeJobCardId: safeJobCardId
+            });
+        } else {
+            if (previouslyAssignedWorkerId) {
+                await workerRepository.updateWorker(previouslyAssignedWorkerId, { isBusy: false });
+            }
+            await workerRepository.updateWorker(safeWorkerId, { isBusy: true });
+        }
 
         const assignedWorker = await workerRepository.getWorkerById(safeWorkerId);
         const fullJobCard = await jobcartRepository.getJobCardById(safeJobCardId);

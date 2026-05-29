@@ -296,6 +296,32 @@ const getWorkersByDateRangeController = async (req, res) => {
     }
 };
 
+const respondToCheckInAlertController = async (req, res) => {
+    try {
+        const { workerId, jobCardId, status } = req.body;
+
+        if (!workerId || !jobCardId || !status) {
+            return res.status(400).json({
+                success: false,
+                message: "workerId, jobCardId, and status are required"
+            });
+        }
+
+        const result = await workerService.respondToCheckInAlert(workerId, jobCardId, status);
+
+        return res.status(200).json({
+            success: true,
+            ...result
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     createWorkerController,
     updateWorkerController,
@@ -308,4 +334,5 @@ module.exports = {
     getWorkersByAdminIdController,
     getWorkersByBusyStatusController,
     getWorkersByDateRangeController,
+    respondToCheckInAlertController,
 };

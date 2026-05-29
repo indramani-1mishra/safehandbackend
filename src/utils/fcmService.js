@@ -63,4 +63,46 @@ const sendFcmNotification = async (tokens, notification, data = {}) => {
     }
 };
 
-module.exports = { sendFcmNotification };
+const sendCallTypeFcmNotification = async (token, title, body, data = {}) => {
+    try {
+        if (!token || token.trim() === "") return;
+
+        const message = {
+            token: token.trim(),
+            data: {
+                title: String(title),
+                body: String(body),
+                click_action: "FLUTTER_NOTIFICATION_CLICK",
+                ...Object.keys(data).reduce((acc, key) => {
+                    acc[key] = String(data[key]);
+                    return acc;
+                }, {})
+            },
+            android: {
+                priority: "high",
+            },
+            apns: {
+                headers: {
+                    "apns-priority": "10",
+                },
+                payload: {
+                    aps: {
+                        contentAvailable: true,
+                        sound: "default",
+                    },
+                },
+            },
+        };
+
+        const response = await admin.messaging().send(message);
+        console.log("Successfully sent call-type FCM notification:", response);
+        return response;
+    } catch (error) {
+        console.error("Error sending call-type FCM notification:", error);
+    }
+};
+
+module.exports = { 
+    sendFcmNotification,
+    sendCallTypeFcmNotification
+};

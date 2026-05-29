@@ -22,12 +22,90 @@ const findWorkerById = async (id) => {
     return await Worker.findById(id).populate({ path: 'services', model: Service });
 };
 
-const checkWorkerBusyStatus = async (id) => {
+const calculateTotalMinutes = (time) => {
+    const date = new Date(time);
+    if (isNaN(date.getTime())) return 0;
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
+    const parts = formatter.formatToParts(date);
+    const hours = parseInt(parts.find(p => p.type === 'hour').value, 10);
+    const minutes = parseInt(parts.find(p => p.type === 'minute').value, 10);
+    return hours * 60 + minutes;
+};
+
+const checkWorkerBusyStatus = async (id, is12Hour, checkInDate, checkOutDate) => {
     const worker = await Worker.findById(id);
     if (!worker) throw new Error("Worker not found");
+    if (is12Hour) {
+        // If worker is busy but has no booking slots, they must be busy with a 24h or one-time service
+        if (worker.isBusy && worker.workerBookingSlot.length === 0) {
+            return true;
+        }
+
+        const checkInMins = calculateTotalMinutes(checkInDate);
+        const checkOutMins = calculateTotalMinutes(checkOutDate);
+
+        const getIntervals = (from, to) => {
+            if (from <= to) {
+                return [{ from, to }];
+            } else {
+                return [
+                    { from: from, to: 1440 },
+                    { from: 0, to: to }
+                ];
+            }
+        };
+
+        const checkOverlap = (from1, to1, from2, to2) => {
+            const intervals1 = getIntervals(from1, to1);
+            const intervals2 = getIntervals(from2, to2);
+            return intervals1.some(i1 => 
+                intervals2.some(i2 => i1.from < i2.to && i2.from < i1.to)
+            );
+        };
+
+        const workerBookingSlot = worker.workerBookingSlot || [];
+        return workerBookingSlot.some((slot) => {
+            return checkOverlap(checkInMins, checkOutMins, slot.from, slot.to);
+        });
+    }
     return worker.isBusy;
 }
 
+const removeWorkerBusySlot = async (id, jobCardId) => {
+    const worker = await Worker.findById(id);
+    if (!worker) throw new Error("Worker not found");
+    
+    worker.workerBookingSlot = (worker.workerBookingSlot || []).filter(
+        (slot) => slot.jobCardId.toString() !== jobCardId.toString()
+    );
+    worker.isBusy = worker.workerBookingSlot.length > 0;
+    
+    return await worker.save();
+}
+
+const addworkerBookingSlot = async (id, bookingSlot) => {
+    const checkInMins = calculateTotalMinutes(bookingSlot.checkInDate);
+    const checkOutMins = calculateTotalMinutes(bookingSlot.checkOutDate);
+    return await Worker.findByIdAndUpdate(
+        id,
+        {
+            $push: {
+                workerBookingSlot: {
+                    from: checkInMins,
+                    to: checkOutMins,
+                    jobCardId: bookingSlot.safeJobCardId
+                }
+            },
+            isBusy: true
+        },
+        { returnDocument: 'after', runValidators: true }
+    )
+}
 
 const updateWorker = async (id, data) => {
     return await Worker.findByIdAndUpdate(
@@ -52,8 +130,8 @@ const getAllWorkers = async (query = {}) => {
             $or: [
                 { name: { $regex: search, $options: "i" } },
                 { phone: { $regex: search, $options: "i" } },
-                {city:{ $regex: search, $options: "i" }},
-                {gender:{ $regex: search, $options: "i" }}
+                { city: { $regex: search, $options: "i" } },
+                { gender: { $regex: search, $options: "i" } }
             ]
         };
     }
@@ -141,4 +219,6 @@ module.exports = {
     findWorkersByAdminId,
     findWorkersByBusyStatus,
     findWorkersByDateRange,
+    removeWorkerBusySlot,
+    addworkerBookingSlot
 };

@@ -194,6 +194,69 @@ const getWorkersByDateRange = async (startDate, endDate) => {
     return await workerRepository.findWorkersByDateRange(startDate, endDate);
 };
 
+const respondToCheckInAlert = async (workerId, jobCardId, status) => {
+    const Worker = require("../modals/workerModel");
+    const JobCard = require("../modals/jobcartModel");
+    const socketUtils = require("../utils/socket");
+    const workerRepository = require("../repository/workerRepository");
+
+    const worker = await Worker.findById(workerId);
+    if (!worker) throw new AppError("Worker not found", 404);
+
+    const jobCard = await JobCard.findById(jobCardId);
+    if (!jobCard) throw new AppError("Job Card not found", 404);
+
+    const slotIndex = worker.workerBookingSlot.findIndex(
+        slot => slot.jobCardId.toString() === jobCardId.toString()
+    );
+
+    if (slotIndex === -1) {
+        throw new AppError("Booking slot for this job not found on worker", 404);
+    }
+
+    if (status === "ontheway") {
+        worker.workerBookingSlot[slotIndex].status = "ontheway";
+        await worker.save();
+
+        // 👑 Socket Notification to Admin
+        const io = socketUtils.getIo();
+        io.to("admin_room").emit("worker_ontheway", {
+            message: `Worker ${worker.name} is on the way for Job Card #${jobCardId}`,
+            jobCardId: jobCardId,
+            workerId: workerId,
+            workerName: worker.name
+        });
+
+        return { message: "Status updated to ontheway", worker };
+    } else if (status === "rejected") {
+        // Remove workerBookingSlot for this job card
+        await workerRepository.removeWorkerBusySlot(workerId, jobCardId);
+
+        // Unassign worker from JobCard and return to pending status
+        const updatedJobCard = await JobCard.findByIdAndUpdate(
+            jobCardId,
+            {
+                $set: { "workers.assigned": null, status: "pending", isAssigned: false },
+                $pull: { "workers.interested": workerId }
+            },
+            { new: true }
+        );
+
+        // 👑 Socket Notification to Admin
+        const io = socketUtils.getIo();
+        io.to("admin_room").emit("worker_rejected_job", {
+            message: `Worker ${worker.name} has rejected the shift for Job Card #${jobCardId}`,
+            jobCardId: jobCardId,
+            workerId: workerId,
+            workerName: worker.name
+        });
+
+        return { message: "Worker unassigned and slot removed", updatedJobCard };
+    } else {
+        throw new AppError("Invalid status, must be ontheway or rejected", 400);
+    }
+};
+
 module.exports = {
     createWorker,
     updateWorker,
@@ -206,4 +269,5 @@ module.exports = {
     getWorkersByAdminId,
     getWorkersByBusyStatus,
     getWorkersByDateRange,
+    respondToCheckInAlert,
 };

@@ -118,6 +118,7 @@ socketUtils.init(server);
 createDefaultAdmin();
 
 const { startPaymentReminderCron } = require('./services/paymentReminderService');
+const { startCheckInReminderCron } = require('./services/checkInReminderService');
 //const { startGKQuestionCron } = require('./services/gkQuestionCronService');
 const TESTINGPORT = 5001;
 // Change to "production" for production environment
@@ -130,8 +131,9 @@ server.listen(CURRENT_PORT, async () => {
     console.log(`${NODE_ENV} Server is running on port ${CURRENT_PORT}`);
     await connectToDatabase();
 
-    // Start background job for payment reminders
+    // Start background jobs
     startPaymentReminderCron();
+    startCheckInReminderCron();
 
 
 });

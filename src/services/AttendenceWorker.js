@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const attendenceWorkerRepository = require("../repository/attendenceWorker");
 const jobCardRepository = require("../repository/jobcartRepository");
 const workerRepository = require("../repository/workerRepository");
+const Worker = require("../modals/workerModel");
 const ClientRepository = require("../repository/ClientRepository");
 const { updateWorkerGlobalBalance } = require("./WorkerPayoutService");
 const { generateSecureOtp, hashOtp, verifyOtp } = require('../utils/jenratesixdigitOtp');
@@ -136,10 +137,10 @@ const requestAttendanceOtpService = async (data) => {
             const now = new Date();
             const expectedTime = constructISTDate(scheduledTime.hours, scheduledTime.minutes, now);
             const windowStart = expectedTime;
-            const windowEnd = new Date(expectedTime.getTime() + 30 * 60 * 1000);
+            //  const windowEnd = new Date(expectedTime.getTime() + 30 * 60 * 1000);
 
-            if (now < windowStart || now > windowEnd) {
-                throw new Error(`OTP can only be requested between ${formatTime(windowStart)} and ${formatTime(windowEnd)}`);
+            if (now < windowStart) {
+                throw new Error(`OTP can only be requested after ${formatTime(windowStart)}`);
             }
         } else if (is12Hour) {
             if (!type || !["checkin", "checkout"].includes(type.toLowerCase())) {
@@ -477,6 +478,12 @@ const verifyAttendanceOtpService = async (data) => {
                         checkInTime: new Date()
                     });
                 }
+
+                // Update workerBookingSlot status to "working" for this jobCardId
+                await Worker.findOneAndUpdate(
+                    { _id: workerId, "workerBookingSlot.jobCardId": jobCardId },
+                    { $set: { "workerBookingSlot.$.status": "working" } }
+                );
             } else { // checkout
                 if (!existingAttendance || !existingAttendance.checkInTime) {
                     throw new Error("Please check-in first before checking out");
@@ -522,6 +529,12 @@ const verifyAttendanceOtpService = async (data) => {
                     todaySalary,
                     status: "present"
                 });
+
+                // Update workerBookingSlot status back to "pending" for the next day's shift
+                await Worker.findOneAndUpdate(
+                    { _id: workerId, "workerBookingSlot.jobCardId": jobCardId },
+                    { $set: { "workerBookingSlot.$.status": "pending" } }
+                );
             }
         } else { // 24 hours
             attendance = await attendenceWorkerRepository.createAttendance({

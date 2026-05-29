@@ -53,4 +53,7 @@ router.get("/by-status/:status", authMiddleware, isAdmin, workerController.getWo
 // Filter workers by createdAt date range
 router.get("/by-date", authMiddleware, isAdmin, workerController.getWorkersByDateRangeController);
 
+// Respond to checkin call notification (Yes/No)
+router.post("/respond-checkin-alert", allowAnyAuth, workerController.respondToCheckInAlertController);
+
 module.exports = router;
