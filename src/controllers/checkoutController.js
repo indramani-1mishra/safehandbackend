@@ -3,7 +3,7 @@ const checkoutService = require("../services/checkoutService");
 const processCheckoutController = async (req, res) => {
     try {
         const userId = req.user.id || req.user._id;
-        
+
         const { shippingAddress, city, contactNumber } = req.body;
         if (!shippingAddress || !city || !contactNumber) {
             return res.status(400).json({
@@ -13,7 +13,7 @@ const processCheckoutController = async (req, res) => {
         }
 
         const result = await checkoutService.processCheckoutService(userId, req.body);
-        
+
         return res.status(201).json({
             success: true,
             message: "Unified Checkout processed successfully",

@@ -133,7 +133,7 @@ server.listen(CURRENT_PORT, async () => {
 
     // Start background jobs
     startPaymentReminderCron();
-    startCheckInReminderCron();
+    // startCheckInReminderCron();
 
 
 });

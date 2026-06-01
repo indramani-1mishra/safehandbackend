@@ -25,7 +25,8 @@ const checkAndSendCheckInReminders = async () => {
         for (const job of activeJobs) {
             const serviceType = job.serviceDetails?.service?.serviceType || "";
             const is12Hour = serviceType.toLowerCase().includes("12 hour");
-            if (!is12Hour) continue;
+            const isOneTime = job?.jobType?.toLowerCase().includes("one time");
+            if (!is12Hour || !isOneTime) continue;
 
             const worker = job.workers?.assigned;
             if (!worker || !worker.fcmToken) continue;
@@ -44,7 +45,7 @@ const checkAndSendCheckInReminders = async () => {
             const diffMinutes = diffMs / (1000 * 60);
 
             // If we are between 50 to 70 minutes before check-in time (approx 1 hour)
-            if (diffMinutes >= 50 && diffMinutes <= 70) {
+            if (diffMinutes >= 55 && diffMinutes <= 60) {
                 // Find this job card's booking slot inside the worker's array
                 const slot = worker.workerBookingSlot.find(
                     s => s.jobCardId.toString() === job._id.toString()
@@ -52,7 +53,7 @@ const checkAndSendCheckInReminders = async () => {
 
                 if (slot && slot.lastNotifiedDate !== todayStr) {
                     console.log(`Sending check-in reminder call notification to worker ${worker.name} for Job Card #${job._id}`);
-                    
+
                     // Send Call-type FCM notification
                     await sendCallTypeFcmNotification(
                         worker.fcmToken,

@@ -7,6 +7,8 @@ const AppError = require("../utils/AppError");
 const Attendance = require("../modals/attendanceModel");
 const JobCard = require("../modals/jobcartModel");
 const getdate = require("../utils/getCurrentDate");
+const jobcartRepository = require("../repository/jobcartRepository");
+
 
 
 //  CREATE WORKER
@@ -93,7 +95,7 @@ const getAllWorkers = async (query) => {
         const todayStr = getdate();
         // Fetch all present attendance records for today
         const attendances = await Attendance.find({ date: todayStr, status: "present" }).populate("jobCardId");
-        
+
         // Map workerId -> today's earnings
         const todayEarningsMap = {};
         for (const att of attendances) {
@@ -195,15 +197,13 @@ const getWorkersByDateRange = async (startDate, endDate) => {
 };
 
 const respondToCheckInAlert = async (workerId, jobCardId, status) => {
-    const Worker = require("../modals/workerModel");
-    const JobCard = require("../modals/jobcartModel");
-    const socketUtils = require("../utils/socket");
-    const workerRepository = require("../repository/workerRepository");
 
-    const worker = await Worker.findById(workerId);
+    const socketUtils = require("../utils/socket");
+
+    const worker = await workerRepository.getWorkerById(workerId);
     if (!worker) throw new AppError("Worker not found", 404);
 
-    const jobCard = await JobCard.findById(jobCardId);
+    const jobCard = await jobcartRepository.getJobCardById(jobCardId);
     if (!jobCard) throw new AppError("Job Card not found", 404);
 
     const slotIndex = worker.workerBookingSlot.findIndex(
@@ -216,7 +216,7 @@ const respondToCheckInAlert = async (workerId, jobCardId, status) => {
 
     if (status === "ontheway") {
         worker.workerBookingSlot[slotIndex].status = "ontheway";
-        await worker.save();
+        await workerRepository.updateWorker(workerId, worker);
 
         // 👑 Socket Notification to Admin
         const io = socketUtils.getIo();
@@ -231,18 +231,24 @@ const respondToCheckInAlert = async (workerId, jobCardId, status) => {
     } else if (status === "rejected") {
         // Remove workerBookingSlot for this job card
         await workerRepository.removeWorkerBusySlot(workerId, jobCardId);
-
-        // Unassign worker from JobCard and return to pending status
-        const updatedJobCard = await JobCard.findByIdAndUpdate(
-            jobCardId,
-            {
-                $set: { "workers.assigned": null, status: "pending", isAssigned: false },
-                $pull: { "workers.interested": workerId }
-            },
-            { new: true }
+        const WokerInterstedList = jobCard?.workers?.interested || [];
+        const checkIfworkerInWokerInterestedList = WokerInterstedList.some(
+            item => (item._id ? item._id.toString() : item.toString()) === workerId.toString()
         );
+        if (!checkIfworkerInWokerInterestedList) {
+            await jobcartRepository.addWorkerToJobCard(jobCardId, workerId);
+        }
+        // Unassign worker from JobCard and return to pending status
+        const updatedJobCard = await jobcartRepository.updateJobCard(jobCardId, {
+            "workers.assigned": null,
+            status: "pending",
+            isAssigned: false,
 
-        // 👑 Socket Notification to Admin
+        });
+
+        const workerAvaileblebalance = Number(worker.availableBalance || 0) - 500;
+        await workerRepository.updateWorker(workerId, { availableBalance: workerAvaileblebalance });
+        //  Socket Notification to Admin
         const io = socketUtils.getIo();
         io.to("admin_room").emit("worker_rejected_job", {
             message: `Worker ${worker.name} has rejected the shift for Job Card #${jobCardId}`,

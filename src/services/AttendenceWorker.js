@@ -101,6 +101,28 @@ const formatTime = (date) => {
     return date.toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
 };
 
+// Helper: Get Check-in Time with 30-minute late buffer
+const getCheckInTimeWithBuffer = (jobCard) => {
+    const now = new Date();
+    const scheduled = getScheduledCheckInTime(jobCard);
+
+    // Check three possible base dates: today, yesterday, tomorrow to handle timezone and midnight shifts safely
+    const baseDates = [
+        now,
+        new Date(now.getTime() - 24 * 60 * 60 * 1000),
+        new Date(now.getTime() + 24 * 60 * 60 * 1000)
+    ];
+
+    for (const baseDate of baseDates) {
+        const expectedCheckIn = constructISTDate(scheduled.hours, scheduled.minutes, baseDate);
+        const bufferEnd = new Date(expectedCheckIn.getTime() + 30 * 60 * 1000);
+        if (now >= expectedCheckIn && now <= bufferEnd) {
+            return expectedCheckIn;
+        }
+    }
+    return now;
+};
+
 const requestAttendanceOtpService = async (data) => {
     try {
         const { jobCardId, workerId, serviceType, type } = data; // type: "checkin" or "checkout" for 12hr
@@ -199,7 +221,7 @@ const requestAttendanceOtpService = async (data) => {
                     throw new Error(`Please continue OTP after checkout window starts (at ${formatTime(checkoutWindowStart)})`);
                 }
                 if (now > checkoutWindowEnd) {
-                    throw new Error(`Checkout window has expired. It was only allowed until ${formatTime(checkoutWindowEnd)}`);
+                    throw new Error(`Checkout is only allowed until ${formatTime(checkoutWindowEnd)}`);
                 }
             }
         } else if (is24Hour) {
@@ -437,7 +459,7 @@ const verifyAttendanceOtpService = async (data) => {
                 date: attendanceDate,
                 status: "present",
                 markedBy: "Worker",
-                checkInTime: new Date(),
+                checkInTime: getCheckInTimeWithBuffer(jobCard),
                 todaySalary: jobCard.perDayNurseCost || 0
             });
 
@@ -464,7 +486,7 @@ const verifyAttendanceOtpService = async (data) => {
 
                 if (existingAttendance) {
                     attendance = await attendenceWorkerRepository.updateAttendance(existingAttendance._id, {
-                        checkInTime: new Date(),
+                        checkInTime: getCheckInTimeWithBuffer(jobCard),
                         status: "pending",
                         markedBy: "Worker"
                     });
@@ -475,7 +497,7 @@ const verifyAttendanceOtpService = async (data) => {
                         date: attendanceDate,
                         status: "pending",
                         markedBy: "Worker",
-                        checkInTime: new Date()
+                        checkInTime: getCheckInTimeWithBuffer(jobCard)
                     });
                 }
 
@@ -543,7 +565,7 @@ const verifyAttendanceOtpService = async (data) => {
                 date: attendanceDate,
                 status: "present",
                 markedBy: "Worker",
-                checkInTime: new Date(),
+                checkInTime: getCheckInTimeWithBuffer(jobCard),
                 todaySalary: jobCard.perDayNurseCost || 0
             });
         }

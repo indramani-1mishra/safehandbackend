@@ -63,7 +63,7 @@ const checkWorkerBusyStatus = async (id, is12Hour, checkInDate, checkOutDate) =>
         const checkOverlap = (from1, to1, from2, to2) => {
             const intervals1 = getIntervals(from1, to1);
             const intervals2 = getIntervals(from2, to2);
-            return intervals1.some(i1 => 
+            return intervals1.some(i1 =>
                 intervals2.some(i2 => i1.from < i2.to && i2.from < i1.to)
             );
         };
@@ -76,35 +76,74 @@ const checkWorkerBusyStatus = async (id, is12Hour, checkInDate, checkOutDate) =>
     return worker.isBusy;
 }
 
+const calculateLongestFreeInterval = (workerBookingSlot = []) => {
+    const minutes = new Array(1440).fill(true);
+
+    for (const slot of workerBookingSlot) {
+        const from = Number(slot.from || 0);
+        const to = Number(slot.to || 0);
+
+        if (from <= to) {
+            for (let i = from; i < to; i++) {
+                minutes[i] = false;
+            }
+        } else {
+            for (let i = from; i < 1440; i++) {
+                minutes[i] = false;
+            }
+            for (let i = 0; i < to; i++) {
+                minutes[i] = false;
+            }
+        }
+    }
+
+    const doubled = [...minutes, ...minutes];
+
+    let maxRun = 0;
+    let currentRun = 0;
+
+    for (let i = 0; i < doubled.length; i++) {
+        if (doubled[i]) {
+            currentRun++;
+            if (currentRun > maxRun) {
+                maxRun = currentRun;
+            }
+        } else {
+            currentRun = 0;
+        }
+    }
+
+    return Math.min(maxRun, 1440);
+};
+
 const removeWorkerBusySlot = async (id, jobCardId) => {
     const worker = await Worker.findById(id);
     if (!worker) throw new Error("Worker not found");
-    
+
     worker.workerBookingSlot = (worker.workerBookingSlot || []).filter(
         (slot) => slot.jobCardId.toString() !== jobCardId.toString()
     );
-    worker.isBusy = worker.workerBookingSlot.length > 0;
-    
+    worker.isBusy = calculateLongestFreeInterval(worker.workerBookingSlot) < 120;
+
     return await worker.save();
 }
 
 const addworkerBookingSlot = async (id, bookingSlot) => {
+    const worker = await Worker.findById(id);
+    if (!worker) throw new Error("Worker not found");
+
     const checkInMins = calculateTotalMinutes(bookingSlot.checkInDate);
     const checkOutMins = calculateTotalMinutes(bookingSlot.checkOutDate);
-    return await Worker.findByIdAndUpdate(
-        id,
-        {
-            $push: {
-                workerBookingSlot: {
-                    from: checkInMins,
-                    to: checkOutMins,
-                    jobCardId: bookingSlot.safeJobCardId
-                }
-            },
-            isBusy: true
-        },
-        { returnDocument: 'after', runValidators: true }
-    )
+
+    worker.workerBookingSlot.push({
+        from: checkInMins,
+        to: checkOutMins,
+        jobCardId: bookingSlot.safeJobCardId
+    });
+
+    worker.isBusy = calculateLongestFreeInterval(worker.workerBookingSlot) < 120;
+
+    return await worker.save();
 }
 
 const updateWorker = async (id, data) => {
