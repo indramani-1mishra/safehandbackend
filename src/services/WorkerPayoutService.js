@@ -254,7 +254,58 @@ const getWorkerBalanceService = async (workerId, jobCardId) => {
 };
 
 const getWorkerHistoryService = async (workerId) => {
-    return await WorkerPayoutRepository.getAllPayoutsByWorker(workerId);
+    try {
+        // 1. Fetch payouts (decrease balance)
+        const payouts = await WorkerPayout.find({ workerId })
+            .populate("jobCardId")
+            .sort({ createdAt: -1 });
+
+        // 2. Fetch present attendances (increase balance)
+        const attendances = await Attendance.find({ workerId, status: "present" })
+            .populate("jobCardId")
+            .sort({ createdAt: -1 });
+
+        // 3. Map payouts to transaction format (debits)
+        const payoutTransactions = payouts.map(p => ({
+            _id: p._id,
+            type: "payout",
+            amount: p.amount,
+            direction: "decrease", // minus, red
+            date: p.payoutDate || p.createdAt,
+            status: p.status,
+            paymentMethod: p.paymentMethod,
+            transactionId: p.transactionId,
+            remarks: p.remarks || `Payout for ${p.jobCardId?.patientDetails?.name || 'Job'}`,
+            patientName: p.jobCardId?.patientDetails?.name
+        }));
+
+        // 4. Map attendances to transaction format (credits)
+        const attendanceTransactions = attendances.map(a => {
+            const salary = a.todaySalary !== null && a.todaySalary !== undefined 
+                ? a.todaySalary 
+                : (a.jobCardId?.perDayNurseCost || 0);
+            return {
+                _id: a._id,
+                type: "earning",
+                amount: salary,
+                direction: "increase", // plus, green
+                date: a.checkInTime || a.createdAt,
+                status: "present",
+                remarks: `Attendance marked present for ${a.jobCardId?.patientDetails?.name || 'Job'} (${a.date})`,
+                patientName: a.jobCardId?.patientDetails?.name
+            };
+        });
+
+        // 5. Merge and sort by date descending
+        const combined = [...payoutTransactions, ...attendanceTransactions].sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+        );
+
+        return combined;
+    } catch (error) {
+        console.error("Error in getWorkerHistoryService:", error);
+        throw error;
+    }
 };
 
 const getAdminAllWorkersPayablesService = async (filters = {}) => {
