@@ -647,7 +647,7 @@ const updateTrackingStatusService = async (jobCardId, workerId, targetStatus) =>
         throw new Error("Job card not found");
     }
 
-    const timing = jobCard.serviceDetails?.timing || jobCard.serviceDetails?.service?.serviceType || '';
+    const timing = jobCard.serviceDetails?.service?.serviceType || jobCard.serviceDetails?.timing || '';
     const isOneTime = timing.toLowerCase().includes("one") || timing.toLowerCase().includes("1-time");
     if (!isOneTime) {
         throw new Error("Tracking status is only applicable for One-Time services");

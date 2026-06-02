@@ -141,7 +141,7 @@ const requestAttendanceOtpService = async (data) => {
             throw new Error("Worker is not assigned to this job card");
         }
 
-        const resolvedServiceType = serviceType || jobCard.serviceDetails?.timing || jobCard.serviceDetails?.service?.serviceType || "24 hour";
+        const resolvedServiceType = serviceType || jobCard.serviceDetails?.service?.serviceType || jobCard.serviceDetails?.timing || "24 hour";
         const normalizedType = (resolvedServiceType || "").toLowerCase().trim();
         const isOneTime = normalizedType.includes("one") || normalizedType.includes("1-time");
         const is12Hour = normalizedType.includes("12") || normalizedType.includes("12hr") || normalizedType.includes("12 hour");
@@ -273,7 +273,7 @@ const verifyAttendanceOtpService = async (data) => {
             throw new Error("Job card is already completed");
         }
 
-        const resolvedServiceType = serviceType || jobCard.serviceDetails?.timing || jobCard.serviceDetails?.service?.serviceType || "24 hour";
+        const resolvedServiceType = serviceType || jobCard.serviceDetails?.service?.serviceType || jobCard.serviceDetails?.timing || "24 hour";
         const normalizedType = (resolvedServiceType || "").toLowerCase().trim();
         const isOneTime = normalizedType.includes("one") || normalizedType.includes("1-time");
         const is12Hour = normalizedType.includes("12") || normalizedType.includes("12hr") || normalizedType.includes("12 hour");
