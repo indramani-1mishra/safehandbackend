@@ -7,6 +7,7 @@ const { sendFcmNotification } = require("../utils/fcmService");
 const JobCard = require("../modals/jobcartModel");
 const Attendance = require("../modals/attendanceModel");
 const WorkerPayout = require("../modals/Workerpayeout");
+const WorkerTransactionHistoryRepository = require("../repository/WorkerTransactionHistoryRepo");
 
 /**
  * Recalculates the worker's global available balance across all jobs and updates the Worker document in MongoDB.
@@ -183,9 +184,40 @@ const getWorkerPayoutDue = async (workerId, jobCardId) => {
 };
 
 const createWorkerPayoutService = async (data) => {
+    const worker = await workerRepository.getWorkerById(data.workerId);
+    if (!worker) {
+        throw new Error("Worker not found");
+    }
+    if (worker.availableBalance < data.amount) {
+        throw new Error("Insufficient balance");
+    }
+    const jobCard = await jobCardRepository.getJobCardById(data.jobCardId);
+    if (!jobCard) {
+        throw new Error("Job card not found");
+    }
+
     const payout = await WorkerPayoutRepository.createWorkerPayout(data);
+
     if (data.workerId) {
         await updateWorkerGlobalBalance(data.workerId);
+
+        // Fetch updated balance to store correct running balance
+        const updatedWorker = await workerRepository.getWorkerById(data.workerId);
+
+        if (payout.status === "paid") {
+            const transactionData = {
+                workerId: data.workerId,
+                jobCardId: data.jobCardId,
+                payoutId: payout._id,
+                amount: data.amount,
+                status: "debited",
+                remarks: data.remarks || "Worker Payout",
+                transactionType: "paid_payout",
+                balanceAfterTransaction: updatedWorker.availableBalance,
+                globalAvailableBalance: updatedWorker.availableBalance
+            };
+            await WorkerTransactionHistoryRepository.createTransaction(transactionData);
+        }
     }
     return payout;
 };
@@ -253,6 +285,7 @@ const getWorkerBalanceService = async (workerId, jobCardId) => {
     }
 };
 
+// for temprory use 
 const getWorkerHistoryService = async (workerId) => {
     try {
         // 1. Fetch payouts (decrease balance)
@@ -281,8 +314,8 @@ const getWorkerHistoryService = async (workerId) => {
 
         // 4. Map attendances to transaction format (credits)
         const attendanceTransactions = attendances.map(a => {
-            const salary = a.todaySalary !== null && a.todaySalary !== undefined 
-                ? a.todaySalary 
+            const salary = a.todaySalary !== null && a.todaySalary !== undefined
+                ? a.todaySalary
                 : (a.jobCardId?.perDayNurseCost || 0);
             return {
                 _id: a._id,
@@ -394,6 +427,22 @@ const approvePayoutRequestService = async (payoutId, updateData) => {
 
         // Recalculate and update the worker's global available balance in MongoDB
         await updateWorkerGlobalBalance(updatedPayout.workerId);
+
+        // Fetch updated balance to store correct running balance
+        const updatedWorker = await workerRepository.getWorkerById(updatedPayout.workerId);
+
+        // Record a transaction for this approved payout!
+        await WorkerTransactionHistoryRepository.createTransaction({
+            workerId: updatedPayout.workerId,
+            jobCardId: updatedPayout.jobCardId,
+            payoutId: updatedPayout._id,
+            amount: updatedPayout.amount,
+            status: "debited",
+            remarks: remarks || `Payout approved for ${patientName}'s job`,
+            transactionType: "paid_payout",
+            balanceAfterTransaction: updatedWorker.availableBalance,
+            globalAvailableBalance: updatedWorker.availableBalance
+        });
 
         const payoutWithDetails = await WorkerPayoutRepository.getWorkerbyPayoutId(payoutId);
         const workerDevice = payoutWithDetails?.workerId?.fcmToken;

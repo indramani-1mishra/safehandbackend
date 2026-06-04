@@ -117,6 +117,14 @@ const getAttendanceByJobCardIdAndWorkerIdAndDate = async (jobCardId, workerId, d
     }
 }
 
+const getAttendanceById = async (id) => {
+    try {
+        return await Attendance.findById(id);
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     createAttendance,
     getAttendanceByWorkerId,
@@ -131,5 +139,6 @@ module.exports = {
     deleteAttendance,
     getAllWorkersAttendance,
     updateAttendanceStatus,
-    getAttendanceByJobCardIdAndWorkerIdAndDate
+    getAttendanceByJobCardIdAndWorkerIdAndDate,
+    getAttendanceById
 }

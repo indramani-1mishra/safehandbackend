@@ -24,7 +24,23 @@ const createWorkerController = async (req, res) => {
             }
 
             if (req.files.documents && req.files.documents.length > 0) {
-                workerData.documents = req.files.documents.map(file => file.location || file.path);
+                let documentNames = [];
+                if (req.body.documentNames) {
+                    if (Array.isArray(req.body.documentNames)) {
+                        documentNames = req.body.documentNames;
+                    } else if (typeof req.body.documentNames === "string") {
+                        try {
+                            const parsed = JSON.parse(req.body.documentNames);
+                            documentNames = Array.isArray(parsed) ? parsed : [parsed];
+                        } catch (e) {
+                            documentNames = [req.body.documentNames];
+                        }
+                    }
+                }
+                workerData.documents = req.files.documents.map((file, index) => ({
+                    url: file.location || file.path,
+                    name: documentNames[index] || `Document ${index + 1}`
+                }));
             }
 
             if (req.files.scanner && req.files.scanner.length > 0) {
@@ -93,7 +109,23 @@ const updateWorkerController = async (req, res) => {
 
             if (req.files.documents && req.files.documents.length > 0) {
                 // Note: updating documents might just overwrite the array depending on requirement
-                workerData.documents = req.files.documents.map(file => file.location || file.path);
+                let documentNames = [];
+                if (req.body.documentNames) {
+                    if (Array.isArray(req.body.documentNames)) {
+                        documentNames = req.body.documentNames;
+                    } else if (typeof req.body.documentNames === "string") {
+                        try {
+                            const parsed = JSON.parse(req.body.documentNames);
+                            documentNames = Array.isArray(parsed) ? parsed : [parsed];
+                        } catch (e) {
+                            documentNames = [req.body.documentNames];
+                        }
+                    }
+                }
+                workerData.documents = req.files.documents.map((file, index) => ({
+                    url: file.location || file.path,
+                    name: documentNames[index] || `Document ${index + 1}`
+                }));
             }
 
             if (req.files.scanner && req.files.scanner.length > 0) {

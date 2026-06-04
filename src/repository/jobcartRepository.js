@@ -21,16 +21,17 @@ const deleteJobCard = async (id) => {
 };
 
 const getAllJobCards = async (query = {}) => {
-    const { page = 1, limit = 50, search } = query;
+    const { page = 1, limit = 50, search, assignedWorkerId } = query;
 
     let filter = {};
+    if (assignedWorkerId) {
+        filter["workers.assigned"] = assignedWorkerId;
+    }
     if (search) {
-        filter = {
-            $or: [
-                { "patientDetails.name": { $regex: search, $options: "i" } },
-                { "patientDetails.phone": { $regex: search, $options: "i" } }
-            ]
-        };
+        filter.$or = [
+            { "patientDetails.name": { $regex: search, $options: "i" } },
+            { "patientDetails.phone": { $regex: search, $options: "i" } }
+        ];
     }
 
     return await JobCard.find(filter)

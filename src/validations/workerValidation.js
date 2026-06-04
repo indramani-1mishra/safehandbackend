@@ -27,7 +27,19 @@ const createWorkerSchema = Joi.object({
     Religion: Joi.string().allow("").optional(),
 
     services: Joi.array().items(Joi.string()).optional(),
-    documents: Joi.array().items(Joi.string()).optional(),
+    documents: Joi.array().items(
+        Joi.alternatives().try(
+            Joi.string(),
+            Joi.object({
+                url: Joi.string().required(),
+                name: Joi.string().required()
+            }).unknown(true)
+        )
+    ).optional(),
+    documentNames: Joi.alternatives().try(
+        Joi.array().items(Joi.string()),
+        Joi.string()
+    ).optional(),
     photo: Joi.string().optional(),
     workerId: Joi.string().optional(),
 
@@ -63,7 +75,19 @@ const updateWorkerSchema = Joi.object({
     isOnline: Joi.boolean(),
     isBusy: Joi.boolean(),
     services: Joi.array().items(Joi.string()).optional(),
-    documents: Joi.array().items(Joi.string()).optional(),
+    documents: Joi.array().items(
+        Joi.alternatives().try(
+            Joi.string(),
+            Joi.object({
+                url: Joi.string().required(),
+                name: Joi.string().required()
+            }).unknown(true)
+        )
+    ).optional(),
+    documentNames: Joi.alternatives().try(
+        Joi.array().items(Joi.string()),
+        Joi.string()
+    ).optional(),
     photo: Joi.string().optional(),
     workerId: Joi.string().optional(),
 

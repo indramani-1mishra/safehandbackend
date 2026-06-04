@@ -654,7 +654,11 @@ const updateTrackingStatusService = async (jobCardId, workerId, targetStatus) =>
     }
 
     const currentWorker = jobCard.workers?.assigned;
-    const currentWorkerId = currentWorker?._id?.toString() || (typeof currentWorker === 'string' ? currentWorker : null);
+    const currentWorkerId = currentWorker
+        ? (typeof currentWorker === 'object'
+            ? (currentWorker._id ? currentWorker._id.toString() : currentWorker.toString())
+            : currentWorker.toString())
+        : null;
     if (currentWorkerId !== safeWorkerId) {
         throw new Error("Unauthorized: You are not assigned to this job card");
     }
@@ -675,7 +679,7 @@ const updateTrackingStatusService = async (jobCardId, workerId, targetStatus) =>
 
     // Sequential Transition Logic:
     let isValid = false;
-    if (currentStatus === 'assigned' && targetStatus === 'ontheway') {
+    if ((currentStatus === 'assigned' || currentStatus === 'booked') && targetStatus === 'ontheway') {
         isValid = true;
     } else if (currentStatus === 'ontheway' && targetStatus === 'reached') {
         isValid = true;

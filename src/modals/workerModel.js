@@ -55,9 +55,7 @@ const workerSchema = new mongoose.Schema({
         ref: "Service"
     }],
 
-    documents: [{
-        type: String
-    }],
+    documents: [mongoose.Schema.Types.Mixed],
 
     isActive: {
         type: Boolean,
@@ -146,7 +144,7 @@ const workerSchema = new mongoose.Schema({
 
                 status: {
                     type: String,
-                    enum: ["pending", "ontheway", "working", "rejected"],
+                    enum: ["pending", "ontheway", "working", "rejected", "completed"],
                     default: "pending",
                 },
 
@@ -164,7 +162,6 @@ const workerSchema = new mongoose.Schema({
 
         default: [],
     },
-
 
 
 }, { timestamps: true });
