@@ -213,8 +213,7 @@ const createWorkerPayoutService = async (data) => {
                 status: "debited",
                 remarks: data.remarks || "Worker Payout",
                 transactionType: "paid_payout",
-                balanceAfterTransaction: updatedWorker.availableBalance,
-                globalAvailableBalance: updatedWorker.availableBalance
+                balanceAfterTransaction: updatedWorker.availableBalance
             };
             await WorkerTransactionHistoryRepository.createTransaction(transactionData);
         }
@@ -431,6 +430,10 @@ const approvePayoutRequestService = async (payoutId, updateData) => {
         // Fetch updated balance to store correct running balance
         const updatedWorker = await workerRepository.getWorkerById(updatedPayout.workerId);
 
+        const payoutWithDetails = await WorkerPayoutRepository.getWorkerbyPayoutId(payoutId);
+        const workerDevice = payoutWithDetails?.workerId?.fcmToken;
+        const patientName = payoutWithDetails?.jobCardId?.patientDetails?.name || "your job";
+
         // Record a transaction for this approved payout!
         await WorkerTransactionHistoryRepository.createTransaction({
             workerId: updatedPayout.workerId,
@@ -440,13 +443,8 @@ const approvePayoutRequestService = async (payoutId, updateData) => {
             status: "debited",
             remarks: remarks || `Payout approved for ${patientName}'s job`,
             transactionType: "paid_payout",
-            balanceAfterTransaction: updatedWorker.availableBalance,
-            globalAvailableBalance: updatedWorker.availableBalance
+            balanceAfterTransaction: updatedWorker.availableBalance
         });
-
-        const payoutWithDetails = await WorkerPayoutRepository.getWorkerbyPayoutId(payoutId);
-        const workerDevice = payoutWithDetails?.workerId?.fcmToken;
-        const patientName = payoutWithDetails?.jobCardId?.patientDetails?.name || "your job";
 
         if (workerDevice) {
             await sendFcmNotification(workerDevice, {

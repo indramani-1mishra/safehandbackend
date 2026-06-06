@@ -8,7 +8,10 @@ const getAllTransactions = async () => {
     return await WorkerTransactionHistory.find()
         .sort({ createdAt: -1 })
         .populate("attendanceId")
-        .populate("jobCardId")
+        .populate({
+            path: "jobCardId",
+            populate: { path: "inquiryId" }
+        })
         .populate("payoutId")
         .populate("workerId");
 };
@@ -17,7 +20,10 @@ const getTransactionsByWorkerId = async (id) => {
     return await WorkerTransactionHistory.find({ workerId: id })
         .sort({ createdAt: -1 })
         .populate("attendanceId")
-        .populate("jobCardId")
+        .populate({
+            path: "jobCardId",
+            populate: { path: "inquiryId" }
+        })
         .populate("payoutId")
         .populate("workerId");
 };
@@ -26,7 +32,10 @@ const getTransactionsByJobCardId = async (id) => {
     return await WorkerTransactionHistory.find({ jobCardId: id })
         .sort({ createdAt: -1 })
         .populate("attendanceId")
-        .populate("jobCardId")
+        .populate({
+            path: "jobCardId",
+            populate: { path: "inquiryId" }
+        })
         .populate("payoutId")
         .populate("workerId");
 };

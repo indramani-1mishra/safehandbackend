@@ -648,7 +648,7 @@ const updateTrackingStatusService = async (jobCardId, workerId, targetStatus) =>
     }
 
     const timing = jobCard.serviceDetails?.timing || jobCard.serviceDetails?.service?.serviceType || '';
-    const isOneTime = timing.toLowerCase().includes("one") || timing.toLowerCase().includes("1-time");
+    const isOneTime = timing.toLowerCase().includes("one") || timing.toLowerCase().includes("one time");
     if (!isOneTime) {
         throw new Error("Tracking status is only applicable for One-Time services");
     }
@@ -694,6 +694,19 @@ const updateTrackingStatusService = async (jobCardId, workerId, targetStatus) =>
     const updatedJobCard = await jobcartRepository.updateJobCard(safeJobCardId, {
         ontimeTrackingstatus: targetStatus
     });
+
+    const patientname = updatedJobCard.patientDetails.name;
+
+
+    const io = socketUtils.getIo();
+    const payload = {
+        jobId: safeJobCardId.toString(),
+        ontimeTrackingstatus: updatedJobCard.ontimeTrackingstatus,
+        message: `tracking status of job card of ${patientname} has been updated to ${targetStatus}`
+    };
+
+    io.to("job" + safeJobCardId.toString()).emit("tracking_update", payload);
+    io.to("admin_room").emit("tracking_update", payload);
 
     return updatedJobCard;
 };

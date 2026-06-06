@@ -44,10 +44,6 @@ const workerTransactionSchema = new mongoose.Schema({
     balanceAfterTransaction: {
         type: Number,
         required: true
-    },
-    globalAvailableBalance: {
-        type: Number,
-
     }
 }, { timestamps: true });
 

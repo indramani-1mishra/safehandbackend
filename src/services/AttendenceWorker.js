@@ -5,10 +5,12 @@ const workerRepository = require("../repository/workerRepository");
 const Worker = require("../modals/workerModel");
 const ClientRepository = require("../repository/ClientRepository");
 const { updateWorkerGlobalBalance } = require("./WorkerPayoutService");
+const WorkerTransactionHistoryRepository = require("../repository/WorkerTransactionHistoryRepo");
 const { generateSecureOtp, hashOtp, verifyOtp } = require('../utils/jenratesixdigitOtp');
 const sendOtpThroughWhatsapp = require('../utils/sendOtpThroughWhatsapp');
 const getdate = require("../utils/getCurrentDate");
 const { sendFcmNotification } = require('../utils/fcmService');
+const socketUtils = require('../utils/socket');
 
 const VALID_STATUS = ["present", "absent", "leave"];
 
@@ -328,7 +330,19 @@ const verifyAttendanceOtpService = async (data) => {
                         );
 
                 // Recalculate global balance
-                await updateWorkerGlobalBalance(workerId);
+                const globalAvailableBalance = await updateWorkerGlobalBalance(workerId);
+
+                if (normalizedStatus === "present") {
+                    await WorkerTransactionHistoryRepository.createTransaction({
+                        workerId,
+                        jobCardId: jobCardId,
+                        attendanceId: updatedAttendance._id,
+                        amount: jobCard.perDayNurseCost || 0,
+                        status: "credited",
+                        transactionType: "created_attendance",
+                        balanceAfterTransaction: globalAvailableBalance
+                    });
+                }
 
                 if (isOneTime && normalizedStatus === "present") {
                     await jobCardRepository.updateJobCard(jobCardId, {
@@ -365,7 +379,19 @@ const verifyAttendanceOtpService = async (data) => {
                 });
 
             // Recalculate global balance
-            await updateWorkerGlobalBalance(workerId);
+            const globalAvailableBalance = await updateWorkerGlobalBalance(workerId);
+
+            if (normalizedStatus === "present") {
+                await WorkerTransactionHistoryRepository.createTransaction({
+                    workerId,
+                    jobCardId: jobCardId,
+                    attendanceId: createdAttendance._id,
+                    amount: jobCard.perDayNurseCost || 0,
+                    status: "credited",
+                    transactionType: "created_attendance",
+                    balanceAfterTransaction: globalAvailableBalance
+                });
+            }
 
             if (isOneTime && normalizedStatus === "present") {
                 await jobCardRepository.updateJobCard(jobCardId, {
@@ -451,6 +477,8 @@ const verifyAttendanceOtpService = async (data) => {
         });
 
         let attendance;
+        let shouldCreateTransaction = false;
+        let transactionAmount = 0;
 
         if (isOneTime) {
             attendance = await attendenceWorkerRepository.createAttendance({
@@ -463,13 +491,22 @@ const verifyAttendanceOtpService = async (data) => {
                 todaySalary: jobCard.perDayNurseCost || 0
             });
 
+            shouldCreateTransaction = true;
+            transactionAmount = jobCard.perDayNurseCost || 0;
+
             // Automatically transition tracking status to jobcompleted, mark job completed, and release worker
             await jobCardRepository.updateJobCard(jobCardId, {
                 ontimeTrackingstatus: 'jobcompleted',
                 status: 'completed',
                 completedAt: new Date()
             });
-
+            const patientname = jobCard.patientDetails.name;
+            const io = socketUtils.getIo();
+            io.to("job" + jobCardId.toString()).emit("tracking_update", {
+                jobId: jobCardId.toString(),
+                ontimeTrackingstatus: 'jobcompleted',
+                message: `tracking status of job card of ${patientname} has been updated to jobcompleted`
+            });
             await workerRepository.updateWorker(workerId, {
                 isBusy: false
             });
@@ -552,6 +589,9 @@ const verifyAttendanceOtpService = async (data) => {
                     status: "present"
                 });
 
+                shouldCreateTransaction = true;
+                transactionAmount = todaySalary;
+
                 // Update workerBookingSlot status back to "pending" for the next day's shift
                 await Worker.findOneAndUpdate(
                     { _id: workerId, "workerBookingSlot.jobCardId": jobCardId },
@@ -568,10 +608,26 @@ const verifyAttendanceOtpService = async (data) => {
                 checkInTime: getCheckInTimeWithBuffer(jobCard),
                 todaySalary: jobCard.perDayNurseCost || 0
             });
+
+            shouldCreateTransaction = true;
+            transactionAmount = jobCard.perDayNurseCost || 0;
         }
 
         // Recalculate worker global balance
-        await updateWorkerGlobalBalance(workerId);
+        const globalAvailableBalance = await updateWorkerGlobalBalance(workerId);
+
+        // Create transaction record if attendance status became present
+        if (shouldCreateTransaction && attendance) {
+            await WorkerTransactionHistoryRepository.createTransaction({
+                workerId,
+                jobCardId: jobCardId,
+                attendanceId: attendance._id,
+                amount: transactionAmount,
+                status: "credited",
+                transactionType: "created_attendance",
+                balanceAfterTransaction: globalAvailableBalance
+            });
+        }
 
         /**
          * =========================================================

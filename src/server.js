@@ -66,6 +66,7 @@ const productSubCategoryRoutes = require('./routes/productSubCategoryRoutes');
 const productRoutes = require('./routes/productRoutes');
 const productOrderRoutes = require('./routes/productOrderRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
+const workerTransactionRoutes = require('./routes/workerTransactionRoutes');
 
 // API Routing setup
 app.use('/api/services', serviceRoutes);
@@ -93,6 +94,8 @@ app.use('/api/product-subcategories', productSubCategoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/product-orders', productOrderRoutes);
 app.use('/api/invoices', invoiceRoutes);
+app.use('/api/worker-transactions', workerTransactionRoutes);
+
 
 
 // Swagger Documentation
