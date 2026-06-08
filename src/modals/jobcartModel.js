@@ -6,7 +6,8 @@ const jobCardSchema = new mongoose.Schema({
     inquiryId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Enquiry",
-        required: true
+        required: false,
+        default: null
     },
 
     // 🔹 Patient Details

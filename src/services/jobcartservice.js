@@ -73,18 +73,21 @@ const createJobCardService = async (data) => {
         const city = data?.patientDetails?.city;
 
         if (!serviceId) throw new Error("Service ID is missing in serviceDetails");
-        if (!enquiryId) throw new Error("Inquiry ID is missing");
 
         const service = await serviceRepository.getServiceById(serviceId);
         if (!service) {
             throw new Error("Service not found in DB");
         }
-        const enquiry = await enquiryRepository.getEnquiryById(enquiryId);
-        if (!enquiry) {
-            throw new Error("Enquiry not found in DB");
+        let enquiry = null;
+        if (enquiryId) {
+            enquiry = await enquiryRepository.getEnquiryById(enquiryId);
+            if (!enquiry) {
+                throw new Error("Enquiry not found in DB");
+            }
         }
         const serviceType = service.serviceType || "";
         const is12Hour = serviceType.toLowerCase().includes("12 hour");
+        const isOneTime = serviceType.toLowerCase().includes("one time");
         const normalizedServiceStart = normalizeDateOnly(data.serviceStart || data.startDate);
         const normalizedCheckIn = data.checkInTime ? normalizeTimeToDate(data.checkInTime, normalizedServiceStart) : null;
         let normalizedCheckOut = data.checkOutTime ? normalizeTimeToDate(data.checkOutTime, normalizedServiceStart) : null;
@@ -95,6 +98,10 @@ const createJobCardService = async (data) => {
 
         if (is12Hour && (!data.checkInTime || !data.checkOutTime)) {
             throw new Error("Check-in and Check-out times are required for 12-hour services");
+        }
+
+        if (isOneTime && (!data.patientDetails?.confirmSlot)) {
+            throw new Error("Time slot is required for one-time services");
         }
 
         const matchedWorkers = await matchUsers(serviceId, city, is12Hour, normalizedCheckIn, normalizedCheckOut);
