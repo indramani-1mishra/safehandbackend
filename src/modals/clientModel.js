@@ -52,6 +52,10 @@ const ClientSchema = mongoose.Schema({
     refreshToken: {
         type: String,
     },
+    fcmToken: {
+        type: String,
+        default: ""
+    },
 
 }, { timestamps: true });
 

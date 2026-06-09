@@ -102,7 +102,44 @@ const sendCallTypeFcmNotification = async (token, title, body, data = {}) => {
     }
 };
 
+const sendSilentFcmMessage = async (token, data = {}) => {
+    try {
+        if (!token || token.trim() === "") return;
+
+        const message = {
+            token: token.trim(),
+            data: {
+                ...Object.keys(data).reduce((acc, key) => {
+                    acc[key] = String(data[key]);
+                    return acc;
+                }, {})
+            },
+            android: {
+                priority: "high",
+            },
+            apns: {
+                headers: {
+                    "apns-priority": "5", // Background priority
+                    "apns-push-type": "background",
+                },
+                payload: {
+                    aps: {
+                        contentAvailable: true,
+                    },
+                },
+            },
+        };
+
+        const response = await admin.messaging().send(message);
+        console.log("Successfully sent silent FCM message:", response);
+        return response;
+    } catch (error) {
+        console.error("Error sending silent FCM message:", error);
+    }
+};
+
 module.exports = { 
     sendFcmNotification,
-    sendCallTypeFcmNotification
+    sendCallTypeFcmNotification,
+    sendSilentFcmMessage
 };
