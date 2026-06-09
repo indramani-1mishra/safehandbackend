@@ -67,6 +67,7 @@ const productRoutes = require('./routes/productRoutes');
 const productOrderRoutes = require('./routes/productOrderRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
 const workerTransactionRoutes = require('./routes/workerTransactionRoutes');
+const locationRoutes = require('./routes/locationRoutes');
 
 // API Routing setup
 app.use('/api/services', serviceRoutes);
@@ -95,6 +96,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/product-orders', productOrderRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/worker-transactions', workerTransactionRoutes);
+app.use('/api/location', locationRoutes);
 
 
 
