@@ -564,18 +564,13 @@ const verifyAttendanceOtpService = async (data) => {
                     expectedCheckOut.setDate(expectedCheckOut.getDate() + 1);
                 }
 
-                const effectiveCheckIn = new Date(Math.max(actualCheckIn.getTime(), expectedCheckIn.getTime()));
-                const effectiveCheckOut = new Date(Math.min(actualCheckOut.getTime(), expectedCheckOut.getTime()));
-
                 let scheduledHours = (expectedCheckOut.getTime() - expectedCheckIn.getTime()) / (1000 * 60 * 60);
                 if (scheduledHours <= 0) {
                     scheduledHours = 12; // Fallback to 12 hours
                 }
 
-                let billableHours = (effectiveCheckOut.getTime() - effectiveCheckIn.getTime()) / (1000 * 60 * 60);
-                billableHours = Math.max(0, Math.min(billableHours, scheduledHours));
-
                 const actualHours = (actualCheckOut.getTime() - actualCheckIn.getTime()) / (1000 * 60 * 60);
+                let billableHours = Math.max(0, Math.min(actualHours, scheduledHours));
 
                 const perDayCost = jobCard.perDayNurseCost || 0;
                 const ratio = billableHours / scheduledHours;

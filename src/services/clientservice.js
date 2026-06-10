@@ -177,6 +177,10 @@ const deleteClient = async (id) => {
     return await ClientRepository.deleteClientRepository(id);
 }
 
+const getClientByPhone = async (phone) => {
+    return await ClientRepository.findClientByPhoneRepository(phone);
+}
+
 module.exports = {
     sendOtpService,
     verifyOtpService,
@@ -187,5 +191,6 @@ module.exports = {
     getAllClients,
     getClientById,
     updateClient,
-    deleteClient
+    deleteClient,
+    getClientByPhone
 };

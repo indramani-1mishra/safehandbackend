@@ -184,6 +184,22 @@ const getMyJobCardsController = async (req, res) => {
     }
 }
 
+const getClientByPhoneController = async (req, res) => {
+    try {
+        const { phone } = req.query;
+        if (!phone) {
+            return res.status(400).json({ success: false, message: "Phone query parameter is required" });
+        }
+        const client = await clientService.getClientByPhone(phone);
+        if (!client) {
+            return res.status(404).json({ success: false, message: "Client not found" });
+        }
+        res.status(200).json({ success: true, data: client });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
 module.exports = {
     sendOtpController,
     verifyOtpController,
@@ -195,5 +211,6 @@ module.exports = {
     getClientByIdController,
     updateClientController,
     deleteClientController,
-    getMyJobCardsController
+    getMyJobCardsController,
+    getClientByPhoneController
 };

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const clientController = require("../controllers/clientController");
 const upload = require("../middleware/multer");
-const { clientAuthMiddleware, isAdmin } = require("../middleware/authmiddleware");
+const { clientAuthMiddleware, isAdmin, authMiddleware } = require("../middleware/authmiddleware");
 
 // --- UNIVERSAL AUTH FLOW (Login & Register) ---
 
@@ -23,6 +23,7 @@ router.post(
 
 // --- SESSION MANAGEMENT ---
 
+const resendOtpController = clientController.resendOtpController;
 router.post("/resend-otp", clientController.resendOtpController);
 router.post("/refresh-token", clientController.refreshTokenController);
 router.post("/logout", clientController.logoutController);
@@ -30,6 +31,7 @@ router.post("/logout", clientController.logoutController);
 
 // --- ADMIN / CRUD ---
 
+router.get("/search-by-phone", authMiddleware, isAdmin, clientController.getClientByPhoneController);
 router.put("/update/:id", clientAuthMiddleware, upload.single("image"), clientController.updateClientController);
 router.get("/getall", clientAuthMiddleware, clientController.getAllClientsController);
 router.get("/get/:id", clientAuthMiddleware, clientController.getClientByIdController);
