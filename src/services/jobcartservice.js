@@ -15,24 +15,57 @@ const ashineJobCardpdf = require("../utils/ashinejobcart");
 const { sendWhatsappPdf } = require("../utils/sendjobassignment");
 
 
+const getISTComponents = (date) => {
+    const istTime = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+    return {
+        year: istTime.getUTCFullYear(),
+        month: istTime.getUTCMonth() + 1,
+        day: istTime.getUTCDate(),
+        hour: istTime.getUTCHours(),
+        minute: istTime.getUTCMinutes(),
+        second: istTime.getUTCSeconds()
+    };
+};
+
 const normalizeDateOnly = (value) => {
-    if (!value) return new Date();
+    if (!value) {
+        const now = new Date();
+        const ist = getISTComponents(now);
+        return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T00:00:00.000+05:30`);
+    }
+    if (value instanceof Date) {
+        const ist = getISTComponents(value);
+        return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T00:00:00.000+05:30`);
+    }
     if (typeof value === "string") {
         const datePart = value.split("T")[0];
         const [year, month, day] = datePart.split("-");
         if (year && month && day) {
-            return new Date(Number(year), Number(month) - 1, Number(day));
+            return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00.000+05:30`);
         }
     }
-    return new Date(value);
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime())) {
+        const now = new Date();
+        const ist = getISTComponents(now);
+        return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T00:00:00.000+05:30`);
+    }
+    const ist = getISTComponents(parsed);
+    return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T00:00:00.000+05:30`);
 };
 
 const normalizeTimeToDate = (timeStr, baseDate = new Date()) => {
     if (!timeStr) return null;
-    if (timeStr instanceof Date) return timeStr;
+    if (timeStr instanceof Date) {
+        const ist = getISTComponents(timeStr);
+        return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T${String(ist.hour).padStart(2, '0')}:${String(ist.minute).padStart(2, '0')}:00.000+05:30`);
+    }
     if (typeof timeStr === "string" && timeStr.includes("T")) {
         const date = new Date(timeStr);
-        if (!isNaN(date.getTime())) return date;
+        if (!isNaN(date.getTime())) {
+            const ist = getISTComponents(date);
+            return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T${String(ist.hour).padStart(2, '0')}:${String(ist.minute).padStart(2, '0')}:00.000+05:30`);
+        }
     }
     if (typeof timeStr === "string") {
         const cleanStr = timeStr.trim().toLowerCase();
@@ -52,17 +85,17 @@ const normalizeTimeToDate = (timeStr, baseDate = new Date()) => {
                     hours = 0;
                 }
 
-                const year = baseDate.getFullYear();
-                const month = baseDate.getMonth();
-                const dateVal = baseDate.getDate();
+                const ist = getISTComponents(baseDate);
 
-                const isoString = `${year}-${String(month + 1).padStart(2, '0')}-${String(dateVal).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00.000+05:30`;
+                const isoString = `${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00.000+05:30`;
                 return new Date(isoString);
             }
         }
     }
     const fallbackDate = new Date(timeStr);
-    return isNaN(fallbackDate.getTime()) ? null : fallbackDate;
+    if (isNaN(fallbackDate.getTime())) return null;
+    const ist = getISTComponents(fallbackDate);
+    return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T${String(ist.hour).padStart(2, '0')}:${String(ist.minute).padStart(2, '0')}:00.000+05:30`);
 };
 
 const createJobCardService = async (data) => {

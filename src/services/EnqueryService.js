@@ -3,16 +3,43 @@ const { sendMailOnAdmin } = require("../utils/sendmailonAdmin");
 const { sendGreetToCoustomer } = require("../utils/sendGreetToCoustomer");
 const JobCard = require("../modals/jobcartModel");
 
+const getISTComponents = (date) => {
+    const istTime = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+    return {
+        year: istTime.getUTCFullYear(),
+        month: istTime.getUTCMonth() + 1,
+        day: istTime.getUTCDate(),
+        hour: istTime.getUTCHours(),
+        minute: istTime.getUTCMinutes(),
+        second: istTime.getUTCSeconds()
+    };
+};
+
 const normalizeDateOnly = (value) => {
-    if (!value) return new Date();
+    if (!value) {
+        const now = new Date();
+        const ist = getISTComponents(now);
+        return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T00:00:00.000+05:30`);
+    }
+    if (value instanceof Date) {
+        const ist = getISTComponents(value);
+        return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T00:00:00.000+05:30`);
+    }
     if (typeof value === "string") {
         const datePart = value.split("T")[0];
         const [year, month, day] = datePart.split("-");
         if (year && month && day) {
-            return new Date(Number(year), Number(month) - 1, Number(day));
+            return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00.000+05:30`);
         }
     }
-    return new Date(value);
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime())) {
+        const now = new Date();
+        const ist = getISTComponents(now);
+        return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T00:00:00.000+05:30`);
+    }
+    const ist = getISTComponents(parsed);
+    return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T00:00:00.000+05:30`);
 };
 
 const createEnquiryService = async (data, user) => {
