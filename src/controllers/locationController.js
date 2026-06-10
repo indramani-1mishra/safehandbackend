@@ -93,7 +93,41 @@ const reportLocation = async (req, res) => {
     }
 };
 
+const getLatestLocation = async (req, res) => {
+    try {
+        const { targetId, targetType } = req.query;
+
+        if (!targetId || !targetType) {
+            return res.status(400).json({ success: false, message: "targetId and targetType are required" });
+        }
+
+        if (!['Worker', 'Client'].includes(targetType)) {
+            return res.status(400).json({ success: false, message: "Invalid targetType. Must be 'Worker' or 'Client'" });
+        }
+
+        const latestLog = await LocationLog.findOne({ targetId, targetType })
+            .sort({ createdAt: -1 });
+
+        if (!latestLog) {
+            return res.status(200).json({ success: true, message: "No location log found", data: null });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                latitude: latestLog.latitude,
+                longitude: latestLog.longitude,
+                timestamp: latestLog.createdAt
+            }
+        });
+    } catch (error) {
+        console.error("Error in getLatestLocation controller:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     requestLocation,
-    reportLocation
+    reportLocation,
+    getLatestLocation
 };
