@@ -1,0 +1,288 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SafeHand - Job Post APIs",
+    "version": "1.0.0",
+    "description": "API documentation for managing Admin Job Posts and Worker Interest registrations."
+  },
+  "tags": [
+    {
+      "name": "Job Posts",
+      "description": "Endpoints for posting job vacancies, updating media, and tracking worker interest."
+    }
+  ],
+  "paths": {
+    "/api/jobposts": {
+      "post": {
+        "summary": "Admin: Create a new Job Post",
+        "description": "Creates a job post with a caption and optional S3-uploaded image or video.",
+        "tags": [
+          "Job Posts"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "caption"
+                ],
+                "properties": {
+                  "caption": {
+                    "type": "string",
+                    "description": "Description or title of the job post",
+                    "example": "Required 24h nurse in South Delhi"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Optional image file to attach"
+                  },
+                  "video": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Optional video file to attach"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Job post created and notifications broadcast successfully"
+          },
+          "400": {
+            "description": "Invalid parameters or missing required fields"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all Job Posts",
+        "description": "Retrieves a paginated list of job posts sorted by creation date descending.",
+        "tags": [
+          "Job Posts"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of job posts retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/jobposts/{id}": {
+      "get": {
+        "summary": "Get Job Post by ID",
+        "tags": [
+          "Job Posts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job post details retrieved"
+          },
+          "404": {
+            "description": "Job post not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Admin: Update an existing Job Post",
+        "tags": [
+          "Job Posts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "caption": {
+                    "type": "string",
+                    "example": "Updated Nurse details in South Delhi"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "video": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Job post updated successfully"
+          },
+          "404": {
+            "description": "Job post not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Admin: Delete a Job Post",
+        "tags": [
+          "Job Posts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job post deleted successfully"
+          },
+          "404": {
+            "description": "Job post not found"
+          }
+        }
+      }
+    },
+    "/api/jobposts/{id}/interest": {
+      "post": {
+        "summary": "Worker: Register interest in a Job Post",
+        "tags": [
+          "Job Posts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "workerId"
+                ],
+                "properties": {
+                  "workerId": {
+                    "type": "string",
+                    "example": "65b9dbf8a7c21a..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Interest registered successfully"
+          },
+          "400": {
+            "description": "Invalid input or missing workerId"
+          },
+          "404": {
+            "description": "Job post or Worker not found"
+          }
+        }
+      }
+    },
+    "/api/jobposts/{id}/uninterest": {
+      "post": {
+        "summary": "Worker: Remove interest from a Job Post",
+        "tags": [
+          "Job Posts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "workerId"
+                ],
+                "properties": {
+                  "workerId": {
+                    "type": "string",
+                    "example": "65b9dbf8a7c21a..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Interest removed successfully"
+          },
+          "400": {
+            "description": "Invalid input or missing workerId"
+          },
+          "404": {
+            "description": "Job post or Worker not found"
+          }
+        }
+      }
+    }
+  }
+}

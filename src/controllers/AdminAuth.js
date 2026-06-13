@@ -20,7 +20,7 @@ const AdminLogin = async (req, res) => {
             hasOtp: !!req.body?.otp,
             timestamp: new Date().toISOString()
         });
-        
+
         // If OTP provided -> verify and login
         if (req.body && req.body.phone && req.body.otp) {
             const { accessToken, refreshToken } = await AdminLoginService.verifyOtp(req.body.phone, req.body.otp);
@@ -34,6 +34,13 @@ const AdminLogin = async (req, res) => {
             res.cookie("adminToken", accessToken, {
                 ...options,
                 maxAge: 45 * 60 * 1000 // 45 minutes
+            });
+
+            res.cookie("adminLoggedIn", "true", {
+                secure: options.secure,
+                sameSite: options.sameSite,
+                path: options.path,
+                maxAge: 45 * 60 * 1000 // 45 minutes (matches adminToken)
             });
 
             console.log("[AUTH LOGIN] OTP verification successful", {
@@ -77,7 +84,7 @@ const AdminLogin = async (req, res) => {
 const AdminRefreshToken = async (req, res) => {
     try {
         const refreshToken = req.cookies.refreshToken;
-        
+
         // ✅ Add logging to diagnose auto-logout
         console.log("[TOKEN REFRESH] Request received", {
             hasRefreshToken: !!refreshToken,
@@ -85,14 +92,14 @@ const AdminRefreshToken = async (req, res) => {
             method: req.method,
             path: req.path
         });
-        
+
         if (!refreshToken) {
             console.warn("[TOKEN REFRESH] No refreshToken in cookies", {
                 allCookies: req.cookies,
                 timestamp: new Date().toISOString()
             });
         }
-        
+
         const { accessToken, refreshToken: newRefreshToken } = await AdminLoginService.AdminRefreshToken(refreshToken);
         const options = getCookieOptions();
 
@@ -103,6 +110,13 @@ const AdminRefreshToken = async (req, res) => {
 
         res.cookie("adminToken", accessToken, {
             ...options,
+            maxAge: 45 * 60 * 1000 // 45 minutes
+        });
+
+        res.cookie("adminLoggedIn", "true", {
+            secure: options.secure,
+            sameSite: options.sameSite,
+            path: options.path,
             maxAge: 45 * 60 * 1000 // 45 minutes
         });
 
@@ -150,6 +164,11 @@ const AdminLogout = async (req, res) => {
 
         res.clearCookie("refreshToken", { ...options });
         res.clearCookie("adminToken", { ...options });
+        res.clearCookie("adminLoggedIn", {
+            secure: options.secure,
+            sameSite: options.sameSite,
+            path: options.path
+        });
 
         res.status(200).json({
             success: true,
