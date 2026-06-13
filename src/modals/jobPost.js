@@ -11,11 +11,12 @@ const jobPostSchema = new mongoose.Schema({
     video: {
         type: String,
     },
-    serviceId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Service",
-        default: null
-    },
+    services: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Service",
+        }
+    ],
     interested: [
         {
             type: mongoose.Schema.Types.ObjectId,

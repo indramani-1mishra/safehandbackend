@@ -51,7 +51,7 @@ const updateWorkerGlobalBalance = async (workerId) => {
 
         // 3. Calculate Total already Paid or Pending payouts across all jobs
         const totalPayouts = payouts
-            .filter(p => p.status !== "failed")
+            .filter(p => p.status !== "failed" && p.status !== "rejected")
             .reduce((sum, p) => sum + p.amount, 0);
 
         const globalAvailableBalance = totalEarned - totalPayouts;
@@ -94,13 +94,14 @@ const requestPayoutService = async (data) => {
         // Calculate Total already Paid or Pending (to prevent over-requesting)
         const existingPayouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);
         const totalPayouts = existingPayouts.reduce((sum, p) => {
-            if (p.status !== "failed") return sum + p.amount;
+            if (p.status !== "failed" && p.status !== "rejected") return sum + p.amount;
             return sum;
         }, 0);
 
         const balance = totalEarned - totalPayouts;
-        if (amount > balance) {
-            throw new Error(`Not enough balance. Your current available balance is ₹${balance}`);
+        const maxRequestable = balance * 0.25;
+        if (amount > maxRequestable) {
+            throw new Error(`You can request a maximum of 25% of your available balance (max: ₹${maxRequestable.toFixed(2)}). Your current available balance is ₹${balance}`);
         }
 
         const payoutRequest = await WorkerPayoutRepository.createWorkerPayout({
@@ -467,12 +468,102 @@ const approvePayoutRequestService = async (payoutId, updateData) => {
     }
 };
 
-const getPaidPayoutsService = async () => {
+const getPaidPayoutsService = async (filters = {}) => {
     try {
-        const allPayouts = await WorkerPayoutRepository.getAllPayouts();
+        const { startDate, endDate, datePreset } = filters;
+        let query = { status: "paid" };
+
+        let start, end;
+        const now = new Date();
+
+        if (datePreset && datePreset !== "all") {
+            if (datePreset === "today") {
+                start = new Date(now);
+                start.setUTCHours(0, 0, 0, 0);
+                end = new Date(now);
+                end.setUTCHours(23, 59, 59, 999);
+            } else if (datePreset === "week") {
+                start = new Date(now);
+                start.setUTCDate(now.getUTCDate() - 7);
+                start.setUTCHours(0, 0, 0, 0);
+                end = new Date(now);
+                end.setUTCHours(23, 59, 59, 999);
+            } else if (datePreset === "month") {
+                start = new Date(now);
+                start.setUTCDate(now.getUTCDate() - 30);
+                start.setUTCHours(0, 0, 0, 0);
+                end = new Date(now);
+                end.setUTCHours(23, 59, 59, 999);
+            }
+        } else if (startDate && endDate) {
+            start = new Date(startDate);
+            start.setUTCHours(0, 0, 0, 0);
+            end = new Date(endDate);
+            end.setUTCHours(23, 59, 59, 999);
+        }
+
+        if (start && end) {
+            query.payoutDate = { $gte: start, $lte: end };
+        }
+
+        const paidPayouts = await WorkerPayout.find(query)
+            .populate("workerId")
+            .populate("jobCardId")
+            .sort({ payoutDate: -1, createdAt: -1 });
+
         return {
             success: true,
-            data: allPayouts.filter(p => p.status === "paid")
+            data: paidPayouts
+        };
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+const rejectPayoutRequestService = async (payoutId, updateData = {}) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(payoutId)) {
+            throw new Error("Invalid Payout ID");
+        }
+
+        const payout = await WorkerPayoutRepository.getPayoutById(payoutId);
+        if (!payout) throw new Error("Payout request not found");
+        if (payout.status !== "pending") throw new Error(`Payout is already ${payout.status}`);
+
+        const { remarks } = updateData;
+
+        const updatedPayout = await WorkerPayoutRepository.updateWorkerPayout(payoutId, {
+            remarks: remarks || "Payout request rejected by Admin",
+            status: "rejected",
+            payoutDate: new Date()
+        });
+
+        // Recalculate global available balance
+        await updateWorkerGlobalBalance(updatedPayout.workerId);
+
+        const payoutWithDetails = await WorkerPayoutRepository.getWorkerbyPayoutId(payoutId);
+        const workerDevice = payoutWithDetails?.workerId?.fcmToken;
+        const patientName = payoutWithDetails?.jobCardId?.patientDetails?.name || "your job";
+
+        if (workerDevice) {
+            try {
+                await sendFcmNotification(workerDevice, {
+                    title: "Payout Request Rejected ❌",
+                    body: `Your payout request of ₹${updatedPayout.amount} for ${patientName}'s job has been rejected.`,
+                }, {
+                    type: "payout_rejected",
+                    jobCardId: updatedPayout.jobCardId.toString(),
+                    payoutId: payoutId.toString()
+                });
+            } catch (fcmErr) {
+                console.error("FCM failed but rejection succeeded:", fcmErr);
+            }
+        }
+
+        return {
+            success: true,
+            message: "Payout request rejected successfully",
+            data: updatedPayout
         };
     } catch (error) {
         throw new Error(error.message);
@@ -498,6 +589,7 @@ module.exports = {
     getAdminAllWorkersPayablesService,
     approvePayoutRequestService,
     getPaidPayoutsService,
+    rejectPayoutRequestService,
     getAllPayoutByDateService,
     updateWorkerGlobalBalance
 };

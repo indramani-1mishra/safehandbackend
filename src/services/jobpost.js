@@ -15,9 +15,29 @@ const chunkArray = (array, size) => {
     return chunks;
 };
 
+const parseServices = (services) => {
+    if (!services) return [];
+    if (Array.isArray(services)) return services;
+    if (typeof services === 'string') {
+        const trimmed = services.trim();
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            try {
+                return JSON.parse(trimmed);
+            } catch (e) {
+                return [trimmed];
+            }
+        }
+        if (trimmed.includes(',')) {
+            return trimmed.split(',').map(s => s.trim());
+        }
+        return [trimmed];
+    }
+    return [];
+};
+
 const createPost = async (data) => {
     try {
-        const { caption, image, video, serviceId } = data;
+        const { caption, image, video, services } = data;
         if (!caption) {
             throw new AppError("Caption is required", 400);
         }
@@ -25,17 +45,19 @@ const createPost = async (data) => {
             throw new AppError("Image or video is required", 400);
         }
 
+        const servicesArray = parseServices(services);
+
         const jobPost = await jobRepo.createJobPost({
             caption,
             image,
             video,
-            serviceId: serviceId || null
+            services: servicesArray
         });
 
         // Query active, free (not busy) workers who possess the selected service
         const workerQuery = { isActive: true, isBusy: false };
-        if (serviceId) {
-            workerQuery.services = serviceId;
+        if (servicesArray.length > 0) {
+            workerQuery.services = { $in: servicesArray };
         }
 
         const workers = await Worker.find(
@@ -109,6 +131,9 @@ const updatePost = async (id, data) => {
     try {
         if (!id || !mongoose.Types.ObjectId.isValid(id)) {
             throw new AppError("Invalid or missing Job Post ID", 400);
+        }
+        if (data.services) {
+            data.services = parseServices(data.services);
         }
         const updatedPost = await jobRepo.updateJobPost(id, data);
         if (!updatedPost) {

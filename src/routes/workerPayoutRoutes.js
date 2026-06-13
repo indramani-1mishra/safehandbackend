@@ -43,4 +43,7 @@ router.get("/due", allowAnyAuth, workerPayoutController.getWorkerPayoutDue);
 // 10. Admin: Get all payouts by date
 router.get("/reports/payout-by-date", authMiddleware, isAdmin, workerPayoutController.getAllPayoutByDateController);
 
+// 11. Admin: Reject a pending payout request
+router.put("/reject/:id", authMiddleware, isAdmin, workerPayoutController.rejectPayoutRequestController);
+
 module.exports = router;

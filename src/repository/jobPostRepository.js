@@ -8,14 +8,14 @@ const createJobPost = async (data) => {
 
 const getJobPostById = async (id) => {
     const safeId = typeof id === 'string' ? id.trim() : id;
-    return await JobPost.findById(safeId).populate("interested").populate("serviceId");
+    return await JobPost.findById(safeId).populate("interested").populate("services");
 };
 
 const getAllJobPosts = async (query = {}) => {
     const { page = 1, limit = 50 } = query;
     return await JobPost.find()
         .populate("interested")
-        .populate("serviceId")
+        .populate("services")
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(Number(limit));
@@ -27,7 +27,7 @@ const updateJobPost = async (id, data) => {
         safeId,
         { $set: data },
         { returnDocument: 'after', runValidators: true }
-    ).populate("interested").populate("serviceId");
+    ).populate("interested").populate("services");
 };
 
 const deleteJobPost = async (id) => {
@@ -43,7 +43,7 @@ const addWorkerToInterested = async (jobPostId, workerId) => {
         safeJobPostId,
         { $addToSet: { interested: safeWorkerId } },
         { returnDocument: 'after', runValidators: true }
-    ).populate("interested").populate("serviceId");
+    ).populate("interested").populate("services");
 };
 
 const removeWorkerFromInterested = async (jobPostId, workerId) => {
@@ -54,7 +54,7 @@ const removeWorkerFromInterested = async (jobPostId, workerId) => {
         safeJobPostId,
         { $pull: { interested: safeWorkerId } },
         { returnDocument: 'after', runValidators: true }
-    ).populate("interested").populate("serviceId");
+    ).populate("interested").populate("services");
 };
 
 module.exports = {

@@ -82,10 +82,19 @@ const approvePayoutRequestController = async (req, res) => {
 
 const getPaidPayoutsController = async (req, res) => {
     try {
-        const response = await WorkerPayoutService.getPaidPayoutsService();
+        const response = await WorkerPayoutService.getPaidPayoutsService(req.query);
         res.status(200).json(response);
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const rejectPayoutRequestController = async (req, res) => {
+    try {
+        const response = await WorkerPayoutService.rejectPayoutRequestService(req.params.id, req.body);
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
     }
 };
 
@@ -115,5 +124,6 @@ module.exports = {
     getAdminAllWorkersPayablesController,
     approvePayoutRequestController,
     getPaidPayoutsController,
+    rejectPayoutRequestController,
     getAllPayoutByDateController
 };

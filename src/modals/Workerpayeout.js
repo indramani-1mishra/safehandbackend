@@ -32,7 +32,7 @@ const WorkerPayoutSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["pending", "paid", "failed"],
+        enum: ["pending", "paid", "failed", "rejected"],
         default: "paid"
     },
     paidFromDate: {
