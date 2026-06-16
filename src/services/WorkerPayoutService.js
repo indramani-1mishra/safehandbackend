@@ -222,7 +222,7 @@ const createWorkerPayoutService = async (data) => {
     return payout;
 };
 
-const getWorkerBalanceService = async (workerId, jobCardId) => {
+const getWorkerBalanceService = async (workerId, jobCardId, options = {}) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(workerId) || !mongoose.Types.ObjectId.isValid(jobCardId)) {
             throw new Error("Invalid IDs provided");
@@ -233,7 +233,16 @@ const getWorkerBalanceService = async (workerId, jobCardId) => {
 
         // 1. Calculate Total Earned
         const attendanceRecords = await attendenceWorkerRepository.getAttendanceByJobCardIdAndWorkerId(jobCardId, workerId);
-        const presentAttendance = attendanceRecords.filter(att => att.status === "present");
+        
+        let filteredAttendance = attendanceRecords;
+        if (options.startDate) {
+            filteredAttendance = filteredAttendance.filter(att => att.date >= options.startDate);
+        }
+        if (options.endDate) {
+            filteredAttendance = filteredAttendance.filter(att => att.date <= options.endDate);
+        }
+
+        const presentAttendance = filteredAttendance.filter(att => att.status === "present");
         const presentDays = presentAttendance.length;
         const perDayCost = jobCard.perDayNurseCost || 0;
         let totalEarned = 0;
@@ -248,11 +257,19 @@ const getWorkerBalanceService = async (workerId, jobCardId) => {
         // 2. Calculate Total already Paid or Pending
         const existingPayouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);
 
-        const paidAmount = existingPayouts
+        let filteredPayouts = existingPayouts;
+        if (options.rawStartDate) {
+            filteredPayouts = filteredPayouts.filter(p => new Date(p.payoutDate || p.createdAt) >= options.rawStartDate);
+        }
+        if (options.rawEndDate) {
+            filteredPayouts = filteredPayouts.filter(p => new Date(p.payoutDate || p.createdAt) <= options.rawEndDate);
+        }
+
+        const paidAmount = filteredPayouts
             .filter(p => p.status === "paid")
             .reduce((sum, p) => sum + p.amount, 0);
 
-        const pendingAmount = existingPayouts
+        const pendingAmount = filteredPayouts
             .filter(p => p.status === "pending")
             .reduce((sum, p) => sum + p.amount, 0);
 
@@ -343,6 +360,49 @@ const getWorkerHistoryService = async (workerId) => {
 
 const getAdminAllWorkersPayablesService = async (filters = {}) => {
     try {
+        const { startDate, endDate, datePreset } = filters;
+        let start, end;
+        const now = new Date();
+
+        if (datePreset && datePreset !== "all") {
+            if (datePreset === "today") {
+                start = new Date(now);
+                start.setUTCHours(0, 0, 0, 0);
+                end = new Date(now);
+                end.setUTCHours(23, 59, 59, 999);
+            } else if (datePreset === "week") {
+                start = new Date(now);
+                start.setUTCDate(now.getUTCDate() - 7);
+                start.setUTCHours(0, 0, 0, 0);
+                end = new Date(now);
+                end.setUTCHours(23, 59, 59, 999);
+            } else if (datePreset === "month") {
+                start = new Date(now);
+                start.setUTCDate(now.getUTCDate() - 30);
+                start.setUTCHours(0, 0, 0, 0);
+                end = new Date(now);
+                end.setUTCHours(23, 59, 59, 999);
+            }
+        } else if (startDate && endDate) {
+            const parsedStart = new Date(startDate);
+            const parsedEnd = new Date(endDate);
+            if (!isNaN(parsedStart.getTime()) && !isNaN(parsedEnd.getTime())) {
+                start = parsedStart;
+                start.setUTCHours(0, 0, 0, 0);
+                end = parsedEnd;
+                end.setUTCHours(23, 59, 59, 999);
+            }
+        }
+
+        let startStr = '';
+        let endStr = '';
+        if (start) {
+            startStr = start.toISOString().split('T')[0];
+        }
+        if (end) {
+            endStr = end.toISOString().split('T')[0];
+        }
+
         // 1. Get all assigned job cards
         const ongoingJobs = await jobCardRepository.getJobCardsByStatus("assigned");
         let summaryList = [];
@@ -352,7 +412,12 @@ const getAdminAllWorkersPayablesService = async (filters = {}) => {
                 const workerId = job.workers.assigned;
                 const jobCardId = job._id;
 
-                const balanceResult = await getWorkerBalanceService(workerId, jobCardId);
+                const balanceResult = await getWorkerBalanceService(workerId, jobCardId, {
+                    startDate: startStr,
+                    endDate: endStr,
+                    rawStartDate: start,
+                    rawEndDate: end
+                });
                 if (balanceResult.success) {
                     summaryList.push(balanceResult.data);
                 }
