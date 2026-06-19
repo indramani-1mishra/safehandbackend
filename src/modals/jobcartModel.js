@@ -80,7 +80,11 @@ const jobCardSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Worker",
             default: null
-        }
+        },
+        replaced: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Worker"
+        }]
     },
 
     // 🔹 Status

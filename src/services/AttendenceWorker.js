@@ -321,7 +321,7 @@ const verifyAttendanceOtpService = async (data) => {
                                 adminId,
                                 status: normalizedStatus,
                                 markedBy: "admin",
-                                todaySalary: null, // Reset todaySalary so it falls back to full day cost
+                                todaySalary: normalizedStatus === "present" ? (jobCard.perDayNurseCost || 0) : 0, // Lock in the salary rate
                                 actualHours: 0,
                                 billableHours: 0,
                                 checkInTime: null,
@@ -371,7 +371,7 @@ const verifyAttendanceOtpService = async (data) => {
                     date: attendanceDate,
                     status: normalizedStatus,
                     markedBy: "admin",
-                    todaySalary: null, // Falls back to full day cost
+                    todaySalary: normalizedStatus === "present" ? (jobCard.perDayNurseCost || 0) : 0, // Lock in the salary rate
                     actualHours: 0,
                     billableHours: 0,
                     checkInTime: null,
@@ -416,6 +416,11 @@ const verifyAttendanceOtpService = async (data) => {
          * WORKER OTP ATTENDANCE FLOW
          * =========================================================
          */
+
+        const assignedWorkerId = jobCard.workers?.assigned?._id || jobCard.workers?.assigned;
+        if (!assignedWorkerId || assignedWorkerId.toString() !== workerId.toString()) {
+            throw new Error("You are not currently assigned to this job card");
+        }
 
         // (variables resolved at top of service)
 

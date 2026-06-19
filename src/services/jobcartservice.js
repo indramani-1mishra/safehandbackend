@@ -13,6 +13,7 @@ const { getLatestClientPaymentByJobCardId, getClientPaymentsByJobCardId } = requ
 const { getWorkerById, updateWorker } = require("../repository/workerRepository");
 const ashineJobCardpdf = require("../utils/ashinejobcart");
 const { sendWhatsappPdf } = require("../utils/sendjobassignment");
+const { updateWorkerGlobalBalance } = require("./WorkerPayoutService");
 
 
 const getISTComponents = (date) => {
@@ -325,7 +326,7 @@ const removeWorkerFromJobCardService = async (jobCardId, workerId) => {
     }
 }
 
-const assignWorkerToJobCardService = async (jobCardId, workerId) => {
+const assignWorkerToJobCardService = async (jobCardId, workerId, perDayNurseCost) => {
     try {
         const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
         const safeWorkerId = typeof workerId === 'string' ? workerId.trim() : workerId;
@@ -387,6 +388,9 @@ const assignWorkerToJobCardService = async (jobCardId, workerId) => {
         const updateFields = { isAssigned: true, assignedAt: new Date() };
         if (isOneTime) {
             updateFields.ontimeTrackingstatus = 'assigned';
+        }
+        if (perDayNurseCost !== undefined && perDayNurseCost !== null) {
+            updateFields.perDayNurseCost = Number(perDayNurseCost);
         }
         await jobcartRepository.updateJobCard(safeJobCardId, updateFields);
 
@@ -580,7 +584,7 @@ const completeJobCardService = async (jobCardId) => {
     }
 }
 
-const replaceWorkerInJobCardService = async (jobCardId, newWorkerId) => {
+const replaceWorkerInJobCardService = async (jobCardId, newWorkerId, perDayNurseCost, serviceStart) => {
     try {
         const safeJobCardId = typeof jobCardId === 'string' ? jobCardId.trim() : jobCardId;
         const safeWorkerId = typeof newWorkerId === 'string' ? newWorkerId.trim() : newWorkerId;
@@ -623,8 +627,14 @@ const replaceWorkerInJobCardService = async (jobCardId, newWorkerId) => {
         const timing = jobCard.serviceDetails?.timing || jobCard.serviceDetails?.service?.serviceType || '';
         const isOneTime = timing.toLowerCase().includes("one") || timing.toLowerCase().includes("1-time");
 
+        const updatedReplaced = [...(jobCard.workers?.replaced || [])];
+        if (previouslyAssignedWorkerId && !updatedReplaced.some(id => id.toString() === previouslyAssignedWorkerId)) {
+            updatedReplaced.push(new mongoose.Types.ObjectId(previouslyAssignedWorkerId));
+        }
+
         const updateFields = {
             'workers.assigned': new mongoose.Types.ObjectId(safeWorkerId),
+            'workers.replaced': updatedReplaced,
             status: 'assigned',
             isAssigned: true,
             assignedAt: new Date(),
@@ -632,10 +642,20 @@ const replaceWorkerInJobCardService = async (jobCardId, newWorkerId) => {
         if (isOneTime) {
             updateFields.ontimeTrackingstatus = 'assigned';
         }
+        if (perDayNurseCost !== undefined && perDayNurseCost !== null) {
+            updateFields.perDayNurseCost = Number(perDayNurseCost);
+        }
+        if (serviceStart) {
+            updateFields.serviceStart = normalizeDateOnly(serviceStart);
+        }
 
         const updatedJobCard = await jobcartRepository.updateJobCard(safeJobCardId, updateFields);
         if (!updatedJobCard) {
             throw new Error("Failed to replace worker for this job card");
+        }
+
+        if (previouslyAssignedWorkerId) {
+            await updateWorkerGlobalBalance(previouslyAssignedWorkerId);
         }
 
         if (is12Hour) {

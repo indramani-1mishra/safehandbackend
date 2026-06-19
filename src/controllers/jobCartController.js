@@ -69,7 +69,7 @@ const removeWorkerFromJobCardController = async (req, res) => {
 const assignWorkerToJobCardController = async (req, res) => {
     try {
         if (!req.body.workerId) return res.status(400).json({ success: false, message: "workerId is required" });
-        const jobCard = await jobcartService.assignWorkerToJobCardService(req.params.id, req.body.workerId);
+        const jobCard = await jobcartService.assignWorkerToJobCardService(req.params.id, req.body.workerId, req.body.perDayNurseCost);
         res.status(200).json({ success: true, message: "Worker assigned successfully", data: jobCard });
     } catch (error) {
         // 400 = intentional business logic error (e.g. worker busy, already assigned)
@@ -81,7 +81,7 @@ const assignWorkerToJobCardController = async (req, res) => {
 const replaceWorkerInJobCardController = async (req, res) => {
     try {
         if (!req.body.workerId) return res.status(400).json({ success: false, message: "workerId is required" });
-        const jobCard = await jobcartService.replaceWorkerInJobCardService(req.params.id, req.body.workerId);
+        const jobCard = await jobcartService.replaceWorkerInJobCardService(req.params.id, req.body.workerId, req.body.perDayNurseCost, req.body.serviceStart);
         res.status(200).json({ success: true, message: "Worker replaced successfully", data: jobCard });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });

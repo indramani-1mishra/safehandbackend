@@ -279,12 +279,15 @@ const getWorkerBalanceService = async (workerId, jobCardId, options = {}) => {
         // Recalculate and update the worker's global available balance in MongoDB
         const globalAvailableBalance = await updateWorkerGlobalBalance(workerId);
 
+        const worker = await workerRepository.getWorkerById(workerId);
+        const workerName = worker ? worker.name : (jobCard.workers.assigned?.name || "Worker");
+
         return {
             success: true,
             data: {
                 workerId,
                 jobCardId,
-                workerName: jobCard.workers.assigned?.name || "Worker",
+                workerName,
                 patientName: jobCard.patientDetails.name,
                 perDayCost,
                 presentDays,
@@ -408,8 +411,17 @@ const getAdminAllWorkersPayablesService = async (filters = {}) => {
         let summaryList = [];
 
         for (const job of ongoingJobs) {
+            const workersToProcess = [];
             if (job.workers && job.workers.assigned) {
-                const workerId = job.workers.assigned;
+                workersToProcess.push(job.workers.assigned._id || job.workers.assigned);
+            }
+            if (job.workers && Array.isArray(job.workers.replaced)) {
+                job.workers.replaced.forEach(r => {
+                    workersToProcess.push(r._id || r);
+                });
+            }
+
+            for (const workerId of workersToProcess) {
                 const jobCardId = job._id;
 
                 const balanceResult = await getWorkerBalanceService(workerId, jobCardId, {
@@ -419,7 +431,10 @@ const getAdminAllWorkersPayablesService = async (filters = {}) => {
                     rawEndDate: end
                 });
                 if (balanceResult.success) {
-                    summaryList.push(balanceResult.data);
+                    const isCurrentlyAssigned = job.workers.assigned && (job.workers.assigned._id || job.workers.assigned).toString() === workerId.toString();
+                    if (isCurrentlyAssigned || balanceResult.data.availableBalance > 0 || balanceResult.data.pendingAmount > 0) {
+                        summaryList.push(balanceResult.data);
+                    }
                 }
             }
         }
