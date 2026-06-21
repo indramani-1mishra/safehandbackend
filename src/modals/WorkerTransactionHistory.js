@@ -39,11 +39,15 @@ const workerTransactionSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: ["credited", "debited"],
-
     },
     balanceAfterTransaction: {
         type: Number,
         required: true
+    },
+    remarks: {
+        type: String,
+        trim: true,
+        default: ""
     }
 }, { timestamps: true });
 

@@ -47,6 +47,15 @@ const WorkerPayoutSchema = new mongoose.Schema({
     },
     paymentproof: {
         type: String,
+    },
+    deductionAmount: {
+        type: Number,
+        default: 0
+    },
+    deductionReason: {
+        type: String,
+        trim: true,
+        default: ""
     }
 }, { timestamps: true });
 

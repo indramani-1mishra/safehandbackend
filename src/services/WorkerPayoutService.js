@@ -189,7 +189,10 @@ const createWorkerPayoutService = async (data) => {
     if (!worker) {
         throw new Error("Worker not found");
     }
-    if (worker.availableBalance < data.amount) {
+    const amountVal = Number(data.amount) || 0;
+    const deductionVal = Number(data.deductionAmount) || 0;
+
+    if (worker.availableBalance < amountVal) {
         throw new Error("Insufficient balance");
     }
     const jobCard = await jobCardRepository.getJobCardById(data.jobCardId);
@@ -197,7 +200,15 @@ const createWorkerPayoutService = async (data) => {
         throw new Error("Job card not found");
     }
 
-    const payout = await WorkerPayoutRepository.createWorkerPayout(data);
+    const payoutData = {
+        ...data,
+        amount: amountVal,
+        deductionAmount: deductionVal,
+        deductionReason: data.deductionReason || "",
+        status: data.status || "paid"
+    };
+
+    const payout = await WorkerPayoutRepository.createWorkerPayout(payoutData);
 
     if (data.workerId) {
         await updateWorkerGlobalBalance(data.workerId);
@@ -206,13 +217,17 @@ const createWorkerPayoutService = async (data) => {
         const updatedWorker = await workerRepository.getWorkerById(data.workerId);
 
         if (payout.status === "paid") {
+            let transactionRemarks = data.remarks || "Worker Payout";
+            if (payout.deductionAmount > 0) {
+                transactionRemarks += ` (Deduction: ₹${payout.deductionAmount} - Reason: ${payout.deductionReason || 'Fine/Recovery'})`;
+            }
             const transactionData = {
                 workerId: data.workerId,
                 jobCardId: data.jobCardId,
                 payoutId: payout._id,
-                amount: data.amount,
+                amount: payout.amount,
                 status: "debited",
-                remarks: data.remarks || "Worker Payout",
+                remarks: transactionRemarks,
                 transactionType: "paid_payout",
                 balanceAfterTransaction: updatedWorker.availableBalance
             };
@@ -319,18 +334,26 @@ const getWorkerHistoryService = async (workerId) => {
             .sort({ createdAt: -1 });
 
         // 3. Map payouts to transaction format (debits)
-        const payoutTransactions = payouts.map(p => ({
-            _id: p._id,
-            type: "payout",
-            amount: p.amount,
-            direction: "decrease", // minus, red
-            date: p.payoutDate || p.createdAt,
-            status: p.status,
-            paymentMethod: p.paymentMethod,
-            transactionId: p.transactionId,
-            remarks: p.remarks || `Payout for ${p.jobCardId?.patientDetails?.name || 'Job'}`,
-            patientName: p.jobCardId?.patientDetails?.name
-        }));
+        const payoutTransactions = payouts.map(p => {
+            let remarks = p.remarks || `Payout for ${p.jobCardId?.patientDetails?.name || 'Job'}`;
+            if (p.deductionAmount > 0) {
+                remarks += ` (Deduction: ₹${p.deductionAmount} - Reason: ${p.deductionReason || 'Fine/Recovery'})`;
+            }
+            return {
+                _id: p._id,
+                type: "payout",
+                amount: p.amount,
+                deductionAmount: p.deductionAmount || 0,
+                deductionReason: p.deductionReason || "",
+                direction: "decrease", // minus, red
+                date: p.payoutDate || p.createdAt,
+                status: p.status,
+                paymentMethod: p.paymentMethod,
+                transactionId: p.transactionId,
+                remarks: remarks,
+                patientName: p.jobCardId?.patientDetails?.name
+            };
+        });
 
         // 4. Map attendances to transaction format (credits)
         const attendanceTransactions = attendances.map(a => {
@@ -492,7 +515,16 @@ const approvePayoutRequestService = async (payoutId, updateData) => {
         if (!payout) throw new Error("Payout request not found");
         if (payout.status !== "pending") throw new Error(`Payout is already ${payout.status}`);
 
-        const { paymentMethod, transactionId, remarks, paidFromDate, paidUntilDate, paymentproof } = updateData;
+        const { 
+            paymentMethod, 
+            transactionId, 
+            remarks, 
+            paidFromDate, 
+            paidUntilDate, 
+            paymentproof,
+            deductionAmount,
+            deductionReason
+        } = updateData;
 
         const updatedPayout = await WorkerPayoutRepository.updateWorkerPayout(payoutId, {
             paymentMethod,
@@ -501,6 +533,8 @@ const approvePayoutRequestService = async (payoutId, updateData) => {
             paidFromDate,
             paidUntilDate,
             paymentproof,
+            deductionAmount: Number(deductionAmount) || 0,
+            deductionReason: deductionReason || "",
             status: "paid",
             payoutDate: new Date()
         });
@@ -515,6 +549,11 @@ const approvePayoutRequestService = async (payoutId, updateData) => {
         const workerDevice = payoutWithDetails?.workerId?.fcmToken;
         const patientName = payoutWithDetails?.jobCardId?.patientDetails?.name || "your job";
 
+        let transactionRemarks = remarks || `Payout approved for ${patientName}'s job`;
+        if (updatedPayout.deductionAmount > 0) {
+            transactionRemarks += ` (Deduction: ₹${updatedPayout.deductionAmount} - Reason: ${updatedPayout.deductionReason || 'Fine/Recovery'})`;
+        }
+
         // Record a transaction for this approved payout!
         await WorkerTransactionHistoryRepository.createTransaction({
             workerId: updatedPayout.workerId,
@@ -522,15 +561,20 @@ const approvePayoutRequestService = async (payoutId, updateData) => {
             payoutId: updatedPayout._id,
             amount: updatedPayout.amount,
             status: "debited",
-            remarks: remarks || `Payout approved for ${patientName}'s job`,
+            remarks: transactionRemarks,
             transactionType: "paid_payout",
             balanceAfterTransaction: updatedWorker.availableBalance
         });
 
         if (workerDevice) {
+            let bodyText = `Your payout request of ₹${updatedPayout.amount} for ${patientName}'s job has been approved and marked as paid.`;
+            if (updatedPayout.deductionAmount > 0) {
+                const actualPaid = updatedPayout.amount - updatedPayout.deductionAmount;
+                bodyText += ` (Actual Paid: ₹${actualPaid}, Deduction: ₹${updatedPayout.deductionAmount} for ${updatedPayout.deductionReason || 'Fine/Recovery'}).`;
+            }
             await sendFcmNotification(workerDevice, {
                 title: "Payout Approved 💰",
-                body: `Your payout request of ₹${updatedPayout.amount} for ${patientName}'s job has been approved and marked as paid.`,
+                body: bodyText,
             }, {
                 type: "payout_approved",
                 jobCardId: updatedPayout.jobCardId.toString(),
