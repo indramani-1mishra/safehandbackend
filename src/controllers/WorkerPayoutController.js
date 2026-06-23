@@ -98,6 +98,31 @@ const rejectPayoutRequestController = async (req, res) => {
     }
 };
 
+const getLatestPaidPayoutController = async (req, res) => {
+    try {
+        const { workerId, jobCardId } = req.query;
+        if (!workerId || !jobCardId) {
+            return res.status(400).json({ success: false, message: 'workerId and jobCardId are required' });
+        }
+        const payout = await WorkerPayoutService.getLatestPaidPayoutByWorkerAndJobService(workerId, jobCardId);
+        if (!payout) {
+            return res.status(404).json({ success: false, message: 'No paid payout found for this worker and job' });
+        }
+        res.status(200).json({ success: true, data: payout });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const reverseWorkerPayoutController = async (req, res) => {
+    try {
+        const response = await WorkerPayoutService.reverseWorkerPayoutService(req.params.id);
+        res.status(200).json({ success: true, message: 'Payout reversed successfully', data: response });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
 const getAllPayoutByDateController = async (req, res) => {
     try {
         let { startDate, endDate } = req.query;
@@ -119,6 +144,8 @@ module.exports = {
     getPendingPayoutRequestsController,
     createWorkerPayout,
     getWorkerPayoutDue,
+    getLatestPaidPayoutController,
+    reverseWorkerPayoutController,
     getWorkerHistory,
     getWorkerBalanceController,
     getAdminAllWorkersPayablesController,

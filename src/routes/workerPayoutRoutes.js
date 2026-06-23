@@ -40,10 +40,16 @@ router.post("/", authMiddleware, isAdmin, upload.single("paymentproof"), workerP
 // 9. Admin/Worker: Get due balance (Legacy endpoint)
 router.get("/due", allowAnyAuth, workerPayoutController.getWorkerPayoutDue);
 
-// 10. Admin: Get all payouts by date
+// 10. Admin: Get latest paid payout for a worker / job
+router.get("/latest-paid", authMiddleware, isAdmin, workerPayoutController.getLatestPaidPayoutController);
+
+// 11. Admin: Reverse a paid payout
+router.delete("/:id", authMiddleware, isAdmin, workerPayoutController.reverseWorkerPayoutController);
+
+// 12. Admin: Get all payouts by date
 router.get("/reports/payout-by-date", authMiddleware, isAdmin, workerPayoutController.getAllPayoutByDateController);
 
-// 11. Admin: Reject a pending payout request
+// 13. Admin: Reject a pending payout request
 router.put("/reject/:id", authMiddleware, isAdmin, workerPayoutController.rejectPayoutRequestController);
 
 module.exports = router;

@@ -51,7 +51,7 @@ const updateWorkerGlobalBalance = async (workerId) => {
 
         // 3. Calculate Total already Paid or Pending payouts across all jobs
         const totalPayouts = payouts
-            .filter(p => p.status !== "failed" && p.status !== "rejected")
+            .filter(p => p.status !== "failed" && p.status !== "rejected" && p.status !== "reversed")
             .reduce((sum, p) => sum + p.amount, 0);
 
         const globalAvailableBalance = totalEarned - totalPayouts;
@@ -94,7 +94,7 @@ const requestPayoutService = async (data) => {
         // Calculate Total already Paid or Pending (to prevent over-requesting)
         const existingPayouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);
         const totalPayouts = existingPayouts.reduce((sum, p) => {
-            if (p.status !== "failed" && p.status !== "rejected") return sum + p.amount;
+            if (p.status !== "failed" && p.status !== "rejected" && p.status !== "reversed") return sum + p.amount;
             return sum;
         }, 0);
 
@@ -184,6 +184,49 @@ const getWorkerPayoutDue = async (workerId, jobCardId) => {
     };
 };
 
+const getLatestPaidPayoutByWorkerAndJobService = async (workerId, jobCardId) => {
+    const latestPaidPayout = await WorkerPayoutRepository.getLatestPaidPayoutByWorkerAndJob(workerId, jobCardId);
+    return latestPaidPayout;
+};
+
+const reverseWorkerPayoutService = async (payoutId) => {
+    if (!mongoose.Types.ObjectId.isValid(payoutId)) {
+        throw new Error('Invalid payout ID');
+    }
+
+    const payout = await WorkerPayoutRepository.getPayoutById(payoutId);
+    if (!payout) {
+        throw new Error('Payout not found');
+    }
+    if (payout.status !== 'paid') {
+        throw new Error('Only paid payouts can be reversed');
+    }
+
+    const updatedPayout = await WorkerPayoutRepository.updateWorkerPayout(payoutId, {
+        status: 'reversed',
+        remarks: `${payout.remarks || 'Admin payout'} - Reversed by admin`,
+        payoutDate: new Date()
+    });
+
+    await updateWorkerGlobalBalance(updatedPayout.workerId);
+
+    const updatedWorker = await workerRepository.getWorkerById(updatedPayout.workerId);
+    const patientName = updatedPayout.jobCardId?.patientDetails?.name || 'Job';
+
+    await WorkerTransactionHistoryRepository.createTransaction({
+        workerId: updatedPayout.workerId,
+        jobCardId: updatedPayout.jobCardId,
+        payoutId: updatedPayout._id,
+        amount: updatedPayout.amount,
+        status: 'credited',
+        remarks: `Reversed payout for ${patientName}`,
+        transactionType: 'cancelled_payout',
+        balanceAfterTransaction: updatedWorker.availableBalance
+    });
+
+    return updatedPayout;
+};
+
 const createWorkerPayoutService = async (data) => {
     const worker = await workerRepository.getWorkerById(data.workerId);
     if (!worker) {
@@ -191,9 +234,10 @@ const createWorkerPayoutService = async (data) => {
     }
     const amountVal = Number(data.amount) || 0;
     const deductionVal = Number(data.deductionAmount) || 0;
+    const netCashPaid = amountVal - deductionVal;
 
-    if (worker.availableBalance < amountVal) {
-        throw new Error("Insufficient balance");
+    if (netCashPaid > 0 && worker.availableBalance < netCashPaid) {
+        throw new Error("Insufficient balance for this payout amount");
     }
     const jobCard = await jobCardRepository.getJobCardById(data.jobCardId);
     if (!jobCard) {
@@ -250,11 +294,29 @@ const getWorkerBalanceService = async (workerId, jobCardId, options = {}) => {
         const attendanceRecords = await attendenceWorkerRepository.getAttendanceByJobCardIdAndWorkerId(jobCardId, workerId);
         
         let filteredAttendance = attendanceRecords;
+        const parseDDMMYYYY = (dateStr) => {
+            if (!dateStr || typeof dateStr !== 'string') return null;
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return null;
+            const [d, m, y] = parts;
+            return new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
+        };
+
         if (options.startDate) {
-            filteredAttendance = filteredAttendance.filter(att => att.date >= options.startDate);
+            const startLimit = new Date(options.startDate);
+            startLimit.setHours(0, 0, 0, 0);
+            filteredAttendance = filteredAttendance.filter(att => {
+                const attDate = parseDDMMYYYY(att.date);
+                return attDate && attDate >= startLimit;
+            });
         }
         if (options.endDate) {
-            filteredAttendance = filteredAttendance.filter(att => att.date <= options.endDate);
+            const endLimit = new Date(options.endDate);
+            endLimit.setHours(23, 59, 59, 999);
+            filteredAttendance = filteredAttendance.filter(att => {
+                const attDate = parseDDMMYYYY(att.date);
+                return attDate && attDate <= endLimit;
+            });
         }
 
         const presentAttendance = filteredAttendance.filter(att => att.status === "present");
@@ -334,12 +396,14 @@ const getWorkerHistoryService = async (workerId) => {
             .sort({ createdAt: -1 });
 
         // 3. Map payouts to transaction format (debits)
-        const payoutTransactions = payouts.map(p => {
-            let remarks = p.remarks || `Payout for ${p.jobCardId?.patientDetails?.name || 'Job'}`;
-            if (p.deductionAmount > 0) {
-                remarks += ` (Deduction: ₹${p.deductionAmount} - Reason: ${p.deductionReason || 'Fine/Recovery'})`;
-            }
-            return {
+        const payoutTransactions = payouts
+            .filter(p => p.status !== 'reversed')
+            .map(p => {
+                let remarks = p.remarks || `Payout for ${p.jobCardId?.patientDetails?.name || 'Job'}`;
+                if (p.deductionAmount > 0) {
+                    remarks += ` (Deduction: ₹${p.deductionAmount} - Reason: ${p.deductionReason || 'Fine/Recovery'})`;
+                }
+                return {
                 _id: p._id,
                 type: "payout",
                 amount: p.amount,
@@ -707,6 +771,8 @@ module.exports = {
     requestPayoutService,
     getPendingPayoutRequestsService,
     getWorkerPayoutDue,
+    getLatestPaidPayoutByWorkerAndJobService,
+    reverseWorkerPayoutService,
     createWorkerPayoutService,
     getWorkerHistoryService,
     getWorkerBalanceService,

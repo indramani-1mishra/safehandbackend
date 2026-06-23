@@ -2,6 +2,7 @@ const jobcartRepository = require("../repository/jobcartRepository");
 const serviceRepository = require("../repository/serviceRepository");
 const matchUsers = require("../utils/matchUsers");
 const workerRepository = require("../repository/workerRepository");
+const attendenceWorkerRepository = require("../repository/attendenceWorker");
 const enquiryRepository = require("../repository/enqueryRepository");
 const { default: mongoose } = require("mongoose");
 const socketUtils = require("../utils/socket");
@@ -97,6 +98,43 @@ const normalizeTimeToDate = (timeStr, baseDate = new Date()) => {
     if (isNaN(fallbackDate.getTime())) return null;
     const ist = getISTComponents(fallbackDate);
     return new Date(`${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}T${String(ist.hour).padStart(2, '0')}:${String(ist.minute).padStart(2, '0')}:00.000+05:30`);
+};
+
+const normalizeDateToMidnight = (value) => {
+    if (!value) return null;
+    return normalizeDateOnly(value);
+};
+
+const getDatesBetween = (startDate, endDate) => {
+    const dates = [];
+    const current = new Date(startDate);
+    while (current <= endDate) {
+        dates.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+    }
+    return dates;
+};
+
+const ensureAttendanceMarkedThroughDate = async (jobCard, workerId, replacementDate) => {
+    const startDate = normalizeDateToMidnight(jobCard.serviceStart || jobCard.createdAt || new Date());
+    const endDate = normalizeDateToMidnight(replacementDate || new Date());
+    if (!startDate || !endDate) return;
+
+    const dateRangeStart = startDate <= endDate ? startDate : endDate;
+    const datesToValidate = getDatesBetween(dateRangeStart, endDate);
+    const missingDates = [];
+
+    for (const date of datesToValidate) {
+        const attendance = await attendenceWorkerRepository.getAttendanceByWorkerIdAndJobCardIdAndDate(workerId, jobCard._id, date);
+        if (!attendance || !["present", "absent"].includes(attendance.status)) {
+            missingDates.push(date);
+        }
+    }
+
+    if (missingDates.length > 0) {
+        const formattedTargetDate = endDate.toISOString().split('T')[0];
+        throw new Error(`Cannot replace worker until attendance is marked for all dates through ${formattedTargetDate}. Please mark attendance as present or absent before replacing.`);
+    }
 };
 
 const createJobCardService = async (data) => {
@@ -613,6 +651,8 @@ const replaceWorkerInJobCardService = async (jobCardId, newWorkerId, perDayNurse
         if (previouslyAssignedWorkerId === safeWorkerId) {
             throw new Error("The selected worker is already assigned to this job card");
         }
+
+        await ensureAttendanceMarkedThroughDate(jobCard, previouslyAssignedWorkerId, serviceStart || new Date());
 
         const isNewWorkerBusy = await workerRepository.checkWorkerBusyStatus(
             safeWorkerId,
