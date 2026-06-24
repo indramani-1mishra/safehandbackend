@@ -49,8 +49,16 @@ const createWorkerSchema = Joi.object({
     ifscCode: Joi.string().allow("").optional(),
     accountHolderName: Joi.string().allow("").optional(),
     upiId: Joi.string().allow("").optional(),
-    scanner: Joi.string().allow("").optional()
+    scanner: Joi.string().allow("").optional(),
 
+    // 🎯 Tracking Status
+    test: Joi.boolean().optional(),
+    testMark: Joi.number().optional(),
+    testResult: Joi.string().valid("pass", "fail", "").optional(),
+    vcallVerification: Joi.boolean().optional(),
+    documentsUpload: Joi.boolean().optional(),
+    bankDetails: Joi.boolean().optional(),
+    fullWorkerApproved: Joi.boolean().optional()
 });
 
 
@@ -97,10 +105,32 @@ const updateWorkerSchema = Joi.object({
     ifscCode: Joi.string().allow("").optional(),
     accountHolderName: Joi.string().allow("").optional(),
     upiId: Joi.string().allow("").optional(),
-    scanner: Joi.string().allow("").optional()
+    scanner: Joi.string().allow("").optional(),
+
+    // 🎯 Tracking Status
+    test: Joi.boolean().optional(),
+    testMark: Joi.number().optional(),
+    testResult: Joi.string().valid("pass", "fail", "").optional(),
+    vcallVerification: Joi.boolean().optional(),
+    documentsUpload: Joi.boolean().optional(),
+    bankDetails: Joi.boolean().optional(),
+    fullWorkerApproved: Joi.boolean().optional()
+});
+
+// 🔥 COMPLETE WORKER SELF-REGISTRATION VALIDATION
+const completeWorkerSelfRegistrationSchema = Joi.object({
+    name: Joi.string().trim().min(2).max(50).required(),
+    email: Joi.string().email().lowercase().allow("").optional(),
+    age: Joi.number().min(18).optional(),
+    gender: Joi.string().valid("male", "female", "other").optional(),
+    city: Joi.string().optional(),
+    prefer_city: Joi.string().allow("").optional(),
+    Religion: Joi.string().allow("").optional(),
+    services: Joi.array().items(Joi.string()).optional()
 });
 
 module.exports = {
     createWorkerSchema,
-    updateWorkerSchema
+    updateWorkerSchema,
+    completeWorkerSelfRegistrationSchema
 };

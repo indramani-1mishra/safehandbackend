@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const workerController = require("../controllers/workerController");
 const upload = require("../middleware/multer");
-const { authMiddleware, isAdmin, allowAnyAuth } = require("../middleware/authmiddleware");
+const { authMiddleware, isAdmin, allowAnyAuth, workerAuthMiddleware } = require("../middleware/authmiddleware");
 
 // Create Worker - Admin only
 router.post(
@@ -55,5 +55,37 @@ router.get("/by-date", authMiddleware, isAdmin, workerController.getWorkersByDat
 
 // Respond to checkin call notification (Yes/No)
 router.post("/respond-checkin-alert", allowAnyAuth, workerController.respondToCheckInAlertController);
+
+// 🚪 Worker Self-Registration & Onboarding Routes
+router.put(
+    "/complete-registration",
+    workerAuthMiddleware,
+    workerController.completeWorkerSelfRegistrationController
+);
+
+// NOTE: Test submission is handled securely at POST /api/questions/submit-test
+// (backend grades the answers - client never gets correct answers)
+
+router.put(
+    "/bank-details",
+    workerAuthMiddleware,
+    upload.fields([{ name: "scanner", maxCount: 1 }]),
+    workerController.updateBankDetailsController
+);
+
+router.put(
+    "/documents",
+    workerAuthMiddleware,
+    upload.fields([{ name: "documents", maxCount: 10 }]),
+    workerController.uploadDocumentsController
+);
+
+// 👑 Admin Approval Route
+router.put(
+    "/admin-approve/:id",
+    authMiddleware,
+    isAdmin,
+    workerController.adminApproveWorkerController
+);
 
 module.exports = router;

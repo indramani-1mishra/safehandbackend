@@ -5,7 +5,7 @@ const workerSchema = new mongoose.Schema({
 
     name: {
         type: String,
-        required: true,
+        required: false,
         trim: true
     },
 
@@ -161,6 +161,36 @@ const workerSchema = new mongoose.Schema({
         ],
 
         default: [],
+    },
+
+    test: {
+        type: Boolean,
+        default: false
+    },
+    testMark: {
+        type: Number,
+        default: 0
+    },
+    testResult: {
+        type: String,
+        enum: ["pass", "fail", ""],
+        default: ""
+    },
+    vcallVerification: {
+        type: Boolean,
+        default: false
+    },
+    documentsUpload: {
+        type: Boolean,
+        default: false
+    },
+    bankDetails: {
+        type: Boolean,
+        default: false
+    },
+    fullWorkerApproved: {
+        type: Boolean,
+        default: false
     },
 
 

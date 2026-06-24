@@ -263,6 +263,114 @@ const respondToCheckInAlert = async (workerId, jobCardId, status) => {
     }
 };
 
+// 🔥 COMPLETE WORKER SELF REGISTRATION
+const completeWorkerSelfRegistration = async (id, data) => {
+    if (!id) {
+        throw new AppError("Worker ID is required", 400);
+    }
+
+    const { completeWorkerSelfRegistrationSchema } = require("../validations/workerValidation");
+    const { error, value } = completeWorkerSelfRegistrationSchema.validate(data);
+
+    if (error) {
+        throw new AppError(error.details[0].message, 400);
+    }
+
+    // Strip out any attempts to self-approve or self-verify
+    delete value.fullWorkerApproved;
+    delete value.vcallVerification;
+
+    const worker = await workerRepository.updateWorker(id, value);
+    if (!worker) {
+        throw new AppError("Worker not found", 404);
+    }
+    return worker;
+};
+
+// 🔥 SUBMIT WORKER TEST
+const submitWorkerTest = async (id, data) => {
+    if (!id) {
+        throw new AppError("Worker ID is required", 400);
+    }
+
+    const { testMark, testResult } = data;
+    if (testMark === undefined || !testResult) {
+        throw new AppError("testMark and testResult are required", 400);
+    }
+
+    const worker = await workerRepository.updateWorker(id, {
+        test: true,
+        testMark: Number(testMark),
+        testResult
+    });
+
+    if (!worker) {
+        throw new AppError("Worker not found", 404);
+    }
+    return worker;
+};
+
+// 🔥 UPDATE BANK DETAILS
+const updateBankDetails = async (id, data) => {
+    if (!id) {
+        throw new AppError("Worker ID is required", 400);
+    }
+
+    const fields = [
+        "bankName",
+        "accountNumber",
+        "ifscCode",
+        "accountHolderName",
+        "upiId"
+    ];
+
+    const updateData = {};
+    fields.forEach(field => {
+        if (data[field] !== undefined) {
+            updateData[field] = data[field];
+        }
+    });
+
+    if (data.scanner !== undefined) {
+        updateData.scanner = data.scanner;
+    }
+
+    updateData.bankDetails = true;
+
+    const worker = await workerRepository.updateWorker(id, updateData);
+    if (!worker) {
+        throw new AppError("Worker not found", 404);
+    }
+    return worker;
+};
+
+// 🔥 UPLOAD DOCUMENTS
+const uploadDocuments = async (id, documents) => {
+    if (!id) {
+        throw new AppError("Worker ID is required", 400);
+    }
+
+    if (!documents || documents.length === 0) {
+        throw new AppError("No documents provided", 400);
+    }
+
+    const worker = await workerRepository.getWorkerById(id);
+    if (!worker) {
+        throw new AppError("Worker not found", 404);
+    }
+
+    // Append new documents to existing documents
+    const currentDocs = worker.documents || [];
+    const updatedDocs = [...currentDocs, ...documents];
+
+    const updatedWorker = await workerRepository.updateWorker(id, {
+        documents: updatedDocs,
+        documentsUpload: true
+    });
+
+    return updatedWorker;
+};
+
 module.exports = {
     createWorker,
     updateWorker,
@@ -276,4 +384,8 @@ module.exports = {
     getWorkersByBusyStatus,
     getWorkersByDateRange,
     respondToCheckInAlert,
+    completeWorkerSelfRegistration,
+    submitWorkerTest,
+    updateBankDetails,
+    uploadDocuments
 };

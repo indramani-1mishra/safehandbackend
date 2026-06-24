@@ -70,6 +70,7 @@ const workerTransactionRoutes = require('./routes/workerTransactionRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const jobPostRoutes = require('./routes/jobPostRoutes');
 const appVersionRoutes = require('./routes/appVersionRoutes');
+const questionRoutes = require('./routes/questionRoutes');
 
 // API Routing setup
 app.use('/api/services', serviceRoutes);
@@ -101,6 +102,7 @@ app.use('/api/worker-transactions', workerTransactionRoutes);
 app.use('/api/location', locationRoutes);
 app.use('/api/jobposts', jobPostRoutes);
 app.use('/api/app', appVersionRoutes);
+app.use('/api/questions', questionRoutes);
 
 
 

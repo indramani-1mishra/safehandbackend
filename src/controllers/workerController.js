@@ -354,6 +354,209 @@ const respondToCheckInAlertController = async (req, res) => {
     }
 };
 
+const completeWorkerSelfRegistrationController = async (req, res) => {
+    try {
+        const workerId = req?.worker?.id;
+        if (!workerId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        const data = { ...req.body };
+
+        // Parse services if sent as string
+        if (typeof data.services === "string") {
+            try {
+                data.services = JSON.parse(data.services);
+            } catch (e) {
+                data.services = [data.services];
+            }
+        }
+
+        const worker = await workerService.completeWorkerSelfRegistration(workerId, data);
+
+        return res.status(200).json({
+            success: true,
+            message: "Registration profile completed successfully",
+            data: worker
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 400;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+const submitWorkerTestController = async (req, res) => {
+    try {
+        const workerId = req?.worker?.id;
+        if (!workerId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        const worker = await workerService.submitWorkerTest(workerId, req.body);
+
+        return res.status(200).json({
+            success: true,
+            message: "Test submitted successfully",
+            data: worker
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 400;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+const updateBankDetailsController = async (req, res) => {
+    try {
+        const workerId = req?.worker?.id;
+        if (!workerId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        const data = { ...req.body };
+        if (req.files && req.files.scanner && req.files.scanner.length > 0) {
+            data.scanner = req.files.scanner[0].location || req.files.scanner[0].path;
+        }
+
+        const worker = await workerService.updateBankDetails(workerId, data);
+
+        return res.status(200).json({
+            success: true,
+            message: "Bank details updated successfully",
+            data: worker
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 400;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+const uploadDocumentsController = async (req, res) => {
+    try {
+        const workerId = req?.worker?.id;
+        if (!workerId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        if (!req.files || !req.files.documents || req.files.documents.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No documents uploaded"
+            });
+        }
+
+        let documentNames = [];
+        if (req.body.documentNames) {
+            if (Array.isArray(req.body.documentNames)) {
+                documentNames = req.body.documentNames;
+            } else if (typeof req.body.documentNames === "string") {
+                try {
+                    const parsed = JSON.parse(req.body.documentNames);
+                    documentNames = Array.isArray(parsed) ? parsed : [parsed];
+                } catch (e) {
+                    documentNames = [req.body.documentNames];
+                }
+            }
+        }
+
+        const documents = req.files.documents.map((file, index) => ({
+            url: file.location || file.path,
+            name: documentNames[index] || `Document ${index + 1}`
+        }));
+
+        const worker = await workerService.uploadDocuments(workerId, documents);
+
+        return res.status(200).json({
+            success: true,
+            message: "Documents uploaded successfully",
+            data: worker
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 400;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+const adminApproveWorkerController = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const data = { ...req.body };
+
+        if (!id) {
+            return res.status(400).json({ success: false, message: "Worker ID is required" });
+        }
+
+        // Only allow explicit status fields — no full profile changes via this endpoint
+        const allowedFields = [
+            "test",
+            "testMark",
+            "testResult",
+            "vcallVerification",
+            "documentsUpload",
+            "bankDetails",
+            "fullWorkerApproved",
+            "isActive"
+        ];
+
+        const updateFields = {};
+        allowedFields.forEach(field => {
+            if (data[field] !== undefined) {
+                updateFields[field] = data[field];
+            }
+        });
+
+        if (Object.keys(updateFields).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No valid status fields provided. Allowed fields: " + allowedFields.join(", ")
+            });
+        }
+
+        // Use repository directly to bypass Joi schema validation (status-only update)
+        const workerRepository = require("../repository/workerRepository");
+        const worker = await workerRepository.updateWorker(id, updateFields);
+
+        if (!worker) {
+            return res.status(404).json({ success: false, message: "Worker not found" });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Worker approval status updated successfully",
+            data: worker
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 400;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     createWorkerController,
     updateWorkerController,
@@ -367,4 +570,9 @@ module.exports = {
     getWorkersByBusyStatusController,
     getWorkersByDateRangeController,
     respondToCheckInAlertController,
+    completeWorkerSelfRegistrationController,
+    submitWorkerTestController,
+    updateBankDetailsController,
+    uploadDocumentsController,
+    adminApproveWorkerController
 };

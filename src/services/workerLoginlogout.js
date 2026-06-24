@@ -23,9 +23,15 @@ const generateTokens = (worker) => {
 
 const sendOtpService = async (phone) => {
     try {
-        const worker = await workerRepository.findWorkerByPhone(phone);
+        let worker = await workerRepository.findWorkerByPhone(phone);
         if (!worker) {
-            throw new Error("Worker not found");
+            // Auto-create draft worker record for self-registration
+            worker = await workerRepository.createWorker({
+                phone,
+                name: "Draft Worker",
+                isPhoneVerified: false,
+                fullWorkerApproved: false
+            });
         }
         const otp = generateSecureOtp();
         await sendOtpThroughWhatsapp(phone, otp);
@@ -59,10 +65,8 @@ const verifyOtpService = async (phone, otp, fcmToken) => {
                 isPhoneVerified: true,
                 isOnline: true,
                 fcmToken: fcmToken || "",
-
             });
             const { accessToken, refreshToken } = generateTokens(worker);
-
             await workerRepository.saveRefreshToken(worker._id, refreshToken);
 
             return {
@@ -70,12 +74,20 @@ const verifyOtpService = async (phone, otp, fcmToken) => {
                     _id: worker._id,
                     email: worker.email,
                     role: worker.role,
-                    name: worker.name
+                    name: worker.name,
+                    phone: worker.phone,
+                    isPhoneVerified: true,   // ✅ return updated value directly
+                    test: worker.test,
+                    testMark: worker.testMark,
+                    testResult: worker.testResult,
+                    vcallVerification: worker.vcallVerification,
+                    documentsUpload: worker.documentsUpload,
+                    bankDetails: worker.bankDetails,
+                    fullWorkerApproved: worker.fullWorkerApproved
                 },
                 accessToken,
                 refreshToken
             };
-
         }
         if (worker.otpExpires < Date.now()) {
             throw new Error("OTP expired");
@@ -94,11 +106,9 @@ const verifyOtpService = async (phone, otp, fcmToken) => {
             isPhoneVerified: true,
             isOnline: true,
             fcmToken: fcmToken || "",
-
         });
 
         const { accessToken, refreshToken } = generateTokens(worker);
-
         await workerRepository.saveRefreshToken(worker._id, refreshToken);
 
         return {
@@ -106,8 +116,16 @@ const verifyOtpService = async (phone, otp, fcmToken) => {
                 _id: worker._id,
                 email: worker.email,
                 role: worker.role,
-                name: worker.name
-
+                name: worker.name,
+                phone: worker.phone,
+                isPhoneVerified: true,   // ✅ return updated value directly
+                test: worker.test,
+                testMark: worker.testMark,
+                testResult: worker.testResult,
+                vcallVerification: worker.vcallVerification,
+                documentsUpload: worker.documentsUpload,
+                bankDetails: worker.bankDetails,
+                fullWorkerApproved: worker.fullWorkerApproved
             },
             accessToken,
             refreshToken
@@ -119,10 +137,6 @@ const verifyOtpService = async (phone, otp, fcmToken) => {
 
 const resendOtpService = async (phone) => {
     try {
-        const worker = await workerRepository.findWorkerByPhone(phone);
-        if (!worker) {
-            throw new Error("Worker not found");
-        }
         await sendOtpService(phone);
     } catch (error) {
         throw error;
@@ -167,7 +181,16 @@ const refreshTokenService = async (refreshToken) => {
                 _id: worker._id,
                 email: worker.email,
                 role: worker.role,
-                name: worker.name
+                name: worker.name,
+                phone: worker.phone,
+                isPhoneVerified: worker.isPhoneVerified,
+                test: worker.test,
+                testMark: worker.testMark,
+                testResult: worker.testResult,
+                vcallVerification: worker.vcallVerification,
+                documentsUpload: worker.documentsUpload,
+                bankDetails: worker.bankDetails,
+                fullWorkerApproved: worker.fullWorkerApproved
             },
             accessToken,
             refreshToken: newRefreshToken
