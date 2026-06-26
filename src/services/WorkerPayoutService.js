@@ -161,7 +161,7 @@ const getPendingPayoutRequestsService = async () => {
  */
 const getWorkerPayoutDue = async (workerId, jobCardId) => {
     const jobCard = await jobCardRepository.getJobCardById(jobCardId);
-    if (!jobCard) return { remainingDue: 0 };
+    if (!jobCard) return { remainingDue: 0, totalDeductions: 0 };
 
     const attendance = await attendenceWorkerRepository.getAttendanceByJobCardIdAndWorkerId(jobCardId, workerId);
     const presentAttendance = attendance.filter(a => a.status === 'present');
@@ -176,17 +176,24 @@ const getWorkerPayoutDue = async (workerId, jobCardId) => {
 
     const payouts = await WorkerPayoutRepository.getPayoutsByWorkerAndJob(workerId, jobCardId);
     const totalPaid = payouts.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+    const totalDeductions = payouts.filter(p => p.status === 'paid' && p.deductionAmount > 0).reduce((sum, p) => sum + p.deductionAmount, 0);
 
     return {
         totalEarned,
         totalPaid,
-        remainingDue: totalEarned - totalPaid
+        remainingDue: totalEarned - totalPaid,
+        totalDeductions
     };
 };
 
 const getLatestPaidPayoutByWorkerAndJobService = async (workerId, jobCardId) => {
     const latestPaidPayout = await WorkerPayoutRepository.getLatestPaidPayoutByWorkerAndJob(workerId, jobCardId);
     return latestPaidPayout;
+};
+
+const getLatestPaidDeductionByWorkerAndJobService = async (workerId, jobCardId) => {
+    const latestPaidDeduction = await WorkerPayoutRepository.getLatestPaidDeductionByWorkerAndJob(workerId, jobCardId);
+    return latestPaidDeduction;
 };
 
 const reverseWorkerPayoutService = async (payoutId) => {
@@ -772,6 +779,7 @@ module.exports = {
     getPendingPayoutRequestsService,
     getWorkerPayoutDue,
     getLatestPaidPayoutByWorkerAndJobService,
+    getLatestPaidDeductionByWorkerAndJobService,
     reverseWorkerPayoutService,
     createWorkerPayoutService,
     getWorkerHistoryService,

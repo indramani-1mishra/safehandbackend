@@ -114,6 +114,22 @@ const getLatestPaidPayoutController = async (req, res) => {
     }
 };
 
+const getLatestPaidDeductionController = async (req, res) => {
+    try {
+        const { workerId, jobCardId } = req.query;
+        if (!workerId || !jobCardId) {
+            return res.status(400).json({ success: false, message: 'workerId and jobCardId are required' });
+        }
+        const payout = await WorkerPayoutService.getLatestPaidDeductionByWorkerAndJobService(workerId, jobCardId);
+        if (!payout) {
+            return res.status(404).json({ success: false, message: 'No paid deduction found for this worker and job' });
+        }
+        res.status(200).json({ success: true, data: payout });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 const reverseWorkerPayoutController = async (req, res) => {
     try {
         const response = await WorkerPayoutService.reverseWorkerPayoutService(req.params.id);
@@ -145,6 +161,7 @@ module.exports = {
     createWorkerPayout,
     getWorkerPayoutDue,
     getLatestPaidPayoutController,
+    getLatestPaidDeductionController,
     reverseWorkerPayoutController,
     getWorkerHistory,
     getWorkerBalanceController,

@@ -14,6 +14,11 @@ const getLatestPaidPayoutByWorkerAndJob = async (workerId, jobCardId) => {
         .sort({ payoutDate: -1, createdAt: -1 });
 }
 
+const getLatestPaidDeductionByWorkerAndJob = async (workerId, jobCardId) => {
+    return await WorkerPayout.findOne({ workerId, jobCardId, status: 'paid', deductionAmount: { $gt: 0 } })
+        .sort({ payoutDate: -1, createdAt: -1 });
+}
+
 const getAllPayoutsByWorker = async (workerId) => {
     return await WorkerPayout.find({ workerId }).populate("workerId").populate("jobCardId").sort({ createdAt: -1 });
 }
@@ -52,6 +57,7 @@ module.exports = {
     getAllPayoutsByWorker,
     getPayoutById,
     getLatestPaidPayoutByWorkerAndJob,
+    getLatestPaidDeductionByWorkerAndJob,
     getAllPayouts,
     updateWorkerPayout,
     getWorkerbyPayoutId,

@@ -42,6 +42,7 @@ router.get("/due", allowAnyAuth, workerPayoutController.getWorkerPayoutDue);
 
 // 10. Admin: Get latest paid payout for a worker / job
 router.get("/latest-paid", authMiddleware, isAdmin, workerPayoutController.getLatestPaidPayoutController);
+router.get("/latest-paid-deduction", authMiddleware, isAdmin, workerPayoutController.getLatestPaidDeductionController);
 
 // 11. Admin: Reverse a paid payout
 router.delete("/:id", authMiddleware, isAdmin, workerPayoutController.reverseWorkerPayoutController);

@@ -115,24 +115,33 @@ const getDatesBetween = (startDate, endDate) => {
     return dates;
 };
 
+const formatDateToDDMMYYYY = (date) => {
+    const ist = getISTComponents(date);
+    return `${String(ist.day).padStart(2, '0')}/${String(ist.month).padStart(2, '0')}/${ist.year}`;
+};
+
 const ensureAttendanceMarkedThroughDate = async (jobCard, workerId, replacementDate) => {
-    const startDate = normalizeDateToMidnight(jobCard.serviceStart || jobCard.createdAt || new Date());
-    const endDate = normalizeDateToMidnight(replacementDate || new Date());
+    const startDate = normalizeDateToMidnight(jobCard.assignedAt || jobCard.serviceStart || jobCard.createdAt || new Date());
+    const targetEndDate = new Date(replacementDate || new Date());
+    targetEndDate.setDate(targetEndDate.getDate() - 1);
+    const endDate = normalizeDateToMidnight(targetEndDate);
     if (!startDate || !endDate) return;
 
-    const dateRangeStart = startDate <= endDate ? startDate : endDate;
+    const dateRangeStart = startDate;
     const datesToValidate = getDatesBetween(dateRangeStart, endDate);
     const missingDates = [];
 
     for (const date of datesToValidate) {
-        const attendance = await attendenceWorkerRepository.getAttendanceByWorkerIdAndJobCardIdAndDate(workerId, jobCard._id, date);
+        const formattedDate = formatDateToDDMMYYYY(date);
+        const attendance = await attendenceWorkerRepository.getAttendanceByWorkerIdAndJobCardIdAndDate(workerId, jobCard._id, formattedDate);
         if (!attendance || !["present", "absent"].includes(attendance.status)) {
             missingDates.push(date);
         }
     }
 
     if (missingDates.length > 0) {
-        const formattedTargetDate = endDate.toISOString().split('T')[0];
+        const ist = getISTComponents(endDate);
+        const formattedTargetDate = `${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}`;
         throw new Error(`Cannot replace worker until attendance is marked for all dates through ${formattedTargetDate}. Please mark attendance as present or absent before replacing.`);
     }
 };
