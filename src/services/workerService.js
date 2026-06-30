@@ -90,7 +90,8 @@ const deleteWorker = async (id) => {
 
 // 🔥 GET ALL WORKERS
 const getAllWorkers = async (query) => {
-    const workers = await workerRepository.getAllWorkers(query);
+    const result = await workerRepository.getAllWorkers(query);
+    const workers = Array.isArray(result) ? result : result.workers;
     try {
         const todayStr = getdate();
         // Fetch all present attendance records for today
@@ -119,10 +120,17 @@ const getAllWorkers = async (query) => {
             return obj;
         });
 
-        return workersList;
+        if (Array.isArray(result)) {
+            return workersList;
+        } else {
+            return {
+                ...result,
+                workers: workersList
+            };
+        }
     } catch (err) {
         console.error("Error calculating today's earnings in getAllWorkers service:", err);
-        return workers;
+        return result;
     }
 };
 

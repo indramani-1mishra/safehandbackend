@@ -161,26 +161,101 @@ const deleteWorker = async (id) => {
 };
 
 const getAllWorkers = async (query = {}) => {
-    const { page = 1, limit = 500, search } = query;
+    const { page, limit, search, fullWorkerApproved, hasActiveJobs } = query;
 
-    let filter = {};
+    const filterAnd = [];
     if (search) {
-        filter = {
+        filterAnd.push({
             $or: [
                 { name: { $regex: search, $options: "i" } },
                 { phone: { $regex: search, $options: "i" } },
                 { city: { $regex: search, $options: "i" } },
                 { gender: { $regex: search, $options: "i" } }
             ]
+        });
+    }
+
+    if (fullWorkerApproved !== undefined) {
+        filterAnd.push({
+            fullWorkerApproved: fullWorkerApproved === 'true' || fullWorkerApproved === true
+        });
+    }
+
+    if (hasActiveJobs === 'true') {
+        filterAnd.push({
+            $or: [
+                { isBusy: true },
+                { workerBookingSlot: { $exists: true, $not: { $size: 0 } } }
+            ]
+        });
+    }
+
+    const filter = filterAnd.length > 0 ? { $and: filterAnd } : {};
+
+    // If page or limit is specified, use pagination
+    if (page || limit) {
+        const pageNum = Number(page) || 1;
+        const limitNum = Number(limit) || 10;
+
+        // Base filter for counting active/pending with search criteria
+        const searchFilterAnd = [];
+        if (search) {
+            searchFilterAnd.push({
+                $or: [
+                    { name: { $regex: search, $options: "i" } },
+                    { phone: { $regex: search, $options: "i" } },
+                    { city: { $regex: search, $options: "i" } },
+                    { gender: { $regex: search, $options: "i" } }
+                ]
+            });
+        }
+        if (hasActiveJobs === 'true') {
+            searchFilterAnd.push({
+                $or: [
+                    { isBusy: true },
+                    { workerBookingSlot: { $exists: true, $not: { $size: 0 } } }
+                ]
+            });
+        }
+        const searchFilter = searchFilterAnd.length > 0 ? { $and: searchFilterAnd } : {};
+
+        const [workers, total, totalActive, totalPending, totalAll] = await Promise.all([
+            Worker.find(filter)
+                .populate({ path: 'services', model: Service })
+                .populate({ path: 'adminId', select: 'name' })
+                .sort({ createdAt: -1 })
+                .skip((pageNum - 1) * limitNum)
+                .limit(limitNum),
+            Worker.countDocuments(filter),
+            Worker.countDocuments({ ...searchFilter, fullWorkerApproved: true }),
+            Worker.countDocuments({ ...searchFilter, fullWorkerApproved: { $ne: true } }),
+            Worker.countDocuments(hasActiveJobs === 'true' ? {
+                $or: [
+                    { isBusy: true },
+                    { workerBookingSlot: { $exists: true, $not: { $size: 0 } } }
+                ]
+            } : {})
+        ]);
+
+        return {
+            workers,
+            total,
+            totalActive,
+            totalPending,
+            totalAll,
+            page: pageNum,
+            limit: limitNum,
+            totalPages: Math.ceil(total / limitNum)
         };
     }
 
+    // Default legacy behavior: return all matching records up to 500 (or default limit 500)
+    const limitNum = Number(limit) || 500;
     return await Worker.find(filter)
         .populate({ path: 'services', model: Service })
         .populate({ path: 'adminId', select: 'name' })
         .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(Number(limit));
+        .limit(limitNum);
 };
 
 

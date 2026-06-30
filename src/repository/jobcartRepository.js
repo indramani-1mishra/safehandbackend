@@ -1,5 +1,6 @@
 const JobCard = require("../modals/jobcartModel");
 const mongoose = require("mongoose");
+const Service = require("../modals/serviceModel");
 
 const createJobCard = async (data) => {
     const jobCard = new JobCard(data);
@@ -21,7 +22,7 @@ const deleteJobCard = async (id) => {
 };
 
 const getAllJobCards = async (query = {}) => {
-    const { page = 1, limit = 50, search, assignedWorkerId } = query;
+    const { page = 1, limit = 50, search, assignedWorkerId, serviceType } = query;
 
     let filter = {};
     if (assignedWorkerId) {
@@ -30,11 +31,29 @@ const getAllJobCards = async (query = {}) => {
             { "workers.replaced": assignedWorkerId }
         ];
     }
+    
+    const filterAnd = [];
     if (search) {
-        filter.$or = [
-            { "patientDetails.name": { $regex: search, $options: "i" } },
-            { "patientDetails.phone": { $regex: search, $options: "i" } }
-        ];
+        filterAnd.push({
+            $or: [
+                { "patientDetails.name": { $regex: search, $options: "i" } },
+                { "patientDetails.phone": { $regex: search, $options: "i" } }
+            ]
+        });
+    }
+
+    if (serviceType) {
+        const services = await Service.find({ serviceType: { $regex: new RegExp(`^${serviceType}$`, 'i') } }).select('_id');
+        const serviceIds = services.map(s => s._id);
+        filterAnd.push({ "serviceDetails.service": { $in: serviceIds } });
+    }
+
+    if (filterAnd.length > 0) {
+        if (filter.$or) {
+            filter = { $and: [ { $or: filter.$or }, ...filterAnd ] };
+        } else {
+            filter = { $and: filterAnd };
+        }
     }
 
     return await JobCard.find(filter)
@@ -120,14 +139,27 @@ const getJobCardById = async (id) => {
 };
 
 const getJobCardsByStatus = async (status, query = {}) => {
-    const { page = 1, limit = 50, search } = query;
+    const { page = 1, limit = 50, search, serviceType } = query;
     
     let filter = { status: status };
+    const filterAnd = [];
     if (search) {
-        filter.$or = [
-            { "patientDetails.name": { $regex: search, $options: "i" } },
-            { "patientDetails.phone": { $regex: search, $options: "i" } }
-        ];
+        filterAnd.push({
+            $or: [
+                { "patientDetails.name": { $regex: search, $options: "i" } },
+                { "patientDetails.phone": { $regex: search, $options: "i" } }
+            ]
+        });
+    }
+
+    if (serviceType) {
+        const services = await Service.find({ serviceType: { $regex: new RegExp(`^${serviceType}$`, 'i') } }).select('_id');
+        const serviceIds = services.map(s => s._id);
+        filterAnd.push({ "serviceDetails.service": { $in: serviceIds } });
+    }
+
+    if (filterAnd.length > 0) {
+        filter = { $and: [ { status: status }, ...filterAnd ] };
     }
 
     return await JobCard.find(filter)

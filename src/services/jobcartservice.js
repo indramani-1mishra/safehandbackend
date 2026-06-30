@@ -120,8 +120,39 @@ const formatDateToDDMMYYYY = (date) => {
     return `${String(ist.day).padStart(2, '0')}/${String(ist.month).padStart(2, '0')}/${ist.year}`;
 };
 
+const parseDDMMYYYYToDate = (dStr) => {
+    if (!dStr) return null;
+    const parts = dStr.split('/');
+    if (parts.length === 3) {
+        const [day, month, year] = parts;
+        return new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+    }
+    return null;
+};
+
 const ensureAttendanceMarkedThroughDate = async (jobCard, workerId, replacementDate) => {
-    const startDate = normalizeDateToMidnight(jobCard.assignedAt || jobCard.serviceStart || jobCard.createdAt || new Date());
+    let startDate = normalizeDateToMidnight(jobCard.assignedAt || jobCard.serviceStart || jobCard.createdAt || new Date());
+    
+    // Dynamically adjust validation start date based on the worker's first recorded attendance
+    try {
+        const workerAttendances = await attendenceWorkerRepository.getAttendanceByJobCardIdAndWorkerId(jobCard._id, workerId);
+        if (workerAttendances && workerAttendances.length > 0) {
+            const parsedDates = workerAttendances
+                .map(a => parseDDMMYYYYToDate(a.date))
+                .filter(d => d && !isNaN(d.getTime()));
+            if (parsedDates.length > 0) {
+                const earliestDate = new Date(Math.min(...parsedDates.map(d => d.getTime())));
+                const normalizedEarliest = normalizeDateToMidnight(earliestDate);
+                if (normalizedEarliest && normalizedEarliest > startDate) {
+                    console.log(`[JobCard] Adjusting start date to earliest marked attendance: ${earliestDate.toDateString()}`);
+                    startDate = normalizedEarliest;
+                }
+            }
+        }
+    } catch (dbError) {
+        console.error("Failed to query earliest worker attendance:", dbError.message);
+    }
+
     const targetEndDate = new Date(replacementDate || new Date());
     targetEndDate.setDate(targetEndDate.getDate() - 1);
     const endDate = normalizeDateToMidnight(targetEndDate);
@@ -135,14 +166,12 @@ const ensureAttendanceMarkedThroughDate = async (jobCard, workerId, replacementD
         const formattedDate = formatDateToDDMMYYYY(date);
         const attendance = await attendenceWorkerRepository.getAttendanceByWorkerIdAndJobCardIdAndDate(workerId, jobCard._id, formattedDate);
         if (!attendance || !["present", "absent"].includes(attendance.status)) {
-            missingDates.push(date);
+            missingDates.push(formattedDate);
         }
     }
 
     if (missingDates.length > 0) {
-        const ist = getISTComponents(endDate);
-        const formattedTargetDate = `${ist.year}-${String(ist.month).padStart(2, '0')}-${String(ist.day).padStart(2, '0')}`;
-        throw new Error(`Cannot replace worker until attendance is marked for all dates through ${formattedTargetDate}. Please mark attendance as present or absent before replacing.`);
+        throw new Error(`Cannot replace worker. Missing attendance for dates: ${missingDates.join(', ')}. Please mark attendance as present or absent for these dates before replacing.`);
     }
 };
 

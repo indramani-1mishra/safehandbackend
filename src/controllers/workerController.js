@@ -536,8 +536,19 @@ const adminApproveWorkerController = async (req, res) => {
         }
 
         // Use repository directly to bypass Joi schema validation (status-only update)
+        const mongoose = require("mongoose");
+        let targetId = id;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            const Worker = require("../modals/workerModel");
+            const w = await Worker.findOne({ workerId: id });
+            if (!w) {
+                return res.status(404).json({ success: false, message: "Worker not found" });
+            }
+            targetId = w._id;
+        }
+
         const workerRepository = require("../repository/workerRepository");
-        const worker = await workerRepository.updateWorker(id, updateFields);
+        const worker = await workerRepository.updateWorker(targetId, updateFields);
 
         if (!worker) {
             return res.status(404).json({ success: false, message: "Worker not found" });
